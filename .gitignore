@@ -1,0 +1,10 @@
+emulador/.vs/
+bgbw64/
+emulador/Debug/
+emulador/emulador/Debug/
+emulador/emulador/Release/
+emulador/emulador/x64/
+emulador/Release/
+gb-test-roms-master/
+roms/
+emulador/emulador/out.txt
