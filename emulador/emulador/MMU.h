@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include "Types.h"
 #include "IState.h"
 
 class IAddressable;
@@ -33,11 +33,11 @@ public:
 	--------------------------- 4000  |= 32kB Cartrigb
 	16kB ROM bank #0                 |
 	--------------------------- 0000 --*/
-	uint8_t zeroPageRAM[0x80] = { 0 };
-	uint8_t ioPorts[0x80] = { 0 };
-	uint8_t oam[0xA0] = { 0 };
-	uint8_t internalRAM[0x2000] = { 0 };
-	uint8_t videoRAM[0x2000] = { 0 };
+	u8 zeroPageRAM[0x80] = { 0 };
+	u8 ioPorts[0x80] = { 0 };
+	u8 oam[0xA0] = { 0 };
+	u8 internalRAM[0x2000] = { 0 };
+	u8 videoRAM[0x2000] = { 0 };
 
 	IAddressable* cartridge = nullptr;
 	IAddressable* joypad = nullptr;
@@ -47,18 +47,18 @@ public:
 	IAddressable* serial = nullptr;
 	IAddressable* interruptServiceRoutine = nullptr;
 
-	uint8_t Read(uint16_t address);
-	void Write(uint16_t address, uint8_t value);
-	void WriteBit(uint16_t address, uint8_t bitPosition, bool set);
-	void Copy(uint16_t from, uint16_t to);
+	u8 Read(u16 address);
+	void Write(u16 address, u8 value);
+	void WriteBit(u16 address, u8 bitPosition, bool set);
+	void Copy(u16 from, u16 to);
 
 	bool IsBootRomEnabled();
 
 	//TODO move to InterruptServiceRoutine
-	void SetInterruptFlag(uint8_t interruptPosition);
-	void ResetInterruptFlag(uint8_t interruptPosition);
+	void SetInterruptFlag(u8 interruptPosition);
+	void ResetInterruptFlag(u8 interruptPosition);
 
-	IAddressable* GetAddresableFor(uint16_t address);
+	IAddressable* GetAddresableFor(u16 address);
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;

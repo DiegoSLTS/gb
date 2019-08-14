@@ -12,7 +12,7 @@ SpritesViewer::~SpritesViewer() {
 
 void SpritesViewer::Update() {
 	memset(screenArray, 255, (256 + 8)*(256 + 16) * 4);
-	for (uint8_t i = 0; i < 40; i++)
+	for (u8 i = 0; i < 40; i++)
 		DrawSprite(i);
 
 	screenTexture.update(screenArray);
@@ -23,40 +23,40 @@ void SpritesViewer::Update() {
 	renderWindow->display();
 }
 
-void SpritesViewer::DrawSprite(uint8_t index) {
-	const uint8_t paletteMask = 0b00000011;
+void SpritesViewer::DrawSprite(u8 index) {
+	const u8 paletteMask = 0b00000011;
 
-	uint8_t LCDC = mmu->Read(0xFF40);
-	uint8_t spriteHeight = LCDC & LCDCMask::ObjSize ? 16 : 8;
-	uint8_t spriteIndex = index * 4;
+	u8 LCDC = mmu->Read(0xFF40);
+	u8 spriteHeight = LCDC & LCDCMask::ObjSize ? 16 : 8;
+	u8 spriteIndex = index * 4;
 
-	uint8_t spriteY = mmu->Read(0xFE00 + spriteIndex);
-	uint8_t spriteX = mmu->Read(0xFE00 + spriteIndex + 1);
-	uint8_t tileIndex = mmu->Read(0xFE00 + spriteIndex + 2);
-	uint8_t attributes = mmu->Read(0xFE00 + spriteIndex + 3);
+	u8 spriteY = mmu->Read(0xFE00 + spriteIndex);
+	u8 spriteX = mmu->Read(0xFE00 + spriteIndex + 1);
+	u8 tileIndex = mmu->Read(0xFE00 + spriteIndex + 2);
+	u8 attributes = mmu->Read(0xFE00 + spriteIndex + 3);
 
 	bool hasPriority = (attributes & 0b10000000) > 0;
 	bool flipY = (attributes & 0b01000000) > 0;
 	bool flipX = (attributes & 0b00100000) > 0;
-	uint16_t palette = mmu->Read((attributes & 0b00010000) > 0 ? 0xFF49 : 0xFF48); //0xFF49 OBP1, 0xFF48 OBP0
+	u16 palette = mmu->Read((attributes & 0b00010000) > 0 ? 0xFF49 : 0xFF48); //0xFF49 OBP1, 0xFF48 OBP0
 
-	uint16_t tileAddress = 0x8000 + tileIndex * 16;
+	u16 tileAddress = 0x8000 + tileIndex * 16;
 
-	for (uint8_t line = 0; line < spriteHeight; line++) {
-		uint8_t tileDataLow = mmu->Read(tileAddress + line * 2);
-		uint8_t tileDataHigh = mmu->Read(tileAddress + line * 2 + 1);
+	for (u8 line = 0; line < spriteHeight; line++) {
+		u8 tileDataLow = mmu->Read(tileAddress + line * 2);
+		u8 tileDataHigh = mmu->Read(tileAddress + line * 2 + 1);
 
 		//TODO reuse code from GPU
-		uint8_t p7id = (tileDataLow & 0x80) >> 7 | (tileDataHigh & 0x80) >> 6;
-		uint8_t p6id = (tileDataLow & 0x40) >> 6 | (tileDataHigh & 0x40) >> 5;
-		uint8_t p5id = (tileDataLow & 0x20) >> 5 | (tileDataHigh & 0x20) >> 4;
-		uint8_t p4id = (tileDataLow & 0x10) >> 4 | (tileDataHigh & 0x10) >> 3;
-		uint8_t p3id = (tileDataLow & 0x08) >> 3 | (tileDataHigh & 0x08) >> 2;
-		uint8_t p2id = (tileDataLow & 0x04) >> 2 | (tileDataHigh & 0x04) >> 1;
-		uint8_t p1id = (tileDataLow & 0x02) >> 1 | (tileDataHigh & 0x02);
-		uint8_t p0id = (tileDataLow & 0x01) | (tileDataHigh & 0x01) << 1;
+		u8 p7id = (tileDataLow & 0x80) >> 7 | (tileDataHigh & 0x80) >> 6;
+		u8 p6id = (tileDataLow & 0x40) >> 6 | (tileDataHigh & 0x40) >> 5;
+		u8 p5id = (tileDataLow & 0x20) >> 5 | (tileDataHigh & 0x20) >> 4;
+		u8 p4id = (tileDataLow & 0x10) >> 4 | (tileDataHigh & 0x10) >> 3;
+		u8 p3id = (tileDataLow & 0x08) >> 3 | (tileDataHigh & 0x08) >> 2;
+		u8 p2id = (tileDataLow & 0x04) >> 2 | (tileDataHigh & 0x04) >> 1;
+		u8 p1id = (tileDataLow & 0x02) >> 1 | (tileDataHigh & 0x02);
+		u8 p0id = (tileDataLow & 0x01) | (tileDataHigh & 0x01) << 1;
 
-		uint16_t screenPosBase = (spriteY + line) * (256 + 8) + spriteX;
+		u16 screenPosBase = (spriteY + line) * (256 + 8) + spriteX;
 
 		if (p7id != 0)
 			SetPixel(screenPosBase, (palette & (paletteMask << (p7id << 1))) >> (p7id << 1));
@@ -77,8 +77,8 @@ void SpritesViewer::DrawSprite(uint8_t index) {
 	}
 }
 
-void SpritesViewer::SetPixel(unsigned int pixelIndex, uint8_t gbColor) {
-	uint8_t gpuColor = 255 - gbColor * 85;
+void SpritesViewer::SetPixel(unsigned int pixelIndex, u8 gbColor) {
+	u8 gpuColor = 255 - gbColor * 85;
 	screenArray[pixelIndex * 4] = gpuColor;
 	screenArray[pixelIndex * 4 + 1] = gpuColor;
 	screenArray[pixelIndex * 4 + 2] = gpuColor;

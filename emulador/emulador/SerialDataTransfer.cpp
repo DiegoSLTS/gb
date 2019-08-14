@@ -1,6 +1,6 @@
 #include "SerialDataTransfer.h"
 
-uint8_t SerialDataTransfer::Read(uint16_t address) {
+u8 SerialDataTransfer::Read(u16 address) {
 	switch (address) {
 	case 0xFF01:
 		return SB;
@@ -10,7 +10,7 @@ uint8_t SerialDataTransfer::Read(uint16_t address) {
 	return 0xFF;
 }
 
-void SerialDataTransfer::Write(uint8_t value, uint16_t address) {
+void SerialDataTransfer::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFF01:
 		SB = value; break;

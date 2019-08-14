@@ -11,7 +11,7 @@ Carry Flag (C):This bit is set if a carry occurred from the lastmath operation o
 
 #include <cstdint>
 
-enum FlagBit : uint8_t {
+enum FlagBit : u8 {
 	None		= 0,
 	Bit0		= 1 << 0,
 	Bit1		= 1 << 1,

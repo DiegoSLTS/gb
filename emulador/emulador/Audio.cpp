@@ -3,7 +3,7 @@
 Audio::Audio() {}
 Audio::~Audio() {}
 
-uint8_t Audio::Read(uint16_t address) {
+u8 Audio::Read(u16 address) {
 	if (address >= 0xFF30 && address <= 0xFF3F)
 		return WaveRAM[address - 0xFF30];
 
@@ -55,7 +55,7 @@ uint8_t Audio::Read(uint16_t address) {
 	return 0xFF;
 }
 
-void Audio::Write(uint8_t value, uint16_t address) {
+void Audio::Write(u8 value, u16 address) {
 	if (address >= 0xFF30 && address <= 0xFF3F) {
 		WaveRAM[address - 0xFF30] = value;
 		return;

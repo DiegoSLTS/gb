@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 
+#include "Types.h"
+
 #include "Cartridge.h"
 #include "MMU.h"
 #include "CPU.h"
@@ -18,22 +20,22 @@
 #include "StateViewer.h"
 
 void printCPUFlags(const CPU& cpu) {
-	printf("%u%u%u%u0000\n", cpu.HasFlag(FlagBit::Zero), cpu.HasFlag(FlagBit::Negative), cpu.HasFlag(FlagBit::HalfCarry), cpu.HasFlag(FlagBit::Carry));
+	//printf("%u%u%u%u0000\n", cpu.HasFlag(FlagBit::Zero), cpu.HasFlag(FlagBit::Negative), cpu.HasFlag(FlagBit::HalfCarry), cpu.HasFlag(FlagBit::Carry));
 }
 
 bool isLittleEndian() {
-	uint8_t test[2] = { 0x1, 0x0 };
-	uint16_t* t16 = (uint16_t*)test;
-	printf("temp: %u", *t16);
+	u8 test[2] = { 0x1, 0x0 };
+	u16* t16 = (u16*)test;
+	//printf("temp: %u", *t16);
 	return *t16 == test[0];
 }
 
-void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], uint8_t gpuScreen[]) {
+void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], u8 gpuScreen[]) {
 	for (int y = 0; y < 160; y++) {
 		for (int x = 0; x < 144; x++) {
-			uint16_t index = y * 144 + x;
+			u16 index = y * 144 + x;
 			// turn gpuScreen value [0,3] into an 8 bit value [255,0]
-			uint8_t gpuColor = 255 - gpuScreen[index] * 85; // 85 == 255/3
+			u8 gpuColor = 255 - gpuScreen[index] * 85; // 85 == 255/3
 			sfmlScreen[index * 4] = gpuColor;
 			sfmlScreen[index * 4 + 1] = gpuColor;
 			sfmlScreen[index * 4 + 2] = gpuColor;
@@ -68,6 +70,7 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 
 int main() {
 	std::string romsPath = "D:\\Programacion\\gb\\roms\\";
+    std::string romName = "Boxxle (V1.1) (U) [!].gb";
 	//std::string romName = "Alleyway (World).gb";
 	//std::string romName = "Amida (Japan).gb";
 	//std::string romName = "Asteroids (USA, Europe).gb"; // broken window over background, freezes during gameplay
@@ -125,7 +128,7 @@ int main() {
 	//std::string romName = "Tasmania Story (USA).gb";
 	//std::string romName = "Tennis (World).gb";
 	//std::string romName = "Tesserae (Europe) (En,Fr,De,Es,It).gb";
-	std::string romName = "Tetris (World) (Rev A).gb";
+	//std::string romName = "Tetris (World) (Rev A).gb";
 	//std::string romName = "Trump Boy (Japan).gb";
 	//std::string romName = "Volley Fire (Japan).gb"; // freeze at main menu
 	//std::string romName = "World Bowling (USA).gb";
@@ -254,7 +257,7 @@ int main() {
 		}
 
 		if (!cpu.isHalted) {
-			uint8_t opCode = cpu.ReadOpCode();
+			u8 opCode = cpu.ReadOpCode();
 			bool isCB = opCode == 0xCB;
 			if (isCB)
 				opCode = cpu.ReadOpCode();
@@ -266,7 +269,7 @@ int main() {
 		} else
 			cpu.lastOpCycles = 1;
 
-		uint8_t lastOpCycles = cpu.lastOpCycles;
+		u8 lastOpCycles = cpu.lastOpCycles;
 		if (gpu.Step(lastOpCycles * 4)) {
 			UpdateSFMLScreenArray(gameWindow.screenArray, gpu.screen);
 			gameWindow.screenTexture.update(gameWindow.screenArray);

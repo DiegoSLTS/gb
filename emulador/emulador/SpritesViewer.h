@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.h"
 #include "Window.h"
 
 class MMU;
@@ -12,6 +13,6 @@ public:
 	MMU* mmu = nullptr;
 
 	void Update();
-	void DrawSprite(uint8_t index);
-	void SetPixel(unsigned int pixelIndex, uint8_t gbColor);
+	void DrawSprite(u8 index);
+	void SetPixel(unsigned int pixelIndex, u8 gbColor);
 };

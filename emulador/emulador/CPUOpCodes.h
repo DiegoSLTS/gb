@@ -47,7 +47,7 @@ Ex 	SET 4,B 	SET 4,C 	SET 4,D 	SET 4,E 	SET 4,H 	SET 4,L 	SET 4,(HL) 	SET 4,A 	S
 Fx 	SET 6,B 	SET 6,C 	SET 6,D 	SET 6,E 	SET 6,H 	SET 6,L 	SET 6,(HL) 	SET 6,A 	SET 7,B 	SET 7,C 	SET 7,D 	SET 7,E 	SET 7,H 	SET 7,L 	SET 7,(HL) 	SET 7,A
 */
 
-uint8_t opCodeSizes[256] = {
+u8 opCodeSizes[256] = {
 	1, 3, 1, 1, 1, 1, 2, 1, 3, 1, 1, 1, 1, 1, 2, 1,
 	1, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,
 	2, 3, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 1, 1, 2, 1,

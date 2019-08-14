@@ -9,17 +9,17 @@ class InterruptServiceRoutine : public IAddressable, public IState {
 public:
 	MMU* mmu = nullptr;
 
-	uint8_t IE = 0; // 0xFFFF - Interrupt Enabled (R/W)
-	uint8_t IF = 0b11100000; // 0xFF0F - Interrupt Flag (R/W)
+	u8 IE = 0; // 0xFFFF - Interrupt Enabled (R/W)
+	u8 IF = 0b11100000; // 0xFF0F - Interrupt Flag (R/W)
 
 	bool IME = false; // not addressable - Interrupt Master Enable Flag(Write Only)
 	bool eiDelay = false; // EI takes one more instruction to take effect
 
-	bool IsInterruptEnabled(uint8_t interruptPosition);
-	bool IsInterruptSet(uint8_t interruptPosition);
+	bool IsInterruptEnabled(u8 interruptPosition);
+	bool IsInterruptSet(u8 interruptPosition);
 
-	virtual uint8_t Read(uint16_t address) override;
-	virtual void Write(uint8_t value, uint16_t address) override;
+	virtual u8 Read(u16 address) override;
+	virtual void Write(u8 value, u16 address) override;
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;

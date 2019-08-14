@@ -1,21 +1,21 @@
 #pragma once
 
-#include <cstdint>
+#include "Types.h"
 #include <string>
 #include <vector>
 #include <deque>
 
 struct Instruction {
-	uint16_t address = 0;
-	uint8_t opCode = 0;
-	uint8_t byte1 = 0;
-	uint8_t byte2 = 0;
+	u16 address = 0;
+	u8 opCode = 0;
+	u8 byte1 = 0;
+	u8 byte2 = 0;
 	std::string displayText;
 };
 
 struct CodeSection {
-	uint16_t addressStart = 0;
-	uint16_t addressEnd = 0;
+	u16 addressStart = 0;
+	u16 addressEnd = 0;
 	std::vector<Instruction> instructions;
 };
 
@@ -23,19 +23,19 @@ class RomParser {
 public:
 
 	std::vector<CodeSection> sections;
-	std::deque<uint16_t> jumpTargets;
-	uint16_t pc = 0;
+	std::deque<u16> jumpTargets;
+	u16 pc = 0;
 
-	void ParseSection(uint8_t* bytes, uint16_t from, uint16_t to);
-	Instruction ParseInstruction(uint8_t* bytes, uint16_t size);
+	void ParseSection(u8* bytes, u16 from, u16 to);
+	Instruction ParseInstruction(u8* bytes, u16 size);
 
-	bool IsAlreadyParsed(uint16_t address);
+	bool IsAlreadyParsed(u16 address);
 
-	void ParseBiosROM(uint8_t* bytes, uint16_t size);
-	void ParseCartridgeROM(uint8_t* bytes, uint16_t size);
+	void ParseBiosROM(u8* bytes, u16 size);
+	void ParseCartridgeROM(u8* bytes, u16 size);
 	
-	uint8_t GetSize(uint8_t opCode) const;
-	std::string GetFormat(uint8_t opCode, uint8_t byte1) const;
+	u8 GetSize(u8 opCode) const;
+	std::string GetFormat(u8 opCode, u8 byte1) const;
 
 	void PrintCode();
 	void PrintInstruction(const Instruction& instruction);
@@ -46,7 +46,7 @@ public:
 	size_t GetInsertIndex(const CodeSection& section) const;
 	bool ContainsAnotherSection(const CodeSection& section) const;
 
-	bool AreAllNOP(uint8_t* bytes, uint16_t from, uint16_t to) const;
+	bool AreAllNOP(u8* bytes, u16 from, u16 to) const;
 
-	std::string ByteToHex(uint8_t byte);
+	std::string ByteToHex(u8 byte);
 };

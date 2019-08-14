@@ -2,7 +2,7 @@
 #include "MMU.h"
 #include "GPU.h"
 
-TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, uint16_t Address) : Window(Width,Height,Title), mmu(Mmu), address(Address) {
+TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, u16 Address) : Window(Width,Height,Title), mmu(Mmu), address(Address) {
 	tilesPerRow = Width / 8;
 	rows = Height / 8;
 	Update();
@@ -13,8 +13,8 @@ TileViewer::~TileViewer() {
 }
 
 void TileViewer::Update() {
-	for (uint8_t y = 0; y < rows; y++) {
-		for (uint8_t x = 0; x < tilesPerRow; x++) {
+	for (u8 y = 0; y < rows; y++) {
+		for (u8 x = 0; x < tilesPerRow; x++) {
 			UpdateTile(x, y);
 		}
 	}
@@ -27,31 +27,31 @@ void TileViewer::Update() {
 	renderWindow->display();
 }
 
-uint16_t TileViewer::GetTileAddress(uint8_t x, uint8_t y) const {
+u16 TileViewer::GetTileAddress(u8 x, u8 y) const {
 	return address + (y * tilesPerRow + x) * 16;
 }
 
-void TileViewer::UpdateTile(uint8_t x, uint8_t y) {
-	const uint8_t paletteMask = 0b00000011;
-	uint8_t bgPalette = mmu->Read(0xFF47); //TODO for sprites?
+void TileViewer::UpdateTile(u8 x, u8 y) {
+	const u8 paletteMask = 0b00000011;
+	u8 bgPalette = mmu->Read(0xFF47); //TODO for sprites?
 
-	uint16_t tileDataAddress = GetTileAddress(x, y);
+	u16 tileDataAddress = GetTileAddress(x, y);
 
 	for (int i = 0; i < 8; i++) {
-		uint8_t tileDataLow = mmu->Read(tileDataAddress + i * 2);
-		uint8_t tileDataHigh = mmu->Read(tileDataAddress + i * 2 + 1);
+		u8 tileDataLow = mmu->Read(tileDataAddress + i * 2);
+		u8 tileDataHigh = mmu->Read(tileDataAddress + i * 2 + 1);
 		
 		//TODO reuse code from GPU
-		uint8_t p7r0id = (tileDataLow & 0x80) >> 7 | (tileDataHigh & 0x80) >> 6;
-		uint8_t p6r0id = (tileDataLow & 0x40) >> 6 | (tileDataHigh & 0x40) >> 5;
-		uint8_t p5r0id = (tileDataLow & 0x20) >> 5 | (tileDataHigh & 0x20) >> 4;
-		uint8_t p4r0id = (tileDataLow & 0x10) >> 4 | (tileDataHigh & 0x10) >> 3;
-		uint8_t p3r0id = (tileDataLow & 0x08) >> 3 | (tileDataHigh & 0x08) >> 2;
-		uint8_t p2r0id = (tileDataLow & 0x04) >> 2 | (tileDataHigh & 0x04) >> 1;
-		uint8_t p1r0id = (tileDataLow & 0x02) >> 1 | (tileDataHigh & 0x02);
-		uint8_t p0r0id = (tileDataLow & 0x01) | (tileDataHigh & 0x01) << 1;
+		u8 p7r0id = (tileDataLow & 0x80) >> 7 | (tileDataHigh & 0x80) >> 6;
+		u8 p6r0id = (tileDataLow & 0x40) >> 6 | (tileDataHigh & 0x40) >> 5;
+		u8 p5r0id = (tileDataLow & 0x20) >> 5 | (tileDataHigh & 0x20) >> 4;
+		u8 p4r0id = (tileDataLow & 0x10) >> 4 | (tileDataHigh & 0x10) >> 3;
+		u8 p3r0id = (tileDataLow & 0x08) >> 3 | (tileDataHigh & 0x08) >> 2;
+		u8 p2r0id = (tileDataLow & 0x04) >> 2 | (tileDataHigh & 0x04) >> 1;
+		u8 p1r0id = (tileDataLow & 0x02) >> 1 | (tileDataHigh & 0x02);
+		u8 p0r0id = (tileDataLow & 0x01) | (tileDataHigh & 0x01) << 1;
 
-		uint16_t screenPosBase = (y * 8 + i) * screenTexture.getSize().x + x * 8;
+		u16 screenPosBase = (y * 8 + i) * screenTexture.getSize().x + x * 8;
 
 		SetPixel(screenPosBase, (bgPalette & (paletteMask << (p7r0id << 1))) >> (p7r0id << 1));
 		SetPixel(screenPosBase + 1, (bgPalette & (paletteMask << (p6r0id << 1))) >> (p6r0id << 1));
@@ -64,8 +64,8 @@ void TileViewer::UpdateTile(uint8_t x, uint8_t y) {
 	}
 }
 
-void TileViewer::SetPixel(unsigned int pixelIndex, uint8_t gbColor) {
-	uint8_t gpuColor = 255 - gbColor * 85;
+void TileViewer::SetPixel(unsigned int pixelIndex, u8 gbColor) {
+	u8 gpuColor = 255 - gbColor * 85;
 	screenArray[pixelIndex * 4] = gpuColor;
 	screenArray[pixelIndex * 4 + 1] = gpuColor;
 	screenArray[pixelIndex * 4 + 2] = gpuColor;

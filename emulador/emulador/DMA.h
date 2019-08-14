@@ -10,11 +10,11 @@ class DMA : public IAddressable {
 public:
 	MMU* mmu = nullptr;
 
-	uint8_t currentCycles = 160;
-	uint16_t addressBase = 0;
+    u8 currentCycles = 160;
+    u16 addressBase = 0;
 
-	void Step(uint8_t cycles);
+	void Step(u8 cycles);
 
-	virtual uint8_t Read(uint16_t address) override;
-	virtual void Write(uint8_t value, uint16_t address) override;
+	virtual u8 Read(u16 address) override;
+	virtual void Write(u8 value, u16 address) override;
 };

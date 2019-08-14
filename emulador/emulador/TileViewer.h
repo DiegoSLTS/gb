@@ -1,22 +1,23 @@
 #pragma once
 
+#include "Types.h"
 #include "Window.h"
 
 class MMU;
 
 class TileViewer : public Window {
 public:
-	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, uint16_t Address);
+	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, u16 Address);
 	virtual ~TileViewer();
 
 	MMU* mmu = nullptr;
-	uint16_t address = 0;
+	u16 address = 0;
 
-	uint8_t tilesPerRow = 0;
-	uint8_t rows = 0;
+	u8 tilesPerRow = 0;
+	u8 rows = 0;
 
 	void Update();
-	void UpdateTile(uint8_t x, uint8_t y);
-	void SetPixel(unsigned int pixelIndex, uint8_t gbColor);
-	virtual uint16_t GetTileAddress(uint8_t x, uint8_t y) const;
+	void UpdateTile(u8 x, u8 y);
+	void SetPixel(unsigned int pixelIndex, u8 gbColor);
+	virtual u16 GetTileAddress(u8 x, u8 y) const;
 };

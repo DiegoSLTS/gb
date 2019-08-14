@@ -49,11 +49,11 @@ void Joypad::Update() {
 	//TODO set interrupt request
 }
 
-uint8_t Joypad::Read(uint16_t address) {
+u8 Joypad::Read(u16 address) {
 	return JOYP;
 }
 
-void Joypad::Write(uint8_t value, uint16_t address) {
+void Joypad::Write(u8 value, u16 address) {
 	JOYP = (value & 0xF0) | (JOYP & 0x0F) | 0b11000000;
 	Update();
 }

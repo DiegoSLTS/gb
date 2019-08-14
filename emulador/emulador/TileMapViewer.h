@@ -8,8 +8,8 @@ class MMU;
 
 class TileMapViewer : public TileViewer {
 public:
-	TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, uint16_t Address);
+	TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, u16 Address);
 	virtual ~TileMapViewer();
 
-	virtual uint16_t GetTileAddress(uint8_t x, uint8_t y) const override;
+	virtual u16 GetTileAddress(u8 x, u8 y) const override;
 };

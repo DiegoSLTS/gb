@@ -3,7 +3,7 @@
 #include "BootRom.h"
 #include "IAddressable.h"
 
-uint8_t MMU::Read(uint16_t address) {
+u8 MMU::Read(u16 address) {
 	IAddressable* addressable = GetAddresableFor(address);
 	//TODO unused bits set to 1, except IE register
 	if (addressable != nullptr)
@@ -36,7 +36,7 @@ uint8_t MMU::Read(uint16_t address) {
 	}
 }
 
-void MMU::Write(uint16_t address, uint8_t value) {
+void MMU::Write(u16 address, u8 value) {
 	IAddressable* addressable = GetAddresableFor(address);
 	if (addressable != nullptr) {
 		addressable->Write(value, address);
@@ -66,8 +66,8 @@ void MMU::Write(uint16_t address, uint8_t value) {
 	}
 }
 
-void MMU::WriteBit(uint16_t address, uint8_t bitPosition, bool set) {
-	uint8_t reg = Read(address);
+void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {
+	u8 reg = Read(address);
 	if (set)
 		reg |= (1 << bitPosition);
 	else
@@ -79,15 +79,15 @@ bool MMU::IsBootRomEnabled() {
 	return Read(0xFF50) == 0;
 }
 
-void MMU::ResetInterruptFlag(uint8_t interruptPosition) {
+void MMU::ResetInterruptFlag(u8 interruptPosition) {
 	WriteBit(0xFF0F, interruptPosition, false);
 }
 
-void MMU::SetInterruptFlag(uint8_t interruptPosition) {
+void MMU::SetInterruptFlag(u8 interruptPosition) {
 	WriteBit(0xFF0F, interruptPosition, true);
 }
 
-IAddressable* MMU::GetAddresableFor(uint16_t address) {
+IAddressable* MMU::GetAddresableFor(u16 address) {
 	//TODO sound registers
 
 	switch (address) {
@@ -123,7 +123,7 @@ IAddressable* MMU::GetAddresableFor(uint16_t address) {
 	return nullptr;
 }
 
-void MMU::Copy(uint16_t from, uint16_t to) {
+void MMU::Copy(u16 from, u16 to) {
 	Write(to, Read(from));
 }
 

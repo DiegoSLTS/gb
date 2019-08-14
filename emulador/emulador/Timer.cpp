@@ -1,7 +1,7 @@
 #include "Timer.h"
 #include "MMU.h"
 
-void Timer::Step(uint8_t cycles) {
+void Timer::Step(u8 cycles) {
 	dividerCounter += cycles;
 	if (dividerCounter >= 255) {
 		DIV++;
@@ -11,9 +11,9 @@ void Timer::Step(uint8_t cycles) {
 	if (TAC & 0x04) { // is on
 		timerCounter += cycles;
 
-		uint8_t frequency = TAC & 0x03;
+		u8 frequency = TAC & 0x03;
 
-		uint16_t maxCounter = 0;
+		u16 maxCounter = 0;
 
 		switch (frequency) {
 		case 0: maxCounter = 1024; break; // freq 4096
@@ -33,7 +33,7 @@ void Timer::Step(uint8_t cycles) {
 	}
 }
 
-uint8_t Timer::Read(uint16_t address) {
+u8 Timer::Read(u16 address) {
 	switch (address) {
 	case 0xFF04:
 		return DIV;
@@ -47,7 +47,7 @@ uint8_t Timer::Read(uint16_t address) {
 	return 0xFF;
 }
 
-void Timer::Write(uint8_t value, uint16_t address) {
+void Timer::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFF04:
 		DIV = 0; TIMA = 0; break;

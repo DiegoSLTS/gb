@@ -1,25 +1,26 @@
 #include "RomParser.h"
 
+#include "Types.h"
 #include "CPUOpCodes.h"
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
 #include <fstream>
 
-void RomParser::ParseSection(uint8_t* bytes, uint16_t from, uint16_t to) {
+void RomParser::ParseSection(u8* bytes, u16 from, u16 to) {
 	// 0xC0, 0xD0, 0xC8, 0xD8, 0xC9 = RET
 	// 0xD9 = RETI
 	// 0x20, 0x30, 0x18, 0x28, 0x38 = JR
 	// 0xC2, 0xD2, 0xC3, 0xE9, 0xCA, 0xDA = JP
 	// 0xC7, 0xD7, 0xE7, 0xF7, 0xCF, 0xDF, 0xEF, 0xFF = RST
 	// 0xC4, 0xD4, 0xCC, 0xDC, 0xCD = CALL
-	const uint8_t allJumpCodes[] = { 0xC0, 0xD0, 0xC8, 0xD8, 0xC9, 0xD9, 0x20, 0x30, 0x18, 0x28, 0x38, 0xC2, 0xD2, 0xC3, 0xE9, 0xCA, 0xDA, 0xC7, 0xD7, 0xE7, 0xF7, 0xCF, 0xDF, 0xEF, 0xFF, 0xC4, 0xD4, 0xCC, 0xDC, 0xCD };
+	const u8 allJumpCodes[] = { 0xC0, 0xD0, 0xC8, 0xD8, 0xC9, 0xD9, 0x20, 0x30, 0x18, 0x28, 0x38, 0xC2, 0xD2, 0xC3, 0xE9, 0xCA, 0xDA, 0xC7, 0xD7, 0xE7, 0xF7, 0xCF, 0xDF, 0xEF, 0xFF, 0xC4, 0xD4, 0xCC, 0xDC, 0xCD };
 	// this opCodes move the PC to another address and don't return (like CALL), so it's not safe to keep parsing after them
-	const uint8_t endOfBlockJumpCodes[] = { 0xC9, 0xD9, 0x18, 0xC3, 0xE9, 0xC7, 0xD7, 0xE7, 0xF7, 0xCF, 0xDF, 0xEF, 0xFF };
+	const u8 endOfBlockJumpCodes[] = { 0xC9, 0xD9, 0x18, 0xC3, 0xE9, 0xC7, 0xD7, 0xE7, 0xF7, 0xCF, 0xDF, 0xEF, 0xFF };
 	// this opCodes move the PC to an absolute or relative address known at compile time (exluding RST)
-	const uint8_t relativeJumpCodes[] = { 0x20, 0x30, 0x18, 0x28, 0x38 };
-	const uint8_t absoluteJumpCodes[] = { 0xC2, 0xD2, 0xC3, 0xCA, 0xDA, 0xC4, 0xD4, 0xCC, 0xDC, 0xCD };
-	uint8_t* position = nullptr;
+	const u8 relativeJumpCodes[] = { 0x20, 0x30, 0x18, 0x28, 0x38 };
+	const u8 absoluteJumpCodes[] = { 0xC2, 0xD2, 0xC3, 0xCA, 0xDA, 0xC4, 0xD4, 0xCC, 0xDC, 0xCD };
+	u8* position = nullptr;
 
 	CodeSection section;
 	section.addressStart = from;
@@ -30,10 +31,10 @@ void RomParser::ParseSection(uint8_t* bytes, uint16_t from, uint16_t to) {
 		section.instructions.push_back(instruction);
 		if (std::find(allJumpCodes, allJumpCodes + 30, instruction.opCode) != allJumpCodes + 30) {
 			if (std::find(relativeJumpCodes, relativeJumpCodes + 5, instruction.opCode) != relativeJumpCodes + 5) {
-				uint16_t jumpAddress = pc + (int8_t)instruction.byte1;
+				u16 jumpAddress = pc + (s8)instruction.byte1;
 				jumpTargets.push_back(jumpAddress);
 			} else if (std::find(absoluteJumpCodes, absoluteJumpCodes + 10, instruction.opCode) != absoluteJumpCodes + 10) {
-				uint16_t jumpAddress = (instruction.byte2 << 8) + instruction.byte1;
+				u16 jumpAddress = (instruction.byte2 << 8) + instruction.byte1;
 				jumpTargets.push_back(jumpAddress);
 			}
 
@@ -55,11 +56,11 @@ void RomParser::ParseSection(uint8_t* bytes, uint16_t from, uint16_t to) {
 	}
 }
 
-void RomParser::ParseBiosROM(uint8_t* bytes, uint16_t size) {
+void RomParser::ParseBiosROM(u8* bytes, u16 size) {
 	ParseSection(bytes, 0, size);
 	
 	while (!jumpTargets.empty()) {
-		uint16_t address = jumpTargets[jumpTargets.size() - 1];
+		u16 address = jumpTargets[jumpTargets.size() - 1];
 		jumpTargets.pop_back();
 		if (!IsAlreadyParsed(address)) {
 			ParseSection(bytes, address, size);
@@ -67,7 +68,7 @@ void RomParser::ParseBiosROM(uint8_t* bytes, uint16_t size) {
 	}
 }
 
-void RomParser::ParseCartridgeROM(uint8_t* bytes, uint16_t size) {
+void RomParser::ParseCartridgeROM(u8* bytes, u16 size) {
 	// parse all RST addresses
 	if (!AreAllNOP(bytes, 0x00, 0x08))
 		ParseSection(bytes, 0x00, 0x08);
@@ -102,7 +103,7 @@ void RomParser::ParseCartridgeROM(uint8_t* bytes, uint16_t size) {
 	ParseSection(bytes, 0x100, size);
 
 	while (!jumpTargets.empty()) {
-		uint16_t address = jumpTargets[jumpTargets.size() - 1];
+		u16 address = jumpTargets[jumpTargets.size() - 1];
 		jumpTargets.pop_back();
 		if (!IsAlreadyParsed(address)) {
 			ParseSection(bytes, address, size);
@@ -110,14 +111,14 @@ void RomParser::ParseCartridgeROM(uint8_t* bytes, uint16_t size) {
 	}
 }
 
-Instruction RomParser::ParseInstruction(uint8_t* bytes, uint16_t size) {
+Instruction RomParser::ParseInstruction(u8* bytes, u16 size) {
 	Instruction newInstruction;
 	newInstruction.address = pc;
 
-	uint8_t opCode = bytes[pc++];
+	u8 opCode = bytes[pc++];
 	newInstruction.opCode = opCode;
 
-	uint8_t opCodeSize = GetSize(opCode);
+	u8 opCodeSize = GetSize(opCode);
 	if (opCodeSize > 1)
 		newInstruction.byte1 = bytes[pc++];
 
@@ -139,11 +140,11 @@ Instruction RomParser::ParseInstruction(uint8_t* bytes, uint16_t size) {
 	return newInstruction;
 }
 
-uint8_t RomParser::GetSize(uint8_t opCode) const {
+u8 RomParser::GetSize(u8 opCode) const {
 	return opCodeSizes[opCode];
 }
 
-std::string RomParser::GetFormat(uint8_t opCode, uint8_t byte1) const {
+std::string RomParser::GetFormat(u8 opCode, u8 byte1) const {
 	if (opCode != 0xCB)
 		return opCodeFormats[opCode];
 	else
@@ -179,7 +180,7 @@ void RomParser::PrintInstructionToFile(std::ostream& stream, const Instruction& 
 	stream << std::hex << "0x" << instruction.address << ": 0x" << (unsigned int)instruction.opCode << " -- " << instruction.displayText << std::endl;
 }
 
-bool RomParser::IsAlreadyParsed(uint16_t address) {
+bool RomParser::IsAlreadyParsed(u16 address) {
 	for (CodeSection& section : sections) {
 		if (address >= section.addressStart && address < section.addressEnd) {
 			return true;
@@ -212,14 +213,14 @@ bool RomParser::ContainsAnotherSection(const CodeSection& newSection) const {
 	return false;
 }
 
-bool RomParser::AreAllNOP(uint8_t* bytes, uint16_t from, uint16_t to) const {
+bool RomParser::AreAllNOP(u8* bytes, u16 from, u16 to) const {
 	for (int i = from; i < to; i++)
 		if (bytes[i] != 0)
 			return false;
 	return true;
 }
 
-std::string RomParser::ByteToHex(uint8_t byte) {
+std::string RomParser::ByteToHex(u8 byte) {
 	std::stringstream stream;
 	stream << std::setfill('0') << std::setw(2)	<< std::hex << (unsigned int)byte;
 	return stream.str();

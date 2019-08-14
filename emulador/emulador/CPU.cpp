@@ -5,33 +5,33 @@
 CPU::CPU() {}
 CPU::~CPU() {}
 
-uint8_t CPU::Read8BitReg(CPU8BitReg reg) const {
+u8 CPU::Read8BitReg(CPU8BitReg reg) const {
 	return registers[reg];
 }
 
-void CPU::Write8BitReg(CPU8BitReg reg, uint8_t value) {
+void CPU::Write8BitReg(CPU8BitReg reg, u8 value) {
 	if (reg == CPU8BitReg::f)
 		value &= 0xF0;
 	registers[reg] = value;
 }
 
-uint16_t CPU::Read16BitReg(CPU16BitReg reg) const {
-	uint16_t* regs16 = (uint16_t*)registers;
+u16 CPU::Read16BitReg(CPU16BitReg reg) const {
+	u16* regs16 = (u16*)registers;
 	return regs16[reg];
 }
 
-void CPU::Write16BitReg(CPU16BitReg reg, uint16_t value) {
-	uint16_t* regs16 = (uint16_t*)registers;
+void CPU::Write16BitReg(CPU16BitReg reg, u16 value) {
+	u16* regs16 = (u16*)registers;
 	if (reg == CPU16BitReg::af)
 		value &= 0xFFF0;
 	regs16[reg] = value;
 }
 
-uint8_t CPU::ReadFlags() const {
+u8 CPU::ReadFlags() const {
 	return registers[CPU8BitReg::f];
 }
 
-void CPU::WriteFlags(uint8_t newFlags) {
+void CPU::WriteFlags(u8 newFlags) {
 	Write8BitReg(CPU8BitReg::f,newFlags);
 }
 
@@ -40,7 +40,7 @@ void CPU::ResetFlags() {
 }
 
 void CPU::SetFlag(FlagBit flagBit, bool set) {
-	uint8_t flags = ReadFlags();
+	u8 flags = ReadFlags();
 	if (set) {
 		WriteFlags(flags | flagBit);
 	} else {
@@ -49,94 +49,94 @@ void CPU::SetFlag(FlagBit flagBit, bool set) {
 }
 
 bool CPU::HasFlag(FlagBit flagBit) const {
-	uint8_t flags = ReadFlags();
+	u8 flags = ReadFlags();
 	return (flags & flagBit) != 0;
 }
 
-void CPU::UpdateZeroFlag(uint8_t value) {
+void CPU::UpdateZeroFlag(u8 value) {
 	SetFlag(FlagBit::Zero, value == 0);
 }
 
-void CPU::UpdateZeroFlag(uint16_t value) {
+void CPU::UpdateZeroFlag(u16 value) {
 	SetFlag(FlagBit::Zero, value == 0);
 }
 
-void CPU::UpdateNegativeFlag(uint8_t value) {
+void CPU::UpdateNegativeFlag(u8 value) {
 	//TODO SetFlag(FlagBit::Zero, ???);
 }
 
-void CPU::UpdateNegativeFlag(uint16_t value) {
+void CPU::UpdateNegativeFlag(u16 value) {
 	//TODO SetFlag(FlagBit::Zero, ???);
 }
 
-void CPU::UpdateHalfCarryFlag(uint8_t previous, uint8_t current, bool isAdd) {
+void CPU::UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd) {
 	bool set = isAdd ? (current & 0x0F) < (previous & 0x0F) : (current & 0x0F) > (previous & 0x0F);
 	SetFlag(FlagBit::HalfCarry, set);
 }
 
-void CPU::UpdateHalfCarryFlag(uint16_t previous, uint16_t current, bool isAdd) {
+void CPU::UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd) {
 	bool set = isAdd ? (current & 0x0FFF) < (previous & 0x0FFF) : (current & 0x0FFF) > (previous & 0x0FFF);
 	SetFlag(FlagBit::HalfCarry, set);
 }
 
-void CPU::UpdateCarryFlag(uint8_t previous, uint8_t current, bool isAdd) {
+void CPU::UpdateCarryFlag(u8 previous, u8 current, bool isAdd) {
 	bool set = isAdd ? current < previous : current > previous;
 	SetFlag(FlagBit::Carry, set);
 }
 
-void CPU::UpdateCarryFlag(uint16_t previous, uint16_t current, bool isAdd) {
+void CPU::UpdateCarryFlag(u16 previous, u16 current, bool isAdd) {
 	bool set = isAdd ? current < previous : current > previous;
 	SetFlag(FlagBit::Carry, set);
 }
 
 
 
-uint8_t CPU::ReadAcc() const {
+u8 CPU::ReadAcc() const {
 	return Read8BitReg(CPU8BitReg::a);
 }
 
-void CPU::WriteAcc(uint8_t value) {
+void CPU::WriteAcc(u8 value) {
 	Write8BitReg(CPU8BitReg::a, value);
 }
 
-uint16_t CPU::ReadHL() const {
+u16 CPU::ReadHL() const {
 	return Read16BitReg(CPU16BitReg::hl);
 }
 
-void CPU::WriteHL(uint16_t value) {
+void CPU::WriteHL(u16 value) {
 	Write16BitReg(CPU16BitReg::hl, value);
 }
 
-uint8_t CPU::ReadMemory(uint16_t address) {
+u8 CPU::ReadMemory(u16 address) {
 	lastOpCycles++;
 	return mmu->Read(address);
 }
 
-void CPU::WriteMemory(uint16_t address, uint8_t value) {
+void CPU::WriteMemory(u16 address, u8 value) {
 	lastOpCycles++;
 	mmu->Write(address, value);
 }
 
-uint8_t CPU::ReadAtPC() {
-	uint8_t valueAtPC = mmu->Read(pc);
+u8 CPU::ReadAtPC() {
+	u8 valueAtPC = mmu->Read(pc);
 	pc++;
 	lastOpCycles++;
 	return valueAtPC;
 }
 
-uint8_t CPU::ReadOpCode() {
+u8 CPU::ReadOpCode() {
 	return ReadAtPC();
 }
 
-void CPU::Push16(uint16_t value) {
+void CPU::Push16(u16 value) {
 	WriteMemory(sp - 1, value >> 8);
-	WriteMemory(sp - 2, (uint8_t)value);
+	WriteMemory(sp - 2, (u8)value);
 	sp -= 2;
 }
 
-uint16_t CPU::Pop16() {
-	uint16_t lsb = ReadMemory(sp);
-	uint16_t msb = ReadMemory(sp + 1) << 8;
+u16 CPU::Pop16() {
+	u16 lsb = ReadMemory(sp);
+	u16 msb = ReadMemory(sp + 1) << 8;
 	sp += 2;
 	return msb | lsb;
 }
@@ -157,7 +157,7 @@ void CPU::Save(std::ofstream& stream) const {
 	//TODO serialize IME, isHalted
 }
 
-void CPU::CallOpCode(uint8_t opCode) {
+void CPU::CallOpCode(u8 opCode) {
 	switch (opCode) {
 	case 0x00: NOP(); break;
 	case 0x01: LDr16n16(CPU16BitReg::bc); break;
@@ -433,7 +433,7 @@ void CPU::CallOpCode(uint8_t opCode) {
 	}
 }
 
-void CPU::CallCBOpCode(uint8_t opCode) {
+void CPU::CallCBOpCode(u8 opCode) {
 	switch (opCode)
 	{
 	case 0x00: RLCr8(CPU8BitReg::b); break;
@@ -712,8 +712,8 @@ void CPU::CallCBOpCode(uint8_t opCode) {
 
 
 void CPU::ADCAr8(CPU8BitReg reg) {
-	uint8_t current = ReadAcc();
-	uint8_t result = current + Read8BitReg(reg) + (uint8_t)HasFlag(FlagBit::Carry);
+	u8 current = ReadAcc();
+	u8 result = current + Read8BitReg(reg) + (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 	lastOpCycles++;
 
@@ -724,9 +724,9 @@ void CPU::ADCAr8(CPU8BitReg reg) {
 }
 
 void CPU::ADCAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t current = ReadAcc();
-	uint8_t result = current + mem + (uint8_t)HasFlag(FlagBit::Carry);
+	u8 mem = ReadMemory(ReadHL());
+	u8 current = ReadAcc();
+	u8 result = current + mem + (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 	
 	UpdateZeroFlag(result);
@@ -736,9 +736,9 @@ void CPU::ADCAHL() {
 }
 
 void CPU::ADCAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t current = ReadAcc();
-	uint8_t result = current + constant + (uint8_t)HasFlag(FlagBit::Carry);
+	u8 constant = ReadAtPC();
+	u8 current = ReadAcc();
+	u8 result = current + constant + (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 	
 	// TODO to pass Blargg tests: https://stackoverflow.com/questions/42091214/gbz80-adc-instructions-fail-test
@@ -751,8 +751,8 @@ void CPU::ADCAn8() {
 }
 
 void CPU::ADDAr8(CPU8BitReg reg) {
-	uint8_t current = ReadAcc();
-	uint8_t result = current + Read8BitReg(reg);
+	u8 current = ReadAcc();
+	u8 result = current + Read8BitReg(reg);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -762,9 +762,9 @@ void CPU::ADDAr8(CPU8BitReg reg) {
 }
 
 void CPU::ADDAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t current = ReadAcc();
-	uint8_t result = current + mem;
+	u8 mem = ReadMemory(ReadHL());
+	u8 current = ReadAcc();
+	u8 result = current + mem;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -774,9 +774,9 @@ void CPU::ADDAHL() {
 }
 
 void CPU::ADDAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t current = ReadAcc();
-	uint8_t result = current + constant;
+	u8 constant = ReadAtPC();
+	u8 current = ReadAcc();
+	u8 result = current + constant;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -786,8 +786,8 @@ void CPU::ADDAn8() {
 }
 
 void CPU::ADDHLr16(CPU16BitReg reg) {
-	uint16_t rCurrent = ReadHL();
-	uint16_t result = rCurrent + Read16BitReg(reg);
+	u16 rCurrent = ReadHL();
+	u16 result = rCurrent + Read16BitReg(reg);
 	WriteHL(result);
 	lastOpCycles++;
 
@@ -797,8 +797,8 @@ void CPU::ADDHLr16(CPU16BitReg reg) {
 }
 
 void CPU::ADDHLSP() {
-	uint16_t current = ReadHL();
-	uint16_t result = current + sp;
+	u16 current = ReadHL();
+	u16 result = current + sp;
 	WriteHL(result);
 	lastOpCycles++;
 
@@ -808,21 +808,21 @@ void CPU::ADDHLSP() {
 }
 
 void CPU::ADDSPe8() {
-	int8_t offset = (int8_t)ReadAtPC();
-	uint16_t current = sp;
-	uint16_t result = sp + offset;
+	s8 offset = (s8)ReadAtPC();
+	u16 current = sp;
+	u16 result = sp + offset;
 	sp = result;
 	lastOpCycles += 2;
 	
 	SetFlag(FlagBit::Zero, false);
 	SetFlag(FlagBit::Negative, false);
 	// Carry and HalfCarry from lsb to pass blargg tests https://github.com/Drenn1/GameYob/issues/15
-	UpdateHalfCarryFlag((uint8_t)current, (uint8_t)result, true);
-	UpdateCarryFlag((uint8_t)current, (uint8_t)result, true);
+	UpdateHalfCarryFlag((u8)current, (u8)result, true);
+	UpdateCarryFlag((u8)current, (u8)result, true);
 }
 
 void CPU::ANDAr8(CPU8BitReg reg) {
-	uint8_t result = ReadAcc() & Read8BitReg(reg);
+	u8 result = ReadAcc() & Read8BitReg(reg);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -832,8 +832,8 @@ void CPU::ANDAr8(CPU8BitReg reg) {
 }
 
 void CPU::ANDAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t result = ReadAcc() & mem;
+	u8 mem = ReadMemory(ReadHL());
+	u8 result = ReadAcc() & mem;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -843,8 +843,8 @@ void CPU::ANDAHL() {
 }
 
 void CPU::ANDAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t result = ReadAcc() & constant;
+	u8 constant = ReadAtPC();
+	u8 result = ReadAcc() & constant;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -853,17 +853,17 @@ void CPU::ANDAn8() {
 	SetFlag(FlagBit::Carry, false);
 }
 
-void CPU::BITu3r8(uint8_t bit, CPU8BitReg reg) {
-	uint8_t result = Read8BitReg(reg) & (1 << bit);
+void CPU::BITu3r8(u8 bit, CPU8BitReg reg) {
+	u8 result = Read8BitReg(reg) & (1 << bit);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
 	SetFlag(FlagBit::HalfCarry, true);
 }
 
-void CPU::BITu3HL(uint8_t bit) {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t result = mem & (1 << bit);
+void CPU::BITu3HL(u8 bit) {
+	u8 mem = ReadMemory(ReadHL());
+	u8 result = mem & (1 << bit);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
@@ -871,7 +871,7 @@ void CPU::BITu3HL(uint8_t bit) {
 }
 
 void CPU::CALLn16() {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	Push16(pc);
 	pc = address;
 	lastOpCycles++;
@@ -879,7 +879,7 @@ void CPU::CALLn16() {
 }
 
 void CPU::CALLccn16(bool condition) {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	if (condition) {
 		Push16(pc);
 		pc = address;
@@ -896,8 +896,8 @@ void CPU::CCF() {
 }
 
 void CPU::CPAr8(CPU8BitReg reg) {
-	uint8_t current = ReadAcc();
-	uint8_t result = current - Read8BitReg(reg);
+	u8 current = ReadAcc();
+	u8 result = current - Read8BitReg(reg);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, true);
@@ -906,9 +906,9 @@ void CPU::CPAr8(CPU8BitReg reg) {
 }
 
 void CPU::CPAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t current = ReadAcc();
-	uint8_t result = current - mem;
+	u8 mem = ReadMemory(ReadHL());
+	u8 current = ReadAcc();
+	u8 result = current - mem;
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, true);
@@ -917,9 +917,9 @@ void CPU::CPAHL() {
 }
 
 void CPU::CPAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t current = ReadAcc();
-	uint8_t result = current - constant;
+	u8 constant = ReadAtPC();
+	u8 current = ReadAcc();
+	u8 result = current - constant;
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, true);
@@ -936,8 +936,8 @@ void CPU::CPL() {
 
 void CPU::DAA() {
 	//https://ehaskins.com/2018-01-30%20Z80%20DAA/
-	uint8_t old = ReadAcc();
-	uint8_t result = old;
+	u8 old = ReadAcc();
+	u8 result = old;
 	bool setCarry = false;
 
 	if (HasFlag(FlagBit::Negative)) {
@@ -959,8 +959,8 @@ void CPU::DAA() {
 }
 
 void CPU::DECr8(CPU8BitReg reg) {
-	uint8_t current = Read8BitReg(reg);
-	uint8_t result = current - 1;
+	u8 current = Read8BitReg(reg);
+	u8 result = current - 1;
 	Write8BitReg(reg, result);
 
 	UpdateZeroFlag(result);
@@ -969,8 +969,8 @@ void CPU::DECr8(CPU8BitReg reg) {
 }
 
 void CPU::DECHL() {
-	uint8_t current = ReadMemory(ReadHL());
-	uint8_t result = current - 1;
+	u8 current = ReadMemory(ReadHL());
+	u8 result = current - 1;
 	WriteMemory(ReadHL(), result);
 	
 	UpdateZeroFlag(result);
@@ -979,8 +979,8 @@ void CPU::DECHL() {
 }
 
 void CPU::DECr16(CPU16BitReg reg) {
-	uint16_t current = Read16BitReg(reg);
-	uint16_t result = current - 1;
+	u16 current = Read16BitReg(reg);
+	u16 result = current - 1;
 	Write16BitReg(reg, result);
 	lastOpCycles++;
 	//no flags affected
@@ -1014,8 +1014,8 @@ void CPU::HALT() {
 }
 
 void CPU::INCr8(CPU8BitReg reg) {
-	uint8_t current = Read8BitReg(reg);
-	uint8_t result = current + 1;
+	u8 current = Read8BitReg(reg);
+	u8 result = current + 1;
 	Write8BitReg(reg, result);
 
 	UpdateZeroFlag(result);
@@ -1024,8 +1024,8 @@ void CPU::INCr8(CPU8BitReg reg) {
 }
 
 void CPU::INCHL() {
-	uint8_t current = ReadMemory(ReadHL());
-	uint8_t result = current + 1;
+	u8 current = ReadMemory(ReadHL());
+	u8 result = current + 1;
 	WriteMemory(ReadHL(), result);
 	
 	UpdateZeroFlag(result);
@@ -1034,8 +1034,8 @@ void CPU::INCHL() {
 }
 
 void CPU::INCr16(CPU16BitReg reg) {
-	uint16_t current = Read16BitReg(reg);
-	uint16_t result = current + 1;
+	u16 current = Read16BitReg(reg);
+	u16 result = current + 1;
 	Write16BitReg(reg, result);
 	lastOpCycles++;
 	//no flags affected
@@ -1048,14 +1048,14 @@ void CPU::INCSP() {
 }
 
 void CPU::JPn16() {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	pc = address;
 	lastOpCycles++;
 	//no flags affected
 }
 
 void CPU::JPccn16(bool condition) {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	if (condition) {
 		pc = address;
 		lastOpCycles++;
@@ -1069,14 +1069,14 @@ void CPU::JPHL() {
 }
 
 void CPU::JRe8() {
-	int8_t offset = (int8_t)ReadAtPC();
+    s8 offset = (s8)ReadAtPC();
 	pc += offset;
 	lastOpCycles++;
 	//no flags affected
 }
 
 void CPU::JRcce8(bool condition) {
-	int8_t offset = (int8_t)ReadAtPC();
+    s8 offset = (s8)ReadAtPC();
 	if (condition) {
 		pc += offset;
 		lastOpCycles++;
@@ -1090,13 +1090,13 @@ void CPU::LDr8r8(CPU8BitReg leftReg, CPU8BitReg rightReg) {
 }
 
 void CPU::LDr8n8(CPU8BitReg reg) {
-	uint8_t constant = ReadAtPC();
+	u8 constant = ReadAtPC();
 	Write8BitReg(reg, constant);
 	//no flags affected
 }
 
 void CPU::LDr16n16(CPU16BitReg reg) {
-	uint16_t constant = ReadAtPC() | (ReadAtPC() << 8);
+	u16 constant = ReadAtPC() | (ReadAtPC() << 8);
 	Write16BitReg(reg, constant);
 	//no flags affected
 }
@@ -1107,13 +1107,13 @@ void CPU::LDHLr8(CPU8BitReg reg) {
 }
 
 void CPU::LDHLn8() {
-	uint8_t constant = ReadAtPC();
+	u8 constant = ReadAtPC();
 	WriteMemory(ReadHL(),constant);
 	//no flags affected
 }
 
 void CPU::LDr8HL(CPU8BitReg reg) {
-	uint8_t mem = ReadMemory(ReadHL());
+	u8 mem = ReadMemory(ReadHL());
 	Write8BitReg(reg, mem);
 	//no flags affected
 }
@@ -1124,13 +1124,13 @@ void CPU::LDr16A(CPU16BitReg reg) {
 }
 
 void CPU::LDn16A() {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	WriteMemory(address, ReadAcc());
 	//no flags affected
 }
 
 void CPU::LDHn8A() {
-	uint8_t addressOffset = ReadAtPC();
+	u8 addressOffset = ReadAtPC();
 	WriteMemory(0xFF00 + addressOffset, ReadAcc());
 	//no flags affected
 }
@@ -1141,87 +1141,87 @@ void CPU::LDHCA() {
 }
 
 void CPU::LDAr16(CPU16BitReg reg) {
-	uint8_t mem = ReadMemory(Read16BitReg(reg));
+	u8 mem = ReadMemory(Read16BitReg(reg));
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDAn16() {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
-	uint8_t mem = ReadMemory(address);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
+	u8 mem = ReadMemory(address);
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDHAn8() {
-	uint8_t addressOffset = ReadAtPC();
-	uint8_t mem = ReadMemory(0xFF00 + addressOffset);
+	u8 addressOffset = ReadAtPC();
+	u8 mem = ReadMemory(0xFF00 + addressOffset);
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDHAC() {
-	uint8_t mem = ReadMemory(0xFF00 + Read8BitReg(CPU8BitReg::c));
+	u8 mem = ReadMemory(0xFF00 + Read8BitReg(CPU8BitReg::c));
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDHLincA() {
-	uint16_t address = ReadHL();
+	u16 address = ReadHL();
 	WriteMemory(address,ReadAcc());
 	WriteHL(++address);
 	//no flags affected
 }
 
 void CPU::LDHLdecA() {
-	uint16_t address = ReadHL();
+	u16 address = ReadHL();
 	WriteMemory(address, ReadAcc());
 	WriteHL(--address);
 	//no flags affected
 }
 
 void CPU::LDAHLinc() {
-	uint16_t address = ReadHL();
+	u16 address = ReadHL();
 	WriteAcc(ReadMemory(address));
 	WriteHL(++address);
 	//no flags affected
 }
 
 void CPU::LDAHLdec() {
-	uint16_t address = ReadHL();
+	u16 address = ReadHL();
 	WriteAcc(ReadMemory(address));
 	WriteHL(--address);
 	//no flags affected
 }
 
 void CPU::LDSPn16() {
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	sp = address;
 	//no flags affected
 }
 
 void CPU::LDn16SP() {
-	uint8_t lsb = (uint8_t)sp;
-	uint8_t msb = (uint8_t)(sp >> 8);
+	u8 lsb = (u8)sp;
+	u8 msb = (u8)(sp >> 8);
 
-	uint16_t address = ReadAtPC() | (ReadAtPC() << 8);
+	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	WriteMemory(address, lsb);
 	WriteMemory(address + 1, msb);
 	//no flags affected
 }
 
 void CPU::LDHLSPe8() {
-	int8_t offset = (int8_t)ReadAtPC();
-	uint16_t current = sp;
-	uint16_t result = current + offset;
+    s8 offset = (s8)ReadAtPC();
+	u16 current = sp;
+	u16 result = current + offset;
 	WriteHL(result);
 	lastOpCycles++;
 
 	SetFlag(FlagBit::Zero, false);
 	SetFlag(FlagBit::Negative, false);
 	// Carry and HalfCarry from lsb to pass blargg tests https://github.com/Drenn1/GameYob/issues/15
-	UpdateHalfCarryFlag((uint8_t)current, (uint8_t)result, true);
-	UpdateCarryFlag((uint8_t)current, (uint8_t)result, true);
+	UpdateHalfCarryFlag((u8)current, (u8)result, true);
+	UpdateCarryFlag((u8)current, (u8)result, true);
 }
 
 void CPU::LDSPHL() {
@@ -1237,7 +1237,7 @@ void CPU::NOP() {
 }
 
 void CPU::ORAr8(CPU8BitReg reg) {
-	uint8_t result = ReadAcc() | Read8BitReg(reg);
+	u8 result = ReadAcc() | Read8BitReg(reg);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1247,8 +1247,8 @@ void CPU::ORAr8(CPU8BitReg reg) {
 }
 
 void CPU::ORAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t result = ReadAcc() | mem;
+	u8 mem = ReadMemory(ReadHL());
+	u8 result = ReadAcc() | mem;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1258,8 +1258,8 @@ void CPU::ORAHL() {
 }
 
 void CPU::ORAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t result = ReadAcc() | constant;
+	u8 constant = ReadAtPC();
+	u8 result = ReadAcc() | constant;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1279,16 +1279,16 @@ void CPU::PUSHr16(CPU16BitReg reg) {
 	//no flags affected
 }
 
-void CPU::RESu3r8(uint8_t bit, CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg) & ~(1 << bit);
+void CPU::RESu3r8(u8 bit, CPU8BitReg reg) {
+	u8 value = Read8BitReg(reg) & ~(1 << bit);
 	Write8BitReg(reg, value);
 	//no flags affected
 }
 
-void CPU::RESu3HL(uint8_t bit) {
-	uint16_t address = ReadHL();
-	uint8_t mem = ReadMemory(address);
-	uint8_t value = mem & ~(1 << bit);
+void CPU::RESu3HL(u8 bit) {
+	u16 address = ReadHL();
+	u8 mem = ReadMemory(address);
+	u8 value = mem & ~(1 << bit);
 	WriteMemory(address, value);
 	//no flags affected
 }
@@ -1318,10 +1318,10 @@ void CPU::RETI() {
 }
 
 void CPU::RLr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value >> 7;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value >> 7;
 	value <<= 1;
-	value |= (uint8_t)HasFlag(FlagBit::Carry);
+	value |= (u8)HasFlag(FlagBit::Carry);
 	Write8BitReg(reg, value);
 	
 	UpdateZeroFlag(value);
@@ -1331,11 +1331,11 @@ void CPU::RLr8(CPU8BitReg reg) {
 }
 
 void CPU::RLHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value >> 7;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value >> 7;
 	value <<= 1;
-	value |= (uint8_t)HasFlag(FlagBit::Carry);
+	value |= (u8)HasFlag(FlagBit::Carry);
 	WriteMemory(address,value);
 	
 	UpdateZeroFlag(value);
@@ -1345,10 +1345,10 @@ void CPU::RLHL() {
 }
 
 void CPU::RLA() {
-	uint8_t value = ReadAcc();
-	uint8_t newCarry = value >> 7;
+	u8 value = ReadAcc();
+	u8 newCarry = value >> 7;
 	value <<= 1;
-	value |= (uint8_t)HasFlag(FlagBit::Carry);
+	value |= (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(value);
 
 	SetFlag(FlagBit::Zero, false);
@@ -1358,8 +1358,8 @@ void CPU::RLA() {
 }
 
 void CPU::RLCr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value >> 7;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value >> 7;
 	value <<= 1;
 	value |= newCarry;
 	Write8BitReg(reg, value);
@@ -1371,9 +1371,9 @@ void CPU::RLCr8(CPU8BitReg reg) {
 }
 
 void CPU::RLCHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value >> 7;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value >> 7;
 	value <<= 1;
 	value |= newCarry;
 	WriteMemory(address, value);
@@ -1385,8 +1385,8 @@ void CPU::RLCHL() {
 }
 
 void CPU::RLCA() {
-	uint8_t value = ReadAcc();
-	uint8_t newCarry = value >> 7;
+	u8 value = ReadAcc();
+	u8 newCarry = value >> 7;
 	value <<= 1;
 	value |= newCarry;
 	WriteAcc(value);
@@ -1398,10 +1398,10 @@ void CPU::RLCA() {
 }
 
 void CPU::RRr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value & 0x01;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
-	value |= ((uint8_t)HasFlag(FlagBit::Carry) << 7);
+	value |= ((u8)HasFlag(FlagBit::Carry) << 7);
 	Write8BitReg(reg, value);
 
 	UpdateZeroFlag(value);
@@ -1411,11 +1411,11 @@ void CPU::RRr8(CPU8BitReg reg) {
 }
 
 void CPU::RRHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value & 0x01;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
-	value |= ((uint8_t)HasFlag(FlagBit::Carry) << 7);
+	value |= ((u8)HasFlag(FlagBit::Carry) << 7);
 	WriteMemory(address, value);
 
 	UpdateZeroFlag(value);
@@ -1425,10 +1425,10 @@ void CPU::RRHL() {
 }
 
 void CPU::RRA() {
-	uint8_t value = ReadAcc();
-	uint8_t newCarry = value & 0x01;
+	u8 value = ReadAcc();
+	u8 newCarry = value & 0x01;
 	value >>= 1;
-	value |= ((uint8_t)HasFlag(FlagBit::Carry) << 7);
+	value |= ((u8)HasFlag(FlagBit::Carry) << 7);
 	WriteAcc(value);
 
 	SetFlag(FlagBit::Zero, false);
@@ -1438,8 +1438,8 @@ void CPU::RRA() {
 }
 
 void CPU::RRCr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value & 0x01;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= (newCarry << 7);
 	Write8BitReg(reg, value);
@@ -1451,9 +1451,9 @@ void CPU::RRCr8(CPU8BitReg reg) {
 }
 
 void CPU::RRCHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value & 0x01;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= (newCarry << 7);
 	WriteMemory(address, value);
@@ -1465,8 +1465,8 @@ void CPU::RRCHL() {
 }
 
 void CPU::RRCA() {
-	uint8_t value = ReadAcc();
-	uint8_t newCarry = value & 0x01;
+	u8 value = ReadAcc();
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= (newCarry << 7);
 	WriteAcc(value);
@@ -1477,7 +1477,7 @@ void CPU::RRCA() {
 	SetFlag(FlagBit::Carry, newCarry == 1);
 }
 
-void CPU::RSTvec(uint8_t vec) {
+void CPU::RSTvec(u8 vec) {
 	Push16(pc);
 	pc = vec;
 	lastOpCycles++;
@@ -1485,8 +1485,8 @@ void CPU::RSTvec(uint8_t vec) {
 }
 
 void CPU::SBCAr8(CPU8BitReg reg) {
-	uint8_t current = ReadAcc();
-	uint8_t result = current - Read8BitReg(reg) - (uint8_t)HasFlag(FlagBit::Carry);
+	u8 current = ReadAcc();
+	u8 result = current - Read8BitReg(reg) - (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1496,9 +1496,9 @@ void CPU::SBCAr8(CPU8BitReg reg) {
 }
 
 void CPU::SBCAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t current = ReadAcc();
-	uint8_t result = current - mem - (uint8_t)HasFlag(FlagBit::Carry);
+	u8 mem = ReadMemory(ReadHL());
+	u8 current = ReadAcc();
+	u8 result = current - mem - (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1508,9 +1508,9 @@ void CPU::SBCAHL() {
 }
 
 void CPU::SBCAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t current = ReadAcc();
-	uint8_t result = current - constant - (uint8_t)HasFlag(FlagBit::Carry);
+	u8 constant = ReadAtPC();
+	u8 current = ReadAcc();
+	u8 result = current - constant - (u8)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1526,23 +1526,23 @@ void CPU::SCF() {
 	SetFlag(FlagBit::Negative, false);
 }
 
-void CPU::SETu3r8(uint8_t bit, CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg) | (1 << bit);
+void CPU::SETu3r8(u8 bit, CPU8BitReg reg) {
+	u8 value = Read8BitReg(reg) | (1 << bit);
 	Write8BitReg(reg, value);
 	//no flags affected
 }
 
-void CPU::SETu3HL(uint8_t bit) {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
+void CPU::SETu3HL(u8 bit) {
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
 	value |= (1 << bit);
 	WriteMemory(address,value);
 	//no flags affected
 }
 
 void CPU::SLAr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value >> 7;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value >> 7;
 	value <<= 1;
 	Write8BitReg(reg, value);
 	
@@ -1553,9 +1553,9 @@ void CPU::SLAr8(CPU8BitReg reg) {
 }
 
 void CPU::SLAHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value >> 7;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value >> 7;
 	value <<= 1;
 	WriteMemory(address, value);
 
@@ -1566,9 +1566,9 @@ void CPU::SLAHL() {
 }
 
 void CPU::SRAr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newSeven = value & 0x80;
-	uint8_t newCarry = value & 0x01;
+	u8 value = Read8BitReg(reg);
+	u8 newSeven = value & 0x80;
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= newSeven;
 	Write8BitReg(reg, value);
@@ -1580,10 +1580,10 @@ void CPU::SRAr8(CPU8BitReg reg) {
 }
 
 void CPU::SRAHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newSeven = value & 0x80;
-	uint8_t newCarry = value & 0x01;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newSeven = value & 0x80;
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= newSeven;
 	WriteMemory(address, value);
@@ -1595,8 +1595,8 @@ void CPU::SRAHL() {
 }
 
 void CPU::SRLr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t newCarry = value & 0x01;
+	u8 value = Read8BitReg(reg);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	Write8BitReg(reg, value);
 	
@@ -1607,9 +1607,9 @@ void CPU::SRLr8(CPU8BitReg reg) {
 }
 
 void CPU::SRLHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t newCarry = value & 0x01;
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 newCarry = value & 0x01;
 	value >>= 1;
 	WriteMemory(address, value);
 
@@ -1628,8 +1628,8 @@ void CPU::STOP() {
 }
 
 void CPU::SUBAr8(CPU8BitReg reg) {
-	uint8_t current = ReadAcc();
-	uint8_t result = current - Read8BitReg(reg);
+	u8 current = ReadAcc();
+	u8 result = current - Read8BitReg(reg);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1639,9 +1639,9 @@ void CPU::SUBAr8(CPU8BitReg reg) {
 }
 
 void CPU::SUBAHL() {
-	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t current = ReadAcc();
-	uint8_t result = current - mem;
+	u8 mem = ReadMemory(ReadHL());
+	u8 current = ReadAcc();
+	u8 result = current - mem;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1651,9 +1651,9 @@ void CPU::SUBAHL() {
 }
 
 void CPU::SUBAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t current = ReadAcc();
-	uint8_t result = current - constant;
+	u8 constant = ReadAtPC();
+	u8 current = ReadAcc();
+	u8 result = current - constant;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1663,8 +1663,8 @@ void CPU::SUBAn8() {
 }
 
 void CPU::SWAPr8(CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg);
-	uint8_t result = (value >> 4) + (value << 4);
+	u8 value = Read8BitReg(reg);
+	u8 result = (value >> 4) + (value << 4);
 	Write8BitReg(reg, result);
 	
 	UpdateZeroFlag(result);
@@ -1674,9 +1674,9 @@ void CPU::SWAPr8(CPU8BitReg reg) {
 }
 
 void CPU::SWAPHL() {
-	uint16_t address = ReadHL();
-	uint8_t value = ReadMemory(address);
-	uint8_t result = (value >> 4) + (value << 4);
+	u16 address = ReadHL();
+	u8 value = ReadMemory(address);
+	u8 result = (value >> 4) + (value << 4);
 	WriteMemory(address, result);
 
 	UpdateZeroFlag(result);
@@ -1686,7 +1686,7 @@ void CPU::SWAPHL() {
 }
 
 void CPU::XORAr8(CPU8BitReg reg) {
-	uint8_t result = ReadAcc() ^ Read8BitReg(reg);
+	u8 result = ReadAcc() ^ Read8BitReg(reg);
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1696,8 +1696,8 @@ void CPU::XORAr8(CPU8BitReg reg) {
 }
 
 void CPU::XORAHL() {
-	uint8_t value = ReadMemory(ReadHL());
-	uint8_t result = ReadAcc() ^ value;
+	u8 value = ReadMemory(ReadHL());
+	u8 result = ReadAcc() ^ value;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -1707,8 +1707,8 @@ void CPU::XORAHL() {
 }
 
 void CPU::XORAn8() {
-	uint8_t constant = ReadAtPC();
-	uint8_t result = ReadAcc() ^ constant;
+	u8 constant = ReadAtPC();
+	u8 result = ReadAcc() ^ constant;
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);

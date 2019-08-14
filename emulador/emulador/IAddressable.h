@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cinttypes>
+#include "Types.h"
 
 class IAddressable {
 public:
-	virtual uint8_t Read(uint16_t address) = 0;
-	virtual void Write(uint8_t value, uint16_t address) = 0;
+	virtual u8 Read(u16 address) = 0;
+	virtual void Write(u8 value, u16 address) = 0;
 };

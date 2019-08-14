@@ -1,7 +1,7 @@
 #include "InterruptServiceRoutine.h"
 #include "MMU.h"
 
-uint8_t InterruptServiceRoutine::Read(uint16_t address) {
+u8 InterruptServiceRoutine::Read(u16 address) {
 	switch (address) {
 	case 0xFFFF:
 		return IE;
@@ -11,7 +11,7 @@ uint8_t InterruptServiceRoutine::Read(uint16_t address) {
 	return 0xFF;
 }
 
-void InterruptServiceRoutine::Write(uint8_t value, uint16_t address) {
+void InterruptServiceRoutine::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFFFF:
 		IE = value; break;
@@ -32,10 +32,10 @@ void InterruptServiceRoutine::Save(std::ofstream& stream) const {
 	stream.write((const char*)&IME, 1);
 }
 
-bool InterruptServiceRoutine::IsInterruptEnabled(uint8_t interruptPosition) {
+bool InterruptServiceRoutine::IsInterruptEnabled(u8 interruptPosition) {
 	return IE & (1 << interruptPosition);
 }
 
-bool InterruptServiceRoutine::IsInterruptSet(uint8_t interruptPosition) {
+bool InterruptServiceRoutine::IsInterruptSet(u8 interruptPosition) {
 	return IF & (1 << interruptPosition);
 }
