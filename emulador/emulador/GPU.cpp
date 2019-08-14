@@ -108,14 +108,16 @@ bool GPU::Step(u8 cycles) {
 	}
 	case GPUMode::HBlank: {
 		if (modeCycles >= 204) {
+            u8 currentLine = GetCurrentLine();
+            if (currentLine < 144 && IsOn())
+                DrawLine(currentLine);
+
 			u8 newLine = OnLineFinished();
 			
 			SetMode(newLine > 143 ? GPUMode::VBlank : GPUMode::OAMAccess);
 			modeCycles -= 204;
-			if (newLine == 144 && IsOn()) {
-				DrawFrame();
+			if (newLine == 144 && IsOn())
 				frameDrawn = true;
-			}
 		}
 		break;
 	}
@@ -206,15 +208,13 @@ u8 GPU::OnLineFinished() {
 	return line;
 }
 
-void GPU::DrawFrame() {
-	for (int line = 0; line < 144; line++) {
-		//if (LCDC & LCDCMask::BGOn)
-			DrawBackground(line);
-		if (LCDC & LCDCMask::Win)
-			DrawWindow(line);
-		//if (LCDC & LCDCMask::OBJOn)
-			DrawSprites(line);
-	}
+void GPU::DrawLine(u8 line) {
+    if (LCDC & LCDCMask::BGOn)
+        DrawBackground(line);
+    if (LCDC & LCDCMask::Win)
+        DrawWindow(line);
+    if (LCDC & LCDCMask::OBJOn)
+        DrawSprites(line);
 }
 
 void GPU::DrawBackground(u8 line) {
@@ -224,10 +224,6 @@ void GPU::DrawBackground(u8 line) {
 	u8 bgPalette = BGP;
 
 	const u8 paletteMask = 0b00000011;
-
-	if (SCY + line > 144) {
-		int a = 0;
-	}
 
 	u8 firstTileY = (SCY + line) / 8;
 	u8 firstTileX = SCX / 8;

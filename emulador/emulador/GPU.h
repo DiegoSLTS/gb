@@ -51,7 +51,7 @@ public:
 	// returns new line number
 	u8 OnLineFinished();
 
-	void DrawFrame();
+    void DrawLine(u8 line);
 	void DrawBackground(u8 line);
 	void DrawWindow(u8 line);
 	void DrawSprites(u8 line);
