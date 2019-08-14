@@ -10,8 +10,9 @@ uint8_t CPU::Read8BitReg(CPU8BitReg reg) const {
 }
 
 void CPU::Write8BitReg(CPU8BitReg reg, uint8_t value) {
+	if (reg == CPU8BitReg::f)
+		value &= 0xF0;
 	registers[reg] = value;
-	//TODO assert flags register has 0s at the low nibble
 }
 
 uint16_t CPU::Read16BitReg(CPU16BitReg reg) const {
@@ -21,8 +22,9 @@ uint16_t CPU::Read16BitReg(CPU16BitReg reg) const {
 
 void CPU::Write16BitReg(CPU16BitReg reg, uint16_t value) {
 	uint16_t* regs16 = (uint16_t*)registers;
+	if (reg == CPU16BitReg::af)
+		value &= 0xFFF0;
 	regs16[reg] = value;
-	//TODO assert flags register has 0s at the low nibble
 }
 
 uint8_t CPU::ReadFlags() const {
@@ -30,8 +32,7 @@ uint8_t CPU::ReadFlags() const {
 }
 
 void CPU::WriteFlags(uint8_t newFlags) {
-	registers[CPU8BitReg::f] = newFlags;
-	//TODO asset flags register has 0s at the low nibble
+	Write8BitReg(CPU8BitReg::f,newFlags);
 }
 
 void CPU::ResetFlags() {
@@ -714,6 +715,7 @@ void CPU::ADCAr8(CPU8BitReg reg) {
 	uint8_t current = ReadAcc();
 	uint8_t result = current + Read8BitReg(reg) + (uint8_t)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
+	lastOpCycles++;
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
@@ -739,6 +741,9 @@ void CPU::ADCAn8() {
 	uint8_t result = current + constant + (uint8_t)HasFlag(FlagBit::Carry);
 	WriteAcc(result);
 	
+	// TODO to pass Blargg tests: https://stackoverflow.com/questions/42091214/gbz80-adc-instructions-fail-test
+	// TODO also for ADCAr8 and ADCAHL
+
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
 	UpdateHalfCarryFlag(current, result, true);
@@ -808,11 +813,12 @@ void CPU::ADDSPe8() {
 	uint16_t result = sp + offset;
 	sp = result;
 	lastOpCycles += 2;
-
+	
 	SetFlag(FlagBit::Zero, false);
 	SetFlag(FlagBit::Negative, false);
-	UpdateHalfCarryFlag(current, result, true);
-	UpdateCarryFlag(current, result, true);
+	// Carry and HalfCarry from lsb to pass blargg tests https://github.com/Drenn1/GameYob/issues/15
+	UpdateHalfCarryFlag((uint8_t)current, (uint8_t)result, true);
+	UpdateCarryFlag((uint8_t)current, (uint8_t)result, true);
 }
 
 void CPU::ANDAr8(CPU8BitReg reg) {
@@ -857,7 +863,7 @@ void CPU::BITu3r8(uint8_t bit, CPU8BitReg reg) {
 
 void CPU::BITu3HL(uint8_t bit) {
 	uint8_t mem = ReadMemory(ReadHL());
-	uint8_t result = mem | (1 << bit);
+	uint8_t result = mem & (1 << bit);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
@@ -894,7 +900,7 @@ void CPU::CPAr8(CPU8BitReg reg) {
 	uint8_t result = current - Read8BitReg(reg);
 
 	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, 1);
+	SetFlag(FlagBit::Negative, true);
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 }
@@ -905,7 +911,7 @@ void CPU::CPAHL() {
 	uint8_t result = current - mem;
 
 	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, 1);
+	SetFlag(FlagBit::Negative, true);
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 }
@@ -916,7 +922,7 @@ void CPU::CPAn8() {
 	uint8_t result = current - constant;
 
 	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, 1);
+	SetFlag(FlagBit::Negative, true);
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 }
@@ -924,8 +930,8 @@ void CPU::CPAn8() {
 void CPU::CPL() {
 	WriteAcc(~ReadAcc());
 
-	SetFlag(FlagBit::Negative, 1);
-	SetFlag(FlagBit::HalfCarry, 1);
+	SetFlag(FlagBit::Negative, true);
+	SetFlag(FlagBit::HalfCarry, true);
 }
 
 void CPU::DAA() {
@@ -966,7 +972,10 @@ void CPU::DECHL() {
 	uint8_t current = ReadMemory(ReadHL());
 	uint8_t result = current - 1;
 	WriteMemory(ReadHL(), result);
-	//no flags affected
+	
+	UpdateZeroFlag(result);
+	SetFlag(FlagBit::Negative, true);
+	UpdateHalfCarryFlag(current, result, false);
 }
 
 void CPU::DECr16(CPU16BitReg reg) {
@@ -1018,7 +1027,10 @@ void CPU::INCHL() {
 	uint8_t current = ReadMemory(ReadHL());
 	uint8_t result = current + 1;
 	WriteMemory(ReadHL(), result);
-	//no flags affected
+	
+	UpdateZeroFlag(result);
+	SetFlag(FlagBit::Negative, false);
+	UpdateHalfCarryFlag(current, result, true);
 }
 
 void CPU::INCr16(CPU16BitReg reg) {
@@ -1207,8 +1219,9 @@ void CPU::LDHLSPe8() {
 
 	SetFlag(FlagBit::Zero, false);
 	SetFlag(FlagBit::Negative, false);
-	UpdateHalfCarryFlag(current, result, true); //TODO offset sign for third parameter?
-	UpdateCarryFlag(current, result, true); //TODO offset sign for third parameter?
+	// Carry and HalfCarry from lsb to pass blargg tests https://github.com/Drenn1/GameYob/issues/15
+	UpdateHalfCarryFlag((uint8_t)current, (uint8_t)result, true);
+	UpdateCarryFlag((uint8_t)current, (uint8_t)result, true);
 }
 
 void CPU::LDSPHL() {
@@ -1257,7 +1270,7 @@ void CPU::ORAn8() {
 
 void CPU::POPr16(CPU16BitReg reg) {
 	Write16BitReg(reg, Pop16());
-	//no flags affected
+	//no flags affected (except if reg is AF)
 }
 
 void CPU::PUSHr16(CPU16BitReg reg) {
@@ -1509,12 +1522,12 @@ void CPU::SBCAn8() {
 void CPU::SCF() {
 	SetFlag(FlagBit::Carry, true);
 
-	SetFlag(FlagBit::Zero, false);
+	SetFlag(FlagBit::HalfCarry, false);
 	SetFlag(FlagBit::Negative, false);
 }
 
 void CPU::SETu3r8(uint8_t bit, CPU8BitReg reg) {
-	uint8_t value = Read8BitReg(reg) | ~(1 << bit);
+	uint8_t value = Read8BitReg(reg) | (1 << bit);
 	Write8BitReg(reg, value);
 	//no flags affected
 }

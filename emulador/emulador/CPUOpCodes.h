@@ -63,7 +63,7 @@ uint8_t opCodeSizes[256] = {
 	1, 1, 3, 3, 3, 1, 2, 1, 1, 1, 3, 2, 3, 3, 2, 1,
 	1, 1, 3, 0, 3, 1, 2, 1, 1, 1, 3, 0, 3, 0, 2, 1,
 	2, 1, 1, 0, 0, 1, 2, 1, 2, 1, 3, 0, 0, 0, 2, 1,
-	2, 1, 0, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1
+	2, 1, 1, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1
 };
 
 std::string opCodeFormats[256] = {
@@ -82,7 +82,7 @@ std::string opCodeFormats[256] = {
 	"RET NZ", 		"POP BC", 		"JP NZ,nn",		"JP nn", 		"CALL NZ,nn", 	"PUSH BC", 		"ADD A,n", 		"RST 0", 		"RET Z", 		"RET", 			"JP Z,nn", 		"CB", 		"CALL Z,nn", 	"CALL nn", 	"ADC A,n",		"RST 8",
 	"RET NC", 		"POP DE", 		"JP NC,nn",		"XX", 			"CALL NC,nn",	"PUSH DE", 		"SUB A,n", 		"RST 10", 		"RET C", 		"RETI", 		"JP C,nn", 		"XX", 		"CALL C,nn", 	"XX", 		"SBC A,n", 		"RST 18",
 	"LDH (n),A",	"POP HL", 		"LDH (C),A",	"XX", 			"XX", 			"PUSH HL", 		"AND n", 		"RST 20",		"ADD SP,d", 	"JP (HL)", 		"LD (nn),A", 	"XX", 		"XX", 			"XX",		"XOR n", 		"RST 28",
-	"LDH A,(n)",	"POP AF", 		"XX", 			"DI", 			"XX", 			"PUSH AF",		"OR n", 		"RST 30", 		"LDHL SP,d", 	"LD SP,HL", 	"LD A,(nn)",	"EI", 		"XX", 			"XX", 		"CP n", 		"RST 38"
+	"LDH A,(n)",	"POP AF", 		"LDH A,(C)", 	"DI", 			"XX", 			"PUSH AF",		"OR n", 		"RST 30", 		"LDHL SP,d", 	"LD SP,HL", 	"LD A,(nn)",	"EI", 		"XX", 			"XX", 		"CP n", 		"RST 38"
 };
 
 std::string cbOpCodeFormats[256] = {

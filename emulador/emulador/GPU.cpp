@@ -89,12 +89,6 @@ void GPU::Save(std::ofstream& stream) const {
 }
 
 bool GPU::Step(uint8_t cycles) {
-	if (!IsOn())
-	{
-		// TODO?
-		return false;
-	}
-
 	modeCycles += cycles;
 	bool frameDrawn = false;
 	switch (mode) {
@@ -118,7 +112,7 @@ bool GPU::Step(uint8_t cycles) {
 			
 			SetMode(newLine > 143 ? GPUMode::VBlank : GPUMode::OAMAccess);
 			modeCycles -= 204;
-			if (newLine == 144) {
+			if (newLine == 144 && IsOn()) {
 				DrawFrame();
 				frameDrawn = true;
 			}

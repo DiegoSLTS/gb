@@ -65,7 +65,7 @@ void TileViewer::UpdateTile(uint8_t x, uint8_t y) {
 }
 
 void TileViewer::SetPixel(unsigned int pixelIndex, uint8_t gbColor) {
-	uint8_t gpuColor = 255 - (gbColor / 3.0f) * 255;
+	uint8_t gpuColor = 255 - gbColor * 85;
 	screenArray[pixelIndex * 4] = gpuColor;
 	screenArray[pixelIndex * 4 + 1] = gpuColor;
 	screenArray[pixelIndex * 4 + 2] = gpuColor;
