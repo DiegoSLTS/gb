@@ -315,11 +315,11 @@ void GPU::DrawSprites(u8 line) {
 			u16 screenPosBase = line * 160 + spriteX;
 
 			for (s8 bit = 7; bit >= 0; bit--) {
-                u8 p = flipX ? 7 - bit : bit;
+                u8 pixel = flipX ? 7 - bit : bit;
                 s16 screenPos = screenPosBase + (7 - bit);
 				if (screenPos >= 0 && screenPos <= LCDWidth * LCDHeight) {
-					u8 lowBit = (tileDataLow >> p) & 0x01;
-					u8 highBit = (p > 0 ? tileDataHigh >> (p - 1) : tileDataHigh << 1) & 0x02;
+					u8 lowBit = (tileDataLow >> pixel) & 0x01;
+					u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
 					u8 id = lowBit | highBit;
 
 					if (id > 0)

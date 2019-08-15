@@ -43,37 +43,23 @@ void SpritesViewer::DrawSprite(u8 index) {
 	u16 tileAddress = 0x8000 + tileIndex * 16;
 
 	for (u8 line = 0; line < spriteHeight; line++) {
-		u8 tileDataLow = mmu->Read(tileAddress + line * 2);
-		u8 tileDataHigh = mmu->Read(tileAddress + line * 2 + 1);
+        u8 spriteLine = flipY ? 7 - line : line;
+		u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
+		u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
 
-		//TODO reuse code from GPU
-		u8 p7id = (tileDataLow & 0x80) >> 7 | (tileDataHigh & 0x80) >> 6;
-		u8 p6id = (tileDataLow & 0x40) >> 6 | (tileDataHigh & 0x40) >> 5;
-		u8 p5id = (tileDataLow & 0x20) >> 5 | (tileDataHigh & 0x20) >> 4;
-		u8 p4id = (tileDataLow & 0x10) >> 4 | (tileDataHigh & 0x10) >> 3;
-		u8 p3id = (tileDataLow & 0x08) >> 3 | (tileDataHigh & 0x08) >> 2;
-		u8 p2id = (tileDataLow & 0x04) >> 2 | (tileDataHigh & 0x04) >> 1;
-		u8 p1id = (tileDataLow & 0x02) >> 1 | (tileDataHigh & 0x02);
-		u8 p0id = (tileDataLow & 0x01) | (tileDataHigh & 0x01) << 1;
+        u16 screenPosBase = (spriteY + line - 1) * (256 + 8) + spriteX;
 
-		u16 screenPosBase = (spriteY + line) * (256 + 8) + spriteX;
+        for (s8 bit = 7; bit >= 0; bit--) {
+            u8 pixel = flipX ? 7 - bit : bit;
+            u16 screenPos = screenPosBase + (7 - bit);
+            
+            u8 lowBit = (tileDataLow >> pixel) & 0x01;
+            u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
+            u8 id = lowBit | highBit;
 
-		if (p7id != 0)
-			SetPixel(screenPosBase, (palette & (paletteMask << (p7id << 1))) >> (p7id << 1));
-		if (p6id != 0)
-			SetPixel(screenPosBase + 1, (palette & (paletteMask << (p6id << 1))) >> (p6id << 1));
-		if (p5id != 0)
-			SetPixel(screenPosBase + 2,(palette & (paletteMask << (p5id << 1))) >> (p5id << 1));
-		if (p4id != 0)
-			SetPixel(screenPosBase + 3, (palette & (paletteMask << (p4id << 1))) >> (p4id << 1));
-		if (p3id != 0)
-			SetPixel(screenPosBase + 4, (palette & (paletteMask << (p3id << 1))) >> (p3id << 1));
-		if (p2id != 0)
-			SetPixel(screenPosBase + 5, (palette & (paletteMask << (p2id << 1))) >> (p2id << 1));
-		if (p1id != 0)
-			SetPixel(screenPosBase + 6, (palette & (paletteMask << (p1id << 1))) >> (p1id << 1));
-		if (p0id != 0)
-			SetPixel(screenPosBase + 7, (palette & (paletteMask << (p0id << 1))) >> (p0id << 1));
+            if (id > 0)
+                SetPixel(screenPos,(palette & (paletteMask << (id << 1))) >> (id << 1));
+        }
 	}
 }
 
