@@ -54,8 +54,8 @@ public:
 	InterruptServiceRoutine* interruptService = nullptr;
 
 	// registers
-	u8 registers[8] = { 0 }; //TODO 0xB0, 0x01, 0x13, 0x00, 0xD8, 0x00, 0x4D, 0x01 at start or after bios?
-	u16 pc = 0, sp = 0; //TODO pc = 0x0100, sp = 0xFFFE; at start or after bios?
+	u8 registers[8] = { 0 };
+	u16 pc = 0, sp = 0;
 
 	u8 lastOpCycles = 0;
 	bool isHalted = false;
@@ -92,12 +92,10 @@ public:
 	bool HasFlag(FlagBit flagBit) const;
 
 	void UpdateZeroFlag(u8 value);
-	void UpdateNegativeFlag(u8 value);
 	void UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd);
 	void UpdateCarryFlag(u8 previous, u8 current, bool isAdd);
 
 	void UpdateZeroFlag(u16 value);
-	void UpdateNegativeFlag(u16 value);
 	void UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd);
 	void UpdateCarryFlag(u16 previous, u16 current, bool isAdd);
 	// flags

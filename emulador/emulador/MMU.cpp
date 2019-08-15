@@ -5,7 +5,6 @@
 
 u8 MMU::Read(u16 address) {
 	IAddressable* addressable = GetAddresableFor(address);
-	//TODO unused bits set to 1, except IE register
 	if (addressable != nullptr)
 		return addressable->Read(address);
 	

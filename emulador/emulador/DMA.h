@@ -1,12 +1,13 @@
 #pragma once
 
 #include "IAddressable.h"
+#include "IState.h"
 // DMA: https://gekkio.fi/files/gb-docs/gbctr.pdf
 
 class MMU;
 
 //TODO IState
-class DMA : public IAddressable {
+class DMA : public IAddressable, public IState {
 public:
 	MMU* mmu = nullptr;
 
@@ -17,4 +18,7 @@ public:
 
 	virtual u8 Read(u16 address) override;
 	virtual void Write(u8 value, u16 address) override;
+
+    virtual void Load(std::ifstream& stream) const override;
+    virtual void Save(std::ofstream& stream) const override;
 };

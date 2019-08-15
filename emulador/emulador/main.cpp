@@ -20,13 +20,13 @@
 #include "StateViewer.h"
 
 void printCPUFlags(const CPU& cpu) {
-	//printf("%u%u%u%u0000\n", cpu.HasFlag(FlagBit::Zero), cpu.HasFlag(FlagBit::Negative), cpu.HasFlag(FlagBit::HalfCarry), cpu.HasFlag(FlagBit::Carry));
+	printf("%u%u%u%u0000\n", cpu.HasFlag(FlagBit::Zero), cpu.HasFlag(FlagBit::Negative), cpu.HasFlag(FlagBit::HalfCarry), cpu.HasFlag(FlagBit::Carry));
 }
 
 bool isLittleEndian() {
 	u8 test[2] = { 0x1, 0x0 };
 	u16* t16 = (u16*)test;
-	//printf("temp: %u", *t16);
+	printf("temp: %u", *t16);
 	return *t16 == test[0];
 }
 
@@ -44,7 +44,7 @@ void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], u8 gpuScreen[]) {
 	}
 }
 
-void SaveState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService) {
+void SaveState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService, const DMA& dma) {
 	std::ofstream stream;
 	stream.open("bootState.txt", std::ios::binary);
 
@@ -52,11 +52,12 @@ void SaveState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 	mmu.Save(stream);
 	gpu.Save(stream);
 	interruptService.Save(stream);
+    //dma.Save(stream);
 	
 	stream.close();
 }
 
-void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService) {
+void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService, const DMA& dma) {
 	std::ifstream stream;
 	stream.open("bootState.txt", std::ios::binary);
 
@@ -64,13 +65,18 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 	mmu.Load(stream);
 	gpu.Load(stream);
 	interruptService.Load(stream);
+    //dma.Load(stream);
 
 	stream.close();
 }
 
 int main() {
 	std::string romsPath = "D:\\Programacion\\gb\\roms\\";
+    //std::string romName = "Asteroids (U).gb";
     std::string romName = "Boxxle (V1.1) (U) [!].gb";
+    //std::string romName = "Centipede (U) [C][!].gb";
+    //std::string romName = "Dropzone (U) (GB).gb";
+
 	//std::string romName = "Alleyway (World).gb";
 	//std::string romName = "Amida (Japan).gb";
 	//std::string romName = "Asteroids (USA, Europe).gb"; // broken window over background, freezes during gameplay
@@ -200,7 +206,7 @@ int main() {
 
 	bool skipBios = true;
 	if (skipBios)
-		LoadState(cpu, gpu, mmu, interruptService);
+		LoadState(cpu, gpu, mmu, interruptService, dma);
 
 	Window gameWindow(160, 144, "Game");
 	sf::Vector2i p(50, 50);
@@ -250,7 +256,7 @@ int main() {
 		}
 		
 		if (!skipBios && cpu.pc == 0x100)
-			SaveState(cpu, gpu, mmu, interruptService);
+			SaveState(cpu, gpu, mmu, interruptService, dma);
 
 		if (cpu.pc == 0x799) {
 			int a = 0;

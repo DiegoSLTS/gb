@@ -19,3 +19,11 @@ void DMA::Write(u8 value, u16 address) {
 	currentCycles = 0;
 	addressBase = value << 8;
 }
+
+void DMA::Load(std::ifstream& stream) const {
+    stream.read((char*)&currentCycles, 3);
+}
+
+void DMA::Save(std::ofstream& stream) const {
+    stream.write((char*)&currentCycles, 3);
+}

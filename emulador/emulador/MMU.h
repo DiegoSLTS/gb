@@ -54,7 +54,7 @@ public:
 
 	bool IsBootRomEnabled();
 
-	//TODO move to InterruptServiceRoutine
+	//TODO move to InterruptServiceRoutine?
 	void SetInterruptFlag(u8 interruptPosition);
 	void ResetInterruptFlag(u8 interruptPosition);
 

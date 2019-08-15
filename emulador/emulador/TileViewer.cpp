@@ -33,7 +33,7 @@ u16 TileViewer::GetTileAddress(u8 x, u8 y) const {
 
 void TileViewer::UpdateTile(u8 x, u8 y) {
 	const u8 paletteMask = 0b00000011;
-	u8 bgPalette = mmu->Read(0xFF47); //TODO for sprites?
+	u8 bgPalette = mmu->Read(0xFF47);
 
 	u16 tileDataAddress = GetTileAddress(x, y);
 

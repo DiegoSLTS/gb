@@ -3,7 +3,7 @@
 #include <SFML\Window\Keyboard.hpp>
 
 void Joypad::Update() {
-	if (JOYP & 0b00010000) {
+	if ((JOYP & 0b00100000) == 0) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) // A
 			JOYP &= 0b11111110;
 		else
@@ -23,7 +23,7 @@ void Joypad::Update() {
 			JOYP &= 0b11110111;
 		else
 			JOYP |= 0b00001000;
-	} else if (JOYP & 0b00100000) {
+	} else if ((JOYP & 0b00010000) == 0) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) // right
 			JOYP &= 0b11111110;
 		else

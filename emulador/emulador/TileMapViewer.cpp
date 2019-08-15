@@ -10,5 +10,5 @@ u16 TileMapViewer::GetTileAddress(u8 x, u8 y) const {
 	u16 tileDataAddress = (LCDCRegister & LCDCMask::BGCharacterArea) > 0 ? 0x8000 : 0x8800;
 
 	u8 tileOffset = mmu->Read(address + y * 32 + x);
-	return tileDataAddress == 0x8000 ? tileDataAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16; //TODO revisar
+	return tileDataAddress == 0x8000 ? tileDataAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16;
 }

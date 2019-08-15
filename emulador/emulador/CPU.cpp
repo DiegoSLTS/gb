@@ -61,14 +61,6 @@ void CPU::UpdateZeroFlag(u16 value) {
 	SetFlag(FlagBit::Zero, value == 0);
 }
 
-void CPU::UpdateNegativeFlag(u8 value) {
-	//TODO SetFlag(FlagBit::Zero, ???);
-}
-
-void CPU::UpdateNegativeFlag(u16 value) {
-	//TODO SetFlag(FlagBit::Zero, ???);
-}
-
 void CPU::UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd) {
 	bool set = isAdd ? (current & 0x0F) < (previous & 0x0F) : (current & 0x0F) > (previous & 0x0F);
 	SetFlag(FlagBit::HalfCarry, set);
@@ -952,6 +944,7 @@ void CPU::DAA() {
 			result += 0x60;
 		setCarry = result > 0x100;
 	}
+    WriteAcc(result);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::HalfCarry, false);

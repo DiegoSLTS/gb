@@ -31,8 +31,14 @@ u8 GPU::Read(u16 address) {
 
 void GPU::Write(u8 value, u16 address) {
 	switch (address) {
-	case 0xFF40:
-		LCDC = value; break;
+    case 0xFF40: {
+        bool wasOn = IsOn();
+        LCDC = value;
+        bool isOn = IsOn();
+        if (isOn && !wasOn)
+            SetCurrentLine(0);
+        break;
+    }
 	case 0xFF41:
 		LCDStat = (value & 0xF8) | (LCDStat & 0x07); break;
 	case 0xFF42:
@@ -96,10 +102,12 @@ bool GPU::Step(u8 cycles) {
 		if (modeCycles >= 80) {
 			SetMode(GPUMode::VRAMAccess);
 			modeCycles -= 80;
+            //TOOD if modeCycles > 0, PixelFifo::Step(modeCycles)
 		}
 		break;
 	}
 	case GPUMode::VRAMAccess: {
+        //TODO if (PixelFifo::Step(cycles)) {
 		if (modeCycles >= 172) {
 			SetMode(GPUMode::HBlank);
 			modeCycles -= 172;
@@ -132,8 +140,6 @@ bool GPU::Step(u8 cycles) {
 		break;
 	}
 	}
-	//TODO update STATE register (LY == LYC, mode, etc)
-	//TODO remaining cycles?
 	return frameDrawn;
 }
 
@@ -167,26 +173,14 @@ void GPU::SetMode(GPUMode newMode) {
 }
 
 bool GPU::IsOn() {
-	bool isOn = (LCDC & LCDCMask::LCDOn) > 0;
-
-	// TODO move to Write
-	if (isOn && !wasOn)
-		SetCurrentLine(0);
-
-	if (!isOn && wasOn && mode != GPUMode::VBlank) {
-		//TODO assert? forbiden according to http://gbdev.gg8.se/wiki/articles/LCDC
-	}
-	wasOn = isOn;
-	return isOn;
+	return (LCDC & LCDCMask::LCDOn) > 0;
 }
 
 u8 GPU::GetCurrentLine() const {
-	//TODO assert newline < 154?
 	return LY;
 }
 
 void GPU::SetCurrentLine(u8 newLine) {
-	//TODO assert newline < 154?
 	LY = newLine;
 
 	if (LYC == newLine)
@@ -313,16 +307,19 @@ void GPU::DrawSprites(u8 line) {
 
 			u16 tileAddress = 0x8000 + tileIndex * 16;
 
-			u8 tileDataLow = mmu->Read(tileAddress + (line - spriteY) * 2);
-			u8 tileDataHigh = mmu->Read(tileAddress + (line - spriteY) * 2 + 1);
+            u8 spriteLine = flipY ? 7 - (line - spriteY) : line - spriteY;
+
+			u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
+			u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
 
 			u16 screenPosBase = line * 160 + spriteX;
 
-			for (s8 pixel = 7; pixel >= 0; pixel--) {
-                s16 screenPos = screenPosBase + (7 - pixel);
+			for (s8 bit = 7; bit >= 0; bit--) {
+                u8 p = flipX ? 7 - bit : bit;
+                s16 screenPos = screenPosBase + (7 - bit);
 				if (screenPos >= 0 && screenPos <= LCDWidth * LCDHeight) {
-					u8 lowBit = (tileDataLow >> pixel) & 0x01;
-					u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
+					u8 lowBit = (tileDataLow >> p) & 0x01;
+					u8 highBit = (p > 0 ? tileDataHigh >> (p - 1) : tileDataHigh << 1) & 0x02;
 					u8 id = lowBit | highBit;
 
 					if (id > 0)
