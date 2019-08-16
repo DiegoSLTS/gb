@@ -43,7 +43,7 @@ void SpritesViewer::DrawSprite(u8 index) {
 	u16 tileAddress = 0x8000 + tileIndex * 16;
 
 	for (u8 line = 0; line < spriteHeight; line++) {
-        u8 spriteLine = flipY ? 7 - line : line;
+        u8 spriteLine = flipY ? spriteHeight - 1 - line : line;
 		u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
 		u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
 

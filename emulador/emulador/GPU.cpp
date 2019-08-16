@@ -307,7 +307,7 @@ void GPU::DrawSprites(u8 line) {
 
 			u16 tileAddress = 0x8000 + tileIndex * 16;
 
-            u8 spriteLine = flipY ? 7 - (line - spriteY) : line - spriteY;
+            u8 spriteLine = flipY ? spriteHeight - 1 - (line - spriteY) : line - spriteY;
 
 			u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
 			u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
