@@ -72,20 +72,16 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 
 int main() {
 	std::string romsPath = "D:\\Programacion\\gb\\roms\\";
-    //std::string romName = "Asteroids (U).gb";
-    std::string romName = "Boxxle (V1.1) (U) [!].gb";
-    //std::string romName = "Centipede (U) [C][!].gb";
-    //std::string romName = "Dropzone (U) (GB).gb";
 
 	//std::string romName = "Alleyway (World).gb";
 	//std::string romName = "Amida (Japan).gb";
-	//std::string romName = "Asteroids (USA, Europe).gb"; // broken window over background, freezes during gameplay
-	//std::string romName = "BattleCity (Japan).gb"; // broken priority
+	//std::string romName = "Asteroids (USA, Europe).gb"; // freezes during gameplay
+	//std::string romName = "BattleCity (Japan).gb";
 	//std::string romName = "Bomb Jack (Europe).gb";
 	//std::string romName = "Bouken! Puzzle Road (Japan).gb"; // "Daedalian Opus (USA).gb"
 	//std::string romName = "Boxxle (USA, Europe) (Rev A).gb";
-	//std::string romName = "Boxxle II (USA, Europe).gb"; // broken priority
-	//std::string romName = "Brain Bender (Europe).gb"; // broken stretch effect and level layout
+	//std::string romName = "Boxxle II (USA, Europe).gb"; // level layout (background) missing
+	//std::string romName = "Brain Bender (Europe).gb"; // broken stretch effect
 	//std::string romName = "Bubble Ghost (USA, Europe).gb";
 	//std::string romName = "Castelian (Europe).gb"; // "Kyoro-chan Land (Japan).gb"
 	//std::string romName = "Catrap (USA).gb";
@@ -93,10 +89,10 @@ int main() {
 	//std::string romName = "Chiki Chiki Tengoku (Japan).gb";
 	//std::string romName = "Cool Ball (USA).gb";
 	//std::string romName = "Daedalian Opus (USA).gb"; // "Bouken! Puzzle Road (Japan).gb"
-	//std::string romName = "Crystal Quest (USA).gb"; // no enemies
+	//std::string romName = "Crystal Quest (USA).gb";
 	//std::string romName = "Dr. Mario (World) (Rev A).gb";
 	//std::string romName = "Dragon Slayer I (Japan).gb"; // broken map/offsets
-	//std::string romName = "Dropzone (Europe).gb"; // broken splash, broken shots
+	//std::string romName = "Dropzone (Europe).gb"; // broken shots
 	//std::string romName = "Flappy Special (Japan).gb";
 	//std::string romName = "Flipull (USA).gb";
 	//std::string romName = "Heiankyo Alien (USA).gb";
@@ -109,8 +105,8 @@ int main() {
 	//std::string romName = "Koro Dice (Japan).gb";
 	//std::string romName = "Kwirk - He's A-maze-ing! (USA, Europe).gb";
 	//std::string romName = "Kyoro-chan Land (Japan).gb"; // Castelian (Europe).gb
-	//std::string romName = "Loopz (World).gb"; // no image? window over everything?
-	//std::string romName = "Master Karateka (Japan).gb"; // broken background
+	std::string romName = "Loopz (World).gb"; // doesn't boot
+	//std::string romName = "Master Karateka (Japan).gb";
 	//std::string romName = "Migrain (Japan).gb"; // "Brain Bender (Europe).gb"
 	//std::string romName = "Minesweeper - Soukaitei (Japan).gb";
 	//std::string romName = "Missile Command (USA, Europe).gb";
@@ -136,7 +132,7 @@ int main() {
 	//std::string romName = "Tesserae (Europe) (En,Fr,De,Es,It).gb";
 	//std::string romName = "Tetris (World) (Rev A).gb";
 	//std::string romName = "Trump Boy (Japan).gb";
-	//std::string romName = "Volley Fire (Japan).gb"; // freeze at main menu
+	//std::string romName = "Volley Fire (Japan).gb";
 	//std::string romName = "World Bowling (USA).gb";
 	//std::string romName = "Yakuman (Japan) (Rev A).gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\01-special.gb"; // DAA
