@@ -1,8 +1,10 @@
 #include "Joypad.h"
+#include "MMU.h"
 
 #include <SFML\Window\Keyboard.hpp>
 
 void Joypad::Update() {
+    u8 state = JOYP;
 	if ((JOYP & 0b00100000) == 0) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) // A
 			JOYP &= 0b11111110;
@@ -46,7 +48,12 @@ void Joypad::Update() {
 	} else
 		JOYP = 0xFF;
 
-	//TODO set interrupt request
+    for (u8 bit = 0; bit < 4; bit++) {
+        if ((state & (0x01 << bit)) > (JOYP & (0x01 << bit))) {
+            mmu->SetInterruptFlag(5);
+            break;
+        }
+    }
 }
 
 u8 Joypad::Read(u16 address) {

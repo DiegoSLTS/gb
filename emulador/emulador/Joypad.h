@@ -2,9 +2,13 @@
 
 #include "IAddressable.h"
 
+class MMU;
+
 class Joypad : public IAddressable {
 public:
 	void Update();
+
+    MMU* mmu = nullptr;
 
     u8 JOYP = 0xFF; //0xFF00
 

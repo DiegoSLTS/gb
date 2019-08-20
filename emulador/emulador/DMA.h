@@ -6,7 +6,6 @@
 
 class MMU;
 
-//TODO IState
 class DMA : public IAddressable, public IState {
 public:
 	MMU* mmu = nullptr;

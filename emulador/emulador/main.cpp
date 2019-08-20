@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
+#include <ctime>
 
 #include "Types.h"
 
@@ -31,16 +32,14 @@ bool isLittleEndian() {
 }
 
 void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], u8 gpuScreen[]) {
-	for (int y = 0; y < 160; y++) {
-		for (int x = 0; x < 144; x++) {
-			u16 index = y * 144 + x;
-			// turn gpuScreen value [0,3] into an 8 bit value [255,0]
-			u8 gpuColor = 255 - gpuScreen[index] * 85; // 85 == 255/3
-			sfmlScreen[index * 4] = gpuColor;
-			sfmlScreen[index * 4 + 1] = gpuColor;
-			sfmlScreen[index * 4 + 2] = gpuColor;
-			sfmlScreen[index * 4 + 3] = 0xFF;
-		}
+    int index = 0;
+	for (; index < 160 * 144; index++) {
+		// turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
+		u8 gpuColor = 255 - gpuScreen[index] * 85;
+		sfmlScreen[index * 4] = gpuColor;
+		sfmlScreen[index * 4 + 1] = gpuColor;
+		sfmlScreen[index * 4 + 2] = gpuColor;
+		sfmlScreen[index * 4 + 3] = 0xFF;
 	}
 }
 
@@ -73,7 +72,7 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 int main() {
 	std::string romsPath = "D:\\Programacion\\gb\\roms\\";
 
-	//std::string romName = "Alleyway (World).gb";
+	//std::string romName = "Alleyway (World).gb"; // broken joypad
 	//std::string romName = "Amida (Japan).gb";
 	//std::string romName = "Asteroids (USA, Europe).gb"; // freezes during gameplay
 	//std::string romName = "BattleCity (Japan).gb";
@@ -105,7 +104,7 @@ int main() {
 	//std::string romName = "Koro Dice (Japan).gb";
 	//std::string romName = "Kwirk - He's A-maze-ing! (USA, Europe).gb";
 	//std::string romName = "Kyoro-chan Land (Japan).gb"; // Castelian (Europe).gb
-	std::string romName = "Loopz (World).gb"; // doesn't boot
+	//std::string romName = "Loopz (World).gb"; // doesn't boot
 	//std::string romName = "Master Karateka (Japan).gb";
 	//std::string romName = "Migrain (Japan).gb"; // "Brain Bender (Europe).gb"
 	//std::string romName = "Minesweeper - Soukaitei (Japan).gb";
@@ -143,7 +142,7 @@ int main() {
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\06-ld r,r.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\07-jr,jp,call,ret,rst.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\08-misc instrs.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb"; // ADC A,r, SBC A,r
+	std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb"; // ADC A,r, SBC A,r
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\10-bit ops.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\11-op a,(hl).gb"; // ADC A,(HL), SBC A,(HL), DAA
 	//std::string romName = "gb-test-roms-master\\instr_timing\\instr_timing.gb";
@@ -192,6 +191,7 @@ int main() {
 
 	Joypad joypad;
 	mmu.joypad = &joypad;
+    joypad.mmu = &mmu;
 
 	DMA dma;
 	dma.mmu = &mmu;
@@ -233,6 +233,10 @@ int main() {
 	p.y = 380;
 	tileMap1Window.renderWindow->setPosition(p);
 
+    std::time_t previousTimer = time(NULL);
+    std::time_t currentTimer;
+    u16 framesCount = 0;
+
 	while (gameWindow.renderWindow->isOpen()) {
 		if (interruptService.eiDelay) {
 			interruptService.IME = true;
@@ -254,7 +258,7 @@ int main() {
 		if (!skipBios && cpu.pc == 0x100)
 			SaveState(cpu, gpu, mmu, interruptService, dma);
 
-		if (cpu.pc == 0x799) {
+		if (cpu.pc == 0x0416) {
 			int a = 0;
 		}
 
@@ -285,6 +289,8 @@ int main() {
 			tileMap0Window.Update();
 			tileMap1Window.Update();
 			spritesWindow.Update();
+
+            framesCount++;
 		}
 
 		//state.Update();
@@ -293,6 +299,14 @@ int main() {
 		dma.Step(lastOpCycles);
 		
 		cpu.lastOpCycles = 0;
+
+        time(&currentTimer);
+
+        if (currentTimer - previousTimer >= 1) {
+            printf("%d - ", framesCount);
+            previousTimer = currentTimer;
+            framesCount = 0;
+        }
 
 		sf::Event event;
 		while (gameWindow.renderWindow->pollEvent(event))
