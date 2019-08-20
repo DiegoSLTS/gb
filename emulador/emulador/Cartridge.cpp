@@ -2,6 +2,12 @@
 
 #include <fstream>
 
+Cartridge::Cartridge(const std::string& romPath) {
+    LoadFile(romPath);
+}
+
+Cartridge::~Cartridge() {}
+
 void Cartridge::LoadFile(const std::string& path) {
 	std::ifstream readStream;
 	readStream.open(path, std::ios::in | std::ios::binary);

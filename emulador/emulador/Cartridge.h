@@ -7,6 +7,9 @@
 
 class Cartridge : public IAddressable, public IState {
 public:
+    Cartridge(const std::string& romPath);
+    virtual ~Cartridge();
+
 	u8 rom[32 * 1024] = { 0 };
 
 	void LoadFile(const std::string& path);

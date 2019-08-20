@@ -1,6 +1,9 @@
 #include "GPU.h"
 #include "MMU.h"
 
+GPU::GPU(MMU& mmu) : mmu(mmu) {}
+GPU::~GPU() {}
+
 u8 GPU::Read(u16 address) {
 	switch (address) {
 	case 0xFF40:
@@ -147,10 +150,10 @@ void GPU::SetMode(GPUMode newMode) {
 	mode = newMode;
 
 	if (mode == GPUMode::VBlank)
-		mmu->SetInterruptFlag(0);
+		mmu.SetInterruptFlag(0);
 
 	if ((mode == GPUMode::OAMAccess && (LCDStat & 0x20)) || (mode == GPUMode::VBlank && (LCDStat & 0x10)) || (mode == GPUMode::HBlank && (LCDStat & 0x08)))
-		mmu->SetInterruptFlag(1);
+		mmu.SetInterruptFlag(1);
 
 	switch (mode) {
 	case GPUMode::HBlank:
@@ -189,7 +192,7 @@ void GPU::SetCurrentLine(u8 newLine) {
 		LCDStat &= ~4;
 
 	if (LCDStat & 0x40 && LYC == newLine)
-		mmu->SetInterruptFlag(1);
+		mmu.SetInterruptFlag(1);
 }
 
 u8 GPU::OnLineFinished() {
@@ -224,12 +227,12 @@ void GPU::DrawBackground(u8 line) {
 	u8 xTileOffset = SCX % 8;
 
 	for (int tileX = 0; tileX < 20; tileX++) {
-		u8 tileOffset = mmu->Read(bgDataAddress + firstTileY * 32 + firstTileX + tileX);
+		u8 tileOffset = mmu.Read(bgDataAddress + firstTileY * 32 + firstTileX + tileX);
 
 		u16 tileAddress = tileDataAddress == 0x8000 ? tileDataAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16;
 
-		u8 tileDataLow = mmu->Read(tileAddress + ((SCY + line) % 8) * 2);
-		u8 tileDataHigh = mmu->Read(tileAddress + ((SCY + line) % 8) * 2 + 1);
+		u8 tileDataLow = mmu.Read(tileAddress + ((SCY + line) % 8) * 2);
+		u8 tileDataHigh = mmu.Read(tileAddress + ((SCY + line) % 8) * 2 + 1);
 
 		u16 screenPosBase = line * 160 + tileX * 8 - xTileOffset;
 
@@ -263,12 +266,12 @@ void GPU::DrawWindow(u8 line) {
 	u8 tilesToDraw = (160 - WX) / 8 + 1;
 
 	for (int tileX = 0; tileX < tilesToDraw; tileX++) {
-		u8 tileOffset = mmu->Read(winDataAddress + firstTileY * 32 + firstTileX + tileX);
+		u8 tileOffset = mmu.Read(winDataAddress + firstTileY * 32 + firstTileX + tileX);
 
 		u16 tileAddress = tileDataAddress == 0x8000 ? tileDataAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16;
 
-		u8 tileDataLow = mmu->Read(tileAddress + (line % 8) * 2);
-		u8 tileDataHigh = mmu->Read(tileAddress + (line % 8) * 2 + 1);
+		u8 tileDataLow = mmu.Read(tileAddress + (line % 8) * 2);
+		u8 tileDataHigh = mmu.Read(tileAddress + (line % 8) * 2 + 1);
 
 		u16 screenPosBase = line * 160 + tileX * 8 + (WX - 7);
 
@@ -293,12 +296,12 @@ void GPU::DrawSprites(u8 line) {
 	for (u8 i = 0; i < 40; i++) {
 		u8 spriteIndex = i * 4;
 
-        s16 spriteY = (s16)mmu->Read(0xFE00 + spriteIndex) - 16;
+        s16 spriteY = (s16)mmu.Read(0xFE00 + spriteIndex) - 16;
 
 		if ((spriteY <= line) && (spriteY + spriteHeight > line)) {
-			u8 spriteX = mmu->Read(0xFE00 + spriteIndex + 1) - 8;
-			u8 tileIndex = mmu->Read(0xFE00 + spriteIndex + 2);
-			u8 attributes = mmu->Read(0xFE00 + spriteIndex + 3);
+			u8 spriteX = mmu.Read(0xFE00 + spriteIndex + 1) - 8;
+			u8 tileIndex = mmu.Read(0xFE00 + spriteIndex + 2);
+			u8 attributes = mmu.Read(0xFE00 + spriteIndex + 3);
 
 			bool hasPriority = (attributes & 0b10000000) > 0;
 			bool flipY = (attributes & 0b01000000) > 0;
@@ -309,8 +312,8 @@ void GPU::DrawSprites(u8 line) {
 
             u8 spriteLine = flipY ? spriteHeight - 1 - (line - spriteY) : line - spriteY;
 
-			u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
-			u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
+			u8 tileDataLow = mmu.Read(tileAddress + spriteLine * 2);
+			u8 tileDataHigh = mmu.Read(tileAddress + spriteLine * 2 + 1);
 
 			u16 screenPosBase = line * 160 + spriteX;
 

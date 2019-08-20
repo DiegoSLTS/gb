@@ -1,5 +1,4 @@
 #include "InterruptServiceRoutine.h"
-#include "MMU.h"
 
 u8 InterruptServiceRoutine::Read(u16 address) {
 	switch (address) {

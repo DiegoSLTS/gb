@@ -47,10 +47,10 @@ enum CPU16BitReg {
 
 class CPU : IState {
 public:
-	CPU();
+	CPU(MMU& mmu);
 	virtual ~CPU();
 	
-	MMU* mmu = nullptr;
+	MMU& mmu;
 	InterruptServiceRoutine* interruptService = nullptr;
 
 	// registers

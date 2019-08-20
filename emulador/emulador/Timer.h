@@ -6,7 +6,10 @@ class MMU;
 
 class Timer : public IAddressable {
 public:
-	MMU* mmu = nullptr;
+    Timer(MMU& mmu);
+    virtual ~Timer();
+
+	MMU& mmu;
 
 	u16 dividerCounter = 0;
 	u16 timerCounter = 0;

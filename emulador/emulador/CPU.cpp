@@ -2,7 +2,7 @@
 #include "MMU.h"
 #include "InterruptServiceRoutine.h"
 
-CPU::CPU() {}
+CPU::CPU(MMU& mmu) : mmu(mmu) {}
 CPU::~CPU() {}
 
 u8 CPU::Read8BitReg(CPU8BitReg reg) const {
@@ -101,16 +101,16 @@ void CPU::WriteHL(u16 value) {
 
 u8 CPU::ReadMemory(u16 address) {
 	lastOpCycles++;
-	return mmu->Read(address);
+	return mmu.Read(address);
 }
 
 void CPU::WriteMemory(u16 address, u8 value) {
 	lastOpCycles++;
-	mmu->Write(address, value);
+	mmu.Write(address, value);
 }
 
 u8 CPU::ReadAtPC() {
-	u8 valueAtPC = mmu->Read(pc);
+	u8 valueAtPC = mmu.Read(pc);
 	pc++;
 	lastOpCycles++;
 	return valueAtPC;

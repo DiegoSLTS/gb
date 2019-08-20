@@ -8,7 +8,10 @@ class MMU;
 
 class DMA : public IAddressable, public IState {
 public:
-	MMU* mmu = nullptr;
+    DMA(MMU& mmu);
+    virtual ~DMA();
+
+    MMU& mmu;
 
     u8 currentCycles = 160;
     u16 addressBase = 0;

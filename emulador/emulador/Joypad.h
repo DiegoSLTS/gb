@@ -6,9 +6,12 @@ class MMU;
 
 class Joypad : public IAddressable {
 public:
+    Joypad(MMU& mmu);
+    virtual ~Joypad();
+
 	void Update();
 
-    MMU* mmu = nullptr;
+    MMU& mmu;
 
     u8 JOYP = 0xFF; //0xFF00
 

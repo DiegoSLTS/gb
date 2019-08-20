@@ -1,6 +1,9 @@
 #include "Timer.h"
 #include "MMU.h"
 
+Timer::Timer(MMU& mmu) : mmu(mmu) {}
+Timer::~Timer() {}
+
 void Timer::Step(u8 cycles) {
 	dividerCounter += cycles;
 	if (dividerCounter >= 255) {
@@ -26,7 +29,7 @@ void Timer::Step(u8 cycles) {
 			TIMA++;
 			if (TIMA == 0) {
 				TIMA = TMA;
-				mmu->SetInterruptFlag(2);
+				mmu.SetInterruptFlag(2);
 			}
 			timerCounter -= maxCounter;
 		}

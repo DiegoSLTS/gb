@@ -3,6 +3,9 @@
 
 #include <SFML\Window\Keyboard.hpp>
 
+Joypad::Joypad(MMU& mmu) : mmu(mmu) {}
+Joypad::~Joypad() {}
+
 void Joypad::Update() {
     u8 state = JOYP;
 	if ((JOYP & 0b00100000) == 0) {
@@ -50,7 +53,7 @@ void Joypad::Update() {
 
     for (u8 bit = 0; bit < 4; bit++) {
         if ((state & (0x01 << bit)) > (JOYP & (0x01 << bit))) {
-            mmu->SetInterruptFlag(5);
+            mmu.SetInterruptFlag(5);
             break;
         }
     }

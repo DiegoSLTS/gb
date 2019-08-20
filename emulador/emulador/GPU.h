@@ -28,7 +28,10 @@ public:
 	const static u8 LCDWidth = 160;
 	const static u8 LCDHeight = 144;
 
-	MMU* mmu = nullptr;
+    GPU(MMU& mmu);
+    virtual ~GPU();
+
+	MMU& mmu;
 	
 	GPUMode mode = GPUMode::OAMAccess;
 	u16 modeCycles = 0;

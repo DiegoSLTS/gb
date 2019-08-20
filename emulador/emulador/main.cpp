@@ -129,7 +129,7 @@ int main() {
 	//std::string romName = "Tasmania Story (USA).gb";
 	//std::string romName = "Tennis (World).gb";
 	//std::string romName = "Tesserae (Europe) (En,Fr,De,Es,It).gb";
-	//std::string romName = "Tetris (World) (Rev A).gb";
+	std::string romName = "Tetris (World) (Rev A).gb";
 	//std::string romName = "Trump Boy (Japan).gb";
 	//std::string romName = "Volley Fire (Japan).gb";
 	//std::string romName = "World Bowling (USA).gb";
@@ -142,7 +142,7 @@ int main() {
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\06-ld r,r.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\07-jr,jp,call,ret,rst.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\08-misc instrs.gb";
-	std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb"; // ADC A,r, SBC A,r
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb"; // ADC A,r, SBC A,r
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\10-bit ops.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\11-op a,(hl).gb"; // ADC A,(HL), SBC A,(HL), DAA
 	//std::string romName = "gb-test-roms-master\\instr_timing\\instr_timing.gb";
@@ -163,8 +163,7 @@ int main() {
 	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\8-instr_effect.gb";
 	//std::string romName = "gb-test-roms-master\\halt_bug.gb";
 
-	Cartridge cartridge;
-	cartridge.LoadFile(romsPath.append(romName));
+	Cartridge cartridge(romsPath.append(romName));
 	
 	/*RomParser parser;
 	parser.ParseCartridgeROM(cartridge.rom, 32 * 1024);
@@ -173,28 +172,22 @@ int main() {
 	MMU mmu;
 	mmu.cartridge = &cartridge;
 
-	CPU cpu;
-	cpu.mmu = &mmu;
+	CPU cpu(mmu);
 
 	InterruptServiceRoutine interruptService;
-	interruptService.mmu = &mmu;
 	mmu.interruptServiceRoutine = &interruptService;
 	cpu.interruptService = &interruptService;
 
-	GPU gpu;
-	gpu.mmu = &mmu;
+	GPU gpu(mmu);
 	mmu.gpu = &gpu;
 
-	Timer timer;
-	timer.mmu = &mmu;
+	Timer timer(mmu);
 	mmu.timer = &timer;
 
-	Joypad joypad;
+	Joypad joypad(mmu);
 	mmu.joypad = &joypad;
-    joypad.mmu = &mmu;
 
-	DMA dma;
-	dma.mmu = &mmu;
+	DMA dma(mmu);
 	mmu.dma = &dma;
 
 	SerialDataTransfer serial;
@@ -303,7 +296,7 @@ int main() {
         time(&currentTimer);
 
         if (currentTimer - previousTimer >= 1) {
-            printf("%d - ", framesCount);
+            //printf("%d - ", framesCount);
             previousTimer = currentTimer;
             framesCount = 0;
         }
