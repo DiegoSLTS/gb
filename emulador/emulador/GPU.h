@@ -27,6 +27,7 @@ class GPU : public IAddressable, public IState {
 public:
 	const static u8 LCDWidth = 160;
 	const static u8 LCDHeight = 144;
+	const static u8 paletteMask = 0b00000011;
 
     GPU(MMU& mmu);
     virtual ~GPU();
