@@ -2,13 +2,11 @@
 #include "MMU.h"
 #include "GPU.h"
 
-SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu) : Window(Width, Height, Title), mmu(Mmu) {
+SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu) : Window(Width, Height, Title), mmu(Mmu) {
 	Update();
 }
 
-SpritesViewer::~SpritesViewer() {
-	mmu = nullptr;
-}
+SpritesViewer::~SpritesViewer() {}
 
 void SpritesViewer::Update() {
 	memset(screenArray, 255, (256 + 8)*(256 + 16) * 4);
@@ -26,26 +24,26 @@ void SpritesViewer::Update() {
 void SpritesViewer::DrawSprite(u8 index) {
 	const u8 paletteMask = 0b00000011;
 
-	u8 LCDC = mmu->Read(0xFF40);
+	u8 LCDC = mmu.Read(0xFF40);
 	u8 spriteHeight = LCDC & LCDCMask::ObjSize ? 16 : 8;
 	u8 spriteIndex = index * 4;
 
-	u8 spriteY = mmu->Read(0xFE00 + spriteIndex);
-	u8 spriteX = mmu->Read(0xFE00 + spriteIndex + 1);
-	u8 tileIndex = mmu->Read(0xFE00 + spriteIndex + 2);
-	u8 attributes = mmu->Read(0xFE00 + spriteIndex + 3);
+	u8 spriteY = mmu.Read(0xFE00 + spriteIndex);
+	u8 spriteX = mmu.Read(0xFE00 + spriteIndex + 1);
+	u8 tileIndex = mmu.Read(0xFE00 + spriteIndex + 2);
+	u8 attributes = mmu.Read(0xFE00 + spriteIndex + 3);
 
 	bool hasPriority = (attributes & 0b10000000) > 0;
 	bool flipY = (attributes & 0b01000000) > 0;
 	bool flipX = (attributes & 0b00100000) > 0;
-	u16 palette = mmu->Read((attributes & 0b00010000) > 0 ? 0xFF49 : 0xFF48); //0xFF49 OBP1, 0xFF48 OBP0
+	u16 palette = mmu.Read((attributes & 0b00010000) > 0 ? 0xFF49 : 0xFF48); //0xFF49 OBP1, 0xFF48 OBP0
 
 	u16 tileAddress = 0x8000 + tileIndex * 16;
 
 	for (u8 line = 0; line < spriteHeight; line++) {
         u8 spriteLine = flipY ? spriteHeight - 1 - line : line;
-		u8 tileDataLow = mmu->Read(tileAddress + spriteLine * 2);
-		u8 tileDataHigh = mmu->Read(tileAddress + spriteLine * 2 + 1);
+		u8 tileDataLow = mmu.Read(tileAddress + spriteLine * 2);
+		u8 tileDataHigh = mmu.Read(tileAddress + spriteLine * 2 + 1);
 
         u16 screenPosBase = (spriteY + line - 1) * (256 + 8) + spriteX;
 

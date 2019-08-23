@@ -9,12 +9,12 @@ class MMU;
 
 class StateViewer : public Window {
 public:
-	StateViewer(CPU* Cpu, GPU* Gpu, MMU* Mmu);
+	StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu);
 	virtual ~StateViewer();
 
-	CPU* cpu = nullptr;
-	GPU* gpu = nullptr;
-	MMU* mmu = nullptr;
+	CPU& cpu;
+	GPU& gpu;
+	MMU& mmu;
 
 	void Update();
 

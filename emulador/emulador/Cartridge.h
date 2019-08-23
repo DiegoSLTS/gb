@@ -10,6 +10,7 @@ public:
     Cartridge(const std::string& romPath);
     virtual ~Cartridge();
 
+	//TODO MBCs support
 	u8 rom[32 * 1024] = { 0 };
 
 	void LoadFile(const std::string& path);

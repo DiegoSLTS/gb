@@ -1,8 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 #include <ctime>
+#include <iostream>
+#include <bitset>
 
 #include "Types.h"
+#include "BootRom.h"
 
 #include "Cartridge.h"
 #include "MMU.h"
@@ -21,14 +24,16 @@
 #include "StateViewer.h"
 
 void printCPUFlags(const CPU& cpu) {
-	printf("%u%u%u%u0000\n", cpu.HasFlag(FlagBit::Zero), cpu.HasFlag(FlagBit::Negative), cpu.HasFlag(FlagBit::HalfCarry), cpu.HasFlag(FlagBit::Carry));
+	std::bitset<8> flags(cpu.Read8BitReg(CPU8BitReg::f));
+	std::cout << "flags: 0b" << flags << std::endl;
 }
 
 bool isLittleEndian() {
-	u8 test[2] = { 0x1, 0x0 };
-	u16* t16 = (u16*)test;
-	printf("temp: %u", *t16);
-	return *t16 == test[0];
+	u8 t8[2] = { 0x1, 0x0 };
+	u16* t16 = (u16*)t8;
+	bool isLittleEndian = t16[0] == t8[0];
+	std::cout << "t8[0] = " << (unsigned int)t8[0] << " t16[0] = " << (unsigned int)t16[0] << " - is " << (isLittleEndian ? "little endian" : "big endian") << std::endl;
+	return isLittleEndian;
 }
 
 void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], u8 gpuScreen[]) {
@@ -70,13 +75,14 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 }
 
 int main() {
+	isLittleEndian();
 	std::string romsPath = "D:\\Programacion\\gb\\roms\\";
 
 	//std::string romName = "Alleyway (World).gb"; // broken joypad
 	//std::string romName = "Amida (Japan).gb";
 	//std::string romName = "Asteroids (USA, Europe).gb";
 	//std::string romName = "BattleCity (Japan).gb";
-	//std::string romName = "Bomb Jack (Europe).gb";
+	std::string romName = "Bomb Jack (Europe).gb";
 	//std::string romName = "Bouken! Puzzle Road (Japan).gb"; // "Daedalian Opus (USA).gb"
 	//std::string romName = "Boxxle (USA, Europe) (Rev A).gb";
 	//std::string romName = "Boxxle II (USA, Europe).gb";
@@ -134,7 +140,7 @@ int main() {
 	//std::string romName = "Volley Fire (Japan).gb";
 	//std::string romName = "World Bowling (USA).gb";
 	//std::string romName = "Yakuman (Japan) (Rev A).gb";
-	std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\01-special.gb"; // DAA
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\01-special.gb"; // DAA
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\02-interrupts.gb"; // missing
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\03-op sp,hl.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\04-op r,imm.gb"; // CE DE
@@ -165,9 +171,13 @@ int main() {
 
 	Cartridge cartridge(romsPath.append(romName));
 	
-	/*RomParser parser;
-	parser.ParseCartridgeROM(cartridge.rom, 32 * 1024);
-	parser.PrintCodeToFile();*/
+	bool parseRom = true;
+	if (parseRom) {
+		RomParser parser;
+		// TODO support more cartridge sizes
+		parser.ParseCartridgeROM(cartridge.rom, 32 * 1024);
+		parser.PrintCodeToFile();
+	}
 	
 	MMU mmu;
 	mmu.cartridge = &cartridge;
@@ -201,27 +211,22 @@ int main() {
 	sf::Vector2i p(50, 50);
 	gameWindow.renderWindow->setPosition(p);
 	
-	TileViewer tilesWindow(168, 144, "Tiles", &mmu, 0x8000);
+	TileViewer tilesWindow(168, 144, "Tiles", mmu, 0x8000);
 	p.x = 385;
 	p.y = 50;
 	tilesWindow.renderWindow->setPosition(p);
 
-	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", &mmu);
+	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", mmu);
 	p.x = 735;
 	p.y = 50;
 	spritesWindow.renderWindow->setPosition(p);
 
-	/*StateViewer state(&cpu, &gpu, &cpu.mmu);
-	p.x = 735;
-	p.y = 50;
-	state.renderWindow->setPosition(p);*/
-
-	TileMapViewer tileMap0Window(256, 256, "Tile map 0", &mmu, 0x9800);
+	TileMapViewer tileMap0Window(256, 256, "Tile map 0", mmu, 0x9800);
 	p.x = 50;
 	p.y = 380;
 	tileMap0Window.renderWindow->setPosition(p);
 
-	TileMapViewer tileMap1Window(256, 256, "Tile map 1", &mmu, 0x9C00);
+	TileMapViewer tileMap1Window(256, 256, "Tile map 1", mmu, 0x9C00);
 	p.x = 580;
 	p.y = 380;
 	tileMap1Window.renderWindow->setPosition(p);
@@ -229,6 +234,7 @@ int main() {
     std::time_t previousTimer = time(NULL);
     std::time_t currentTimer;
     u16 framesCount = 0;
+	bool logFPS = false;
 
 	while (gameWindow.renderWindow->isOpen()) {
 		if (interruptService.eiDelay) {
@@ -251,19 +257,17 @@ int main() {
 		if (!skipBios && cpu.pc == 0x100)
 			SaveState(cpu, gpu, mmu, interruptService, dma);
 
+		// used only for debugging to break at specific instructions
 		if (cpu.pc == 0x0416) {
 			int a = 0;
 		}
 
 		if (!cpu.isHalted) {
 			u8 opCode = cpu.ReadOpCode();
-			bool isCB = opCode == 0xCB;
-			if (isCB)
+			if (opCode == 0xCB) {
 				opCode = cpu.ReadOpCode();
-
-			if (isCB)
 				cpu.CallCBOpCode(opCode);
-			else
+			} else
 				cpu.CallOpCode(opCode);
 		} else
 			cpu.lastOpCycles = 1;
@@ -283,20 +287,18 @@ int main() {
 			tileMap1Window.Update();
 			spritesWindow.Update();
 
-            framesCount++;
+			if (logFPS)
+				framesCount++;
 		}
-
-		//state.Update();
-
+		
 		timer.Step(lastOpCycles * 4);
 		dma.Step(lastOpCycles);
 		
 		cpu.lastOpCycles = 0;
 
         time(&currentTimer);
-
-        if (currentTimer - previousTimer >= 1) {
-            //printf("%d - ", framesCount);
+        if (logFPS && currentTimer - previousTimer >= 1) {
+            std::cout << framesCount << " - ";
             previousTimer = currentTimer;
             framesCount = 0;
         }
@@ -305,10 +307,11 @@ int main() {
 		while (gameWindow.renderWindow->pollEvent(event))
 			if (event.type == sf::Event::Closed)
 				gameWindow.renderWindow->close();
-
-		/*while (tilesWindow.renderWindow->pollEvent(event))
-			if (event.type == sf::Event::Closed)
-				tilesWindow.renderWindow->close();*/
+			else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F) {
+				logFPS = !logFPS;
+				time(&previousTimer);
+				framesCount = 0;
+			}
 	}
 	
 	return 0;

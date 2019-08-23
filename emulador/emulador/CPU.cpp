@@ -41,11 +41,10 @@ void CPU::ResetFlags() {
 
 void CPU::SetFlag(FlagBit flagBit, bool set) {
 	u8 flags = ReadFlags();
-	if (set) {
+	if (set)
 		WriteFlags(flags | flagBit);
-	} else {
+	else
 		WriteFlags(flags & ~flagBit);
-	}
 }
 
 bool CPU::HasFlag(FlagBit flagBit) const {
@@ -80,7 +79,6 @@ void CPU::UpdateCarryFlag(u16 previous, u16 current, bool isAdd) {
 	bool set = isAdd ? current < previous : current > previous;
 	SetFlag(FlagBit::Carry, set);
 }
-
 
 
 u8 CPU::ReadAcc() const {
@@ -138,7 +136,7 @@ void CPU::Load(std::ifstream& stream) const {
 	stream.read((char*)&pc, 2);
 	stream.read((char*)&sp, 2);
 
-	//TODO serialize IME, isHalted
+	//TODO deserialize IME, isHalted
 }
 
 void CPU::Save(std::ofstream& stream) const {
@@ -148,6 +146,7 @@ void CPU::Save(std::ofstream& stream) const {
 
 	//TODO serialize IME, isHalted
 }
+
 
 void CPU::CallOpCode(u8 opCode) {
 	switch (opCode) {

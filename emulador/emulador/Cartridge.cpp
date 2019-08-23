@@ -32,5 +32,5 @@ void Cartridge::Load(std::ifstream& stream) const {
 }
 
 void Cartridge::Save(std::ofstream& stream) const {
-	//TODO when MBCs are supported
+	//TODO MBCs support
 }

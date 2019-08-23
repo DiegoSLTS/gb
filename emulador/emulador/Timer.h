@@ -14,10 +14,10 @@ public:
 	u16 dividerCounter = 0;
 	u16 timerCounter = 0;
 
-	u8 DIV = 0x00; //0xFF04 Divider Register (R/W)
-	u8 TIMA = 0x00; //0xFF05 Timer counter (R/W)
-	u8 TMA = 0x00; //0xFF06 Timer Modulo (R/W)
-	u8 TAC = 0b11111000; //0xFF07 Timer Control (R/W)
+	u8 DIV = 0x00;			//0xFF04 Divider Register (R/W)
+	u8 TIMA = 0x00;			//0xFF05 Timer counter (R/W)
+	u8 TMA = 0x00;			//0xFF06 Timer Modulo (R/W)
+	u8 TAC = 0b11111000;	//0xFF07 Timer Control (R/W)
 	
 	// TODO http://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
 	void Step(u8 cycles);

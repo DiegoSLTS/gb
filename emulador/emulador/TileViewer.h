@@ -7,10 +7,10 @@ class MMU;
 
 class TileViewer : public Window {
 public:
-	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu, u16 Address);
+	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu, u16 Address);
 	virtual ~TileViewer();
 
-	MMU* mmu = nullptr;
+	MMU& mmu;
 	u16 address = 0;
 
 	u8 tilesPerRow = 0;

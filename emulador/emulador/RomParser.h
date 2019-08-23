@@ -26,14 +26,15 @@ public:
 	std::deque<u16> jumpTargets;
 	u16 pc = 0;
 
-	void ParseSection(u8* bytes, u16 from, u16 to);
-	Instruction ParseInstruction(u8* bytes, u16 size);
+	void ParseSection(const u8* bytes, u16 from, u16 to);
+	Instruction ParseInstruction(const u8* bytes, u16 size);
 
 	bool IsAlreadyParsed(u16 address);
 
-	void ParseBiosROM(u8* bytes, u16 size);
-	void ParseCartridgeROM(u8* bytes, u16 size);
-	
+	void ParseBiosROM(const u8* bytes, u16 size);
+	void ParseCartridgeROM(const u8* bytes, u16 size);
+	void Parse(const u8* bytes, u16 size);
+
 	u8 GetSize(u8 opCode) const;
 	std::string GetFormat(u8 opCode, u8 byte1) const;
 
@@ -46,7 +47,7 @@ public:
 	size_t GetInsertIndex(const CodeSection& section) const;
 	bool ContainsAnotherSection(const CodeSection& section) const;
 
-	bool AreAllNOP(u8* bytes, u16 from, u16 to) const;
+	bool AreAllNOP(const u8* bytes, u16 from, u16 to) const;
 
 	std::string ByteToHex(u8 byte);
 };

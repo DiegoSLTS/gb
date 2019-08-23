@@ -26,16 +26,11 @@ class MMU;
 class InterruptServiceRoutine;
 
 enum CPU8BitReg {
-	// this order asumes the system is little endian
-	// TODO find solution that works for big endian too
-	f = 0,
-	a,
-	c,
-	b,
-	e,
-	d,
-	l,
-	h
+#if defined(BIG_ENDIAN)
+	a = 0, f, b, c, d, e, h, l
+#else
+	f = 0, a, c, b, e, d, l, h
+#endif
 };
 
 enum CPU16BitReg {
@@ -215,5 +210,4 @@ public:
 	void XORAHL();
 	void XORAn8();
 	// instructions
-
 };

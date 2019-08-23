@@ -105,12 +105,10 @@ bool GPU::Step(u8 cycles) {
 		if (modeCycles >= 80) {
 			SetMode(GPUMode::VRAMAccess);
 			modeCycles -= 80;
-            //TOOD if modeCycles > 0, PixelFifo::Step(modeCycles)
 		}
 		break;
 	}
 	case GPUMode::VRAMAccess: {
-        //TODO if (PixelFifo::Step(cycles)) {
 		if (modeCycles >= 172) {
 			SetMode(GPUMode::HBlank);
 			modeCycles -= 172;
@@ -119,7 +117,7 @@ bool GPU::Step(u8 cycles) {
 	}
 	case GPUMode::HBlank: {
 		if (modeCycles >= 204) {
-            u8 currentLine = GetCurrentLine();
+            u8 currentLine = LY;
             if (currentLine < 144 && IsOn())
                 DrawLine(currentLine);
 
@@ -179,10 +177,6 @@ bool GPU::IsOn() {
 	return (LCDC & LCDCMask::LCDOn) > 0;
 }
 
-u8 GPU::GetCurrentLine() const {
-	return LY;
-}
-
 void GPU::SetCurrentLine(u8 newLine) {
 	LY = newLine;
 
@@ -196,7 +190,7 @@ void GPU::SetCurrentLine(u8 newLine) {
 }
 
 u8 GPU::OnLineFinished() {
-	u8 line = GetCurrentLine();
+	u8 line = LY;
 	if (line == 153)
 		line = 0;
 	else

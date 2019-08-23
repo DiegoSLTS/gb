@@ -15,14 +15,13 @@ void Timer::Step(u8 cycles) {
 		timerCounter += cycles;
 
 		u8 frequency = TAC & 0x03;
-
 		u16 maxCounter = 0;
 
 		switch (frequency) {
-		case 0: maxCounter = 1024; break; // freq 4096
-		case 1: maxCounter = 16; break;// freq 262144
-		case 2: maxCounter = 64; break;// freq 65536
-		case 3: maxCounter = 256; break;// freq 16382
+		case 0: maxCounter = 1024; break;	// freq 4096
+		case 1: maxCounter = 16; break;		// freq 262144
+		case 2: maxCounter = 64; break;		// freq 65536
+		case 3: maxCounter = 256; break;	// freq 16382
 		}
 
 		if (timerCounter >= maxCounter) {

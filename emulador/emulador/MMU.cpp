@@ -8,31 +8,30 @@ u8 MMU::Read(u16 address) {
 	if (addressable != nullptr)
 		return addressable->Read(address);
 	
-	if (address < 0x100 && IsBootRomEnabled()) { //bios
+	if (address < 0x100 && IsBootRomEnabled())
 		return bootRom[address];
-	} else if (address < 0x8000) { //cart
+	else if (address < 0x8000) {
 		// TODO MBC: https://gekkio.fi/files/gb-docs/gbctr.pdf
 		if (cartridge == nullptr)
 			return 0xFF;
 		else
 			return cartridge->Read(address);
-	} else if (address < 0xA000) { // video ram
+	} else if (address < 0xA000)
 		return videoRAM[address - 0x8000];
-	} else if (address < 0xC000) { // external (cart) ram
+	else if (address < 0xC000) // external (cart) ram
 		return cartridge->Read(address);
-	} else if (address < 0xE000) { // internal ram
+	else if (address < 0xE000)
 		return internalRAM[address - 0xC000];
-	} else if (address < 0xFE00) { // internal ram copy
+	else if (address < 0xFE00)
 		return internalRAM[address - 0xE000];
-	} else if (address < 0xFEA0) { // sprites (OAM)
+	else if (address < 0xFEA0)
 		return oam[address - 0xFE00];
-	} else if (address < 0xFF00) {
-		return 0; //TODO // unused
-	} else if (address < 0xFF80) { // I/O
+	else if (address < 0xFF00)
+		return 0; //TODO validate if 0 or 0xFF
+	else if (address < 0xFF80)
 		return ioPorts[address - 0xFF00];
-	} else { // Zero page RAM (HRAM)
+	else
 		return zeroPageRAM[address - 0xFF80];
-	}
 }
 
 void MMU::Write(u16 address, u8 value) {
@@ -42,27 +41,24 @@ void MMU::Write(u16 address, u8 value) {
 		return;
 	}
 
-	if (address < 0x256 && IsBootRomEnabled()) { //bios
-		//TODO ignore?
-	} else if (address < 0x8000) { //cart
+	if (address < 0x8000)
 		cartridge->Write(value, address);
-	} else if (address < 0xA000) { // vram
+	else if (address < 0xA000)
 		videoRAM[address - 0x8000] = value;
-	} else if (address < 0xC000) { // external (cart) ram
+	else if (address < 0xC000) // external (cart) ram
 		cartridge->Write(value, address);
-	} else if (address < 0xE000) { // internal ram
+	else if (address < 0xE000)
 		internalRAM[address - 0xC000] = value;
-	} else if (address < 0xFE00) { // internal ram copy
+	else if (address < 0xFE00)
 		internalRAM[address - 0xE000] = value;
-	} else if (address < 0xFEA0) { // sprites (OAM)
+	else if (address < 0xFEA0)
 		oam[address - 0xFE00] = value;
-	} else if (address < 0xFF00) { // unused
+	else if (address < 0xFF00) { // unused
 		//TODO ignore?
-	} else if (address < 0xFF80) { // I/O
+	} else if (address < 0xFF80)
 		ioPorts[address - 0xFF00] = value;
-	} else { // Zero page RAM
+	else
 		zeroPageRAM[address - 0xFF80] = value;
-	}
 }
 
 void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {

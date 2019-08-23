@@ -7,10 +7,10 @@ class MMU;
 
 class SpritesViewer : public Window {
 public:
-	SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU* Mmu);
+	SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu);
 	virtual ~SpritesViewer();
 
-	MMU* mmu = nullptr;
+	MMU& mmu;
 
 	void Update();
 	void DrawSprite(u8 index);

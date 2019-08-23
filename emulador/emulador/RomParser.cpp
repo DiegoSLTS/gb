@@ -6,8 +6,9 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 
-void RomParser::ParseSection(u8* bytes, u16 from, u16 to) {
+void RomParser::ParseSection(const u8* bytes, u16 from, u16 to) {
 	// 0xC0, 0xD0, 0xC8, 0xD8, 0xC9 = RET
 	// 0xD9 = RETI
 	// 0x20, 0x30, 0x18, 0x28, 0x38 = JR
@@ -38,9 +39,8 @@ void RomParser::ParseSection(u8* bytes, u16 from, u16 to) {
 				jumpTargets.push_back(jumpAddress);
 			}
 
-			if (std::find(endOfBlockJumpCodes, endOfBlockJumpCodes + 13, instruction.opCode) != endOfBlockJumpCodes + 13) {
+			if (std::find(endOfBlockJumpCodes, endOfBlockJumpCodes + 13, instruction.opCode) != endOfBlockJumpCodes + 13)
 				break;
-			}
 		}
 	}
 	section.addressEnd = pc - 1;
@@ -56,62 +56,59 @@ void RomParser::ParseSection(u8* bytes, u16 from, u16 to) {
 	}
 }
 
-void RomParser::ParseBiosROM(u8* bytes, u16 size) {
-	ParseSection(bytes, 0, size);
+void RomParser::ParseBiosROM(const u8* bytes, u16 size) {
+	jumpTargets.push_back(0);
 	
-	while (!jumpTargets.empty()) {
-		u16 address = jumpTargets[jumpTargets.size() - 1];
-		jumpTargets.pop_back();
-		if (!IsAlreadyParsed(address)) {
-			ParseSection(bytes, address, size);
-		}
-	}
+	Parse(bytes, size);
 }
 
-void RomParser::ParseCartridgeROM(u8* bytes, u16 size) {
-	// parse all RST addresses
+void RomParser::ParseCartridgeROM(const u8* bytes, u16 size) {
+	// all RST addresses
 	if (!AreAllNOP(bytes, 0x00, 0x08))
-		ParseSection(bytes, 0x00, 0x08);
+		jumpTargets.push_back(0x00);
 	if (!AreAllNOP(bytes, 0x08, 0x10))
-		ParseSection(bytes, 0x08, 0x10);
+		jumpTargets.push_back(0x08);
 	if (!AreAllNOP(bytes, 0x10, 0x18))
-		ParseSection(bytes, 0x10, 0x18);
+		jumpTargets.push_back(0x10);
 	if (!AreAllNOP(bytes, 0x18, 0x20))
-		ParseSection(bytes, 0x18, 0x20);
+		jumpTargets.push_back(0x18);
 	if (!AreAllNOP(bytes, 0x20, 0x28))
-		ParseSection(bytes, 0x20, 0x28);
+		jumpTargets.push_back(0x20);
 	if (!AreAllNOP(bytes, 0x28, 0x30))
-		ParseSection(bytes, 0x28, 0x30);
+		jumpTargets.push_back(0x28);
 	if (!AreAllNOP(bytes, 0x30, 0x38))
-		ParseSection(bytes, 0x30, 0x38);
+		jumpTargets.push_back(0x30);
 	if (!AreAllNOP(bytes, 0x38, 0x40))
-		ParseSection(bytes, 0x38, 0x40);
+		jumpTargets.push_back(0x38);
 
 	// parse all interrupts addresses
 	if (!AreAllNOP(bytes, 0x40, 0x48)) // V-Blank
-		ParseSection(bytes, 0x40, 0x48);
+		jumpTargets.push_back(0x40);
 	if (!AreAllNOP(bytes, 0x48, 0x50)) // LCD Stat
-		ParseSection(bytes, 0x48, 0x50);
+		jumpTargets.push_back(0x48);
 	if (!AreAllNOP(bytes, 0x50, 0x58)) // Timer
-		ParseSection(bytes, 0x50, 0x58);
+		jumpTargets.push_back(0x50);
 	if (!AreAllNOP(bytes, 0x58, 0x60)) // Serial
-		ParseSection(bytes, 0x58, 0x60);
+		jumpTargets.push_back(0x58);
 	if (!AreAllNOP(bytes, 0x60, 0x68)) // Joypad
-		ParseSection(bytes, 0x60, 0x68);
+		jumpTargets.push_back(0x60);
 	
-	// parse rom
-	ParseSection(bytes, 0x100, size);
+	// rom start
+	jumpTargets.push_back(0x100);
 
+	Parse(bytes, size);
+}
+
+void RomParser::Parse(const u8* bytes, u16 size) {
 	while (!jumpTargets.empty()) {
 		u16 address = jumpTargets[jumpTargets.size() - 1];
 		jumpTargets.pop_back();
-		if (!IsAlreadyParsed(address)) {
+		if (!IsAlreadyParsed(address))
 			ParseSection(bytes, address, size);
-		}
 	}
 }
 
-Instruction RomParser::ParseInstruction(u8* bytes, u16 size) {
+Instruction RomParser::ParseInstruction(const u8* bytes, u16 size) {
 	Instruction newInstruction;
 	newInstruction.address = pc;
 
@@ -121,7 +118,6 @@ Instruction RomParser::ParseInstruction(u8* bytes, u16 size) {
 	u8 opCodeSize = GetSize(opCode);
 	if (opCodeSize > 1)
 		newInstruction.byte1 = bytes[pc++];
-
 	if (opCodeSize > 2)
 		newInstruction.byte2 = bytes[pc++];
 
@@ -145,35 +141,28 @@ u8 RomParser::GetSize(u8 opCode) const {
 }
 
 std::string RomParser::GetFormat(u8 opCode, u8 byte1) const {
-	if (opCode != 0xCB)
-		return opCodeFormats[opCode];
-	else
-		return cbOpCodeFormats[byte1];
+	return opCode != 0xCB ? opCodeFormats[opCode] : cbOpCodeFormats[byte1];
 }
 
 void RomParser::PrintCode() {
-	for (auto& section : sections) {
-		for (auto&& instruction : section.instructions) {
+	for (auto& section : sections)
+		for (auto&& instruction : section.instructions)
 			PrintInstruction(instruction);
-		}
-	}
 }
 
 void RomParser::PrintCodeToFile() {
 	std::ofstream stream;
 	stream.open("out.txt");
 
-	for (auto& section : sections) {
-		for (auto&& instruction : section.instructions) {
+	for (auto& section : sections)
+		for (auto&& instruction : section.instructions)
 			PrintInstructionToFile(stream, instruction);
-		}
-	}
 
 	stream.close();
 }
 
 void RomParser::PrintInstruction(const Instruction& instruction) {
-	printf("0x%04x - 0x%02x - %s\n", instruction.address, instruction.opCode, instruction.displayText.c_str());
+	std::cout << std::hex << "0x" << instruction.address << ": 0x" << (unsigned int)instruction.opCode << " -- " << instruction.displayText << std::endl;
 }
 
 void RomParser::PrintInstructionToFile(std::ostream& stream, const Instruction& instruction) {
@@ -181,11 +170,9 @@ void RomParser::PrintInstructionToFile(std::ostream& stream, const Instruction& 
 }
 
 bool RomParser::IsAlreadyParsed(u16 address) {
-	for (CodeSection& section : sections) {
-		if (address >= section.addressStart && address < section.addressEnd) {
+	for (CodeSection& section : sections)
+		if (address >= section.addressStart && address < section.addressEnd)
 			return true;
-		}
-	}
 	return false;
 }
 
@@ -213,7 +200,7 @@ bool RomParser::ContainsAnotherSection(const CodeSection& newSection) const {
 	return false;
 }
 
-bool RomParser::AreAllNOP(u8* bytes, u16 from, u16 to) const {
+bool RomParser::AreAllNOP(const u8* bytes, u16 from, u16 to) const {
 	for (int i = from; i < to; i++)
 		if (bytes[i] != 0)
 			return false;

@@ -2,7 +2,7 @@
 
 #include "CPU.h"
 
-StateViewer::StateViewer(CPU* Cpu, GPU* Gpu, MMU* Mmu) : Window(150,144,"State"), cpu(Cpu), gpu(Gpu), mmu(Mmu) {
+StateViewer::StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu) : Window(150,144,"State"), cpu(Cpu), gpu(Gpu), mmu(Mmu) {
 	if (!font.loadFromFile("Pokemon_GB[1].ttf"))
 	{
 		// error...
@@ -25,14 +25,10 @@ StateViewer::StateViewer(CPU* Cpu, GPU* Gpu, MMU* Mmu) : Window(150,144,"State")
 	Update();
 }
 
-StateViewer::~StateViewer() {
-	cpu = nullptr;
-	gpu = nullptr;
-	mmu = nullptr;
-}
+StateViewer::~StateViewer() {}
 
 void StateViewer::Update() {
-	/*valueAF.setString(std::to_string(cpu->Read16BitReg(CPU16BitReg::af)));
+	/*valueAF.setString(std::to_string(cpu.Read16BitReg(CPU16BitReg::af)));
 
 	renderWindow->clear();
 	renderWindow->draw(labelAF);
