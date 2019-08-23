@@ -1,4 +1,4 @@
-# GB Emulator (untitled)
+# GB Emulator (untitled / sin título)
 
 Estoy haciendo un emulador de GameBoy desde cero para aprender sobre emulación. Es sólo C++ y SFML 2.5, actualmente enfocado en Windows.
 
@@ -26,7 +26,7 @@ I'm currently using Visual Studio 2017 Community on a Windows 10, but the curren
 
 You'll have to download SFML 2.5 from here: https://www.sfml-dev.org/download.php
 
-### Installing / Instalando
+### Installing / Instalación
 
 Como estoy trabajando con Visual Studio estoy compartiendo el archivo .sln, pero seguro necesitás configurar los paths de SFML para que apunten a la ubicación en la que lo bajaste (voy a intentar simplificarlo en el futuro).
 
