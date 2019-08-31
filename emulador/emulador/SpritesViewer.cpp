@@ -42,8 +42,8 @@ void SpritesViewer::DrawSprite(u8 index) {
 
 	for (u8 line = 0; line < spriteHeight; line++) {
         u8 spriteLine = flipY ? spriteHeight - 1 - line : line;
-		u8 tileDataLow = mmu.Read(tileAddress + spriteLine * 2);
-		u8 tileDataHigh = mmu.Read(tileAddress + spriteLine * 2 + 1);
+		u8 lowByte = mmu.Read(tileAddress + spriteLine * 2);
+		u8 highByte = mmu.Read(tileAddress + spriteLine * 2 + 1);
 
         u16 screenPosBase = (spriteY + line - 1) * (256 + 8) + spriteX;
 
@@ -51,12 +51,12 @@ void SpritesViewer::DrawSprite(u8 index) {
             u8 pixel = flipX ? 7 - bit : bit;
             u16 screenPos = screenPosBase + (7 - bit);
             
-            u8 lowBit = (tileDataLow >> pixel) & 0x01;
-            u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
-            u8 id = lowBit | highBit;
+			u8 lowBit = (lowByte >> pixel) & 0x01;
+			u8 highBit = (highByte >> pixel) & 0x01;
+			u8 index = lowBit | (highBit << 1);
 
-            if (id > 0)
-                SetPixel(screenPos,(palette & (paletteMask << (id << 1))) >> (id << 1));
+            if (index > 0)
+                SetPixel(screenPos, (palette >> (index << 1)) & 0x03);
         }
 	}
 }

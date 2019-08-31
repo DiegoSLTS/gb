@@ -171,7 +171,7 @@ int main() {
 
 	Cartridge cartridge(romsPath.append(romName));
 	
-	bool parseRom = true;
+	bool parseRom = false;
 	if (parseRom) {
 		RomParser parser;
 		// TODO support more cartridge sizes

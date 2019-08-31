@@ -34,18 +34,18 @@ void TileViewer::UpdateTile(u8 x, u8 y) {
 	u16 tileDataAddress = GetTileAddress(x, y);
 
 	for (int line = 0; line < 8; line++) {
-		u8 tileDataLow = mmu.Read(tileDataAddress + line * 2);
-		u8 tileDataHigh = mmu.Read(tileDataAddress + line * 2 + 1);
+		u8 lowByte = mmu.Read(tileDataAddress + line * 2);
+		u8 highByte = mmu.Read(tileDataAddress + line * 2 + 1);
 		
         u16 screenPosBase = (y * 8 + line) * screenTexture.getSize().x + x * 8;
 
         for (s8 pixel = 7; pixel >= 0; pixel--) {
             u16 screenPos = screenPosBase + (7 - pixel);
-            u8 lowBit = (tileDataLow >> pixel) & 0x01;
-            u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
-            u8 id = lowBit | highBit;
+			u8 lowBit = (lowByte >> pixel) & 0x01;
+			u8 highBit = (highByte >> pixel) & 0x01;
+			u8 index = lowBit | (highBit << 1);
 
-            SetPixel(screenPos, (bgPalette & (paletteMask << (id << 1))) >> (id << 1));
+            SetPixel(screenPos, (bgPalette >> (index << 1)) & 0x03);
         }
 	}
 }

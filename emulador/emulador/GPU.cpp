@@ -220,19 +220,19 @@ void GPU::DrawBackground(u8 line) {
 		u8 tileOffset = mmu.Read(tileMapAddress + tileY * 32 + (firstTileX + tileX) % 32);
 		u16 tileAddress = tileSetAddress == 0x8000 ? tileSetAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16;
 
-		u8 tileDataLow = mmu.Read(tileAddress + ((SCY + line) % 8) * 2);
-		u8 tileDataHigh = mmu.Read(tileAddress + ((SCY + line) % 8) * 2 + 1);
+		u8 lowByte = mmu.Read(tileAddress + ((SCY + line) % 8) * 2);
+		u8 highByte = mmu.Read(tileAddress + ((SCY + line) % 8) * 2 + 1);
 
 		u16 screenPosBase = line * LCDWidth + tileX * 8 - xOffset;
 
 		for (s8 pixel = 7; pixel >= 0; pixel--) {
 			s16 screenPos = screenPosBase + (7 - pixel);
 			if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
-				u8 lowBit = (tileDataLow >> pixel) & 0x01;
-				u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
-				u8 id = lowBit | highBit;
+				u8 lowBit = (lowByte >> pixel) & 0x01;
+				u8 highBit = (highByte >> pixel) & 0x01;
+				u8 index = lowBit | (highBit << 1);
 
-				screen[screenPos] = (BGP & (paletteMask << (id << 1))) >> (id << 1);
+				screen[screenPos] = (BGP >> (index << 1)) & 0x03;
 			}
 		}
 	}
@@ -254,19 +254,19 @@ void GPU::DrawWindow(u8 line) {
 		u8 tileOffset = mmu.Read(tileMapAddress + tileY * 32 + (firstTileX + tileX) % 32);
 		u16 tileAddress = tileSetAddress == 0x8000 ? tileSetAddress + tileOffset * 16 : 0x9000 + ((s8)tileOffset) * 16;
 
-		u8 tileDataLow = mmu.Read(tileAddress + ((line - WY) % 8) * 2);
-		u8 tileDataHigh = mmu.Read(tileAddress + ((line - WY) % 8) * 2 + 1);
+		u8 lowByte = mmu.Read(tileAddress + ((line - WY) % 8) * 2);
+		u8 highByte = mmu.Read(tileAddress + ((line - WY) % 8) * 2 + 1);
 
 		u16 screenPosBase = line * LCDWidth + tileX * 8 + (WX - 7);
 
 		for (s8 pixel = 7; pixel >= 0; pixel--) {
             s16 screenPos = screenPosBase + (7 - pixel);
 			if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
-				u8 lowBit = (tileDataLow >> pixel) & 0x01;
-				u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
-				u8 id = lowBit | highBit;
+				u8 lowBit = (lowByte >> pixel) & 0x01;
+				u8 highBit = (highByte >> pixel) & 0x01;
+				u8 index = lowBit | (highBit << 1);
 
-				screen[screenPos] = (BGP & (paletteMask << (id << 1))) >> (id << 1);
+				screen[screenPos] = (BGP >> (index << 1)) & 0x03;
 			}
 		}
 	}
@@ -295,23 +295,23 @@ void GPU::DrawSprites(u8 line) {
 
             u8 spriteLine = flipY ? spriteHeight - 1 - (line - spriteY) : line - spriteY;
 
-			u8 tileDataLow = mmu.Read(tileAddress + spriteLine * 2);
-			u8 tileDataHigh = mmu.Read(tileAddress + spriteLine * 2 + 1);
+			u8 lowByte = mmu.Read(tileAddress + spriteLine * 2);
+			u8 highByte = mmu.Read(tileAddress + spriteLine * 2 + 1);
 
 			s16 screenPosBase = line * LCDWidth + spriteX;
 
 			for (s8 bit = 7; bit >= 0; bit--) {
                 u8 pixel = flipX ? 7 - bit : bit;
-                s16 screenPos = screenPosBase + (7 - bit);
+                s16 screenPos = line * LCDWidth + spriteX + (7 - bit);
 				if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
-					u8 lowBit = (tileDataLow >> pixel) & 0x01;
-					u8 highBit = (pixel > 0 ? tileDataHigh >> (pixel - 1) : tileDataHigh << 1) & 0x02;
-					u8 id = lowBit | highBit;
+					u8 lowBit = (lowByte >> pixel) & 0x01;
+					u8 highBit = (highByte >> pixel) & 0x01;
+					u8 index = lowBit | (highBit << 1);
 
-					if (id > 0 && (hasPriority || screen[screenPos] == 0))
-						screen[screenPos] = (palette & (paletteMask << (id << 1))) >> (id << 1);
+					if (index > 0 && (hasPriority || screen[screenPos] == 0))
+						screen[screenPos] = (palette >> (index << 1)) & 0x03;
 				}
-			}
+			} 
 			
 			spritesDrawn++;
 			if (spritesDrawn == 10)
