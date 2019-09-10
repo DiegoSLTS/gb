@@ -82,7 +82,7 @@ int main() {
 	//std::string romName = "Amida (Japan).gb";
 	//std::string romName = "Asteroids (USA, Europe).gb";
 	//std::string romName = "BattleCity (Japan).gb";
-	std::string romName = "Bomb Jack (Europe).gb";
+	//std::string romName = "Bomb Jack (Europe).gb";
 	//std::string romName = "Bouken! Puzzle Road (Japan).gb"; // "Daedalian Opus (USA).gb"
 	//std::string romName = "Boxxle (USA, Europe) (Rev A).gb";
 	//std::string romName = "Boxxle II (USA, Europe).gb";
@@ -141,16 +141,16 @@ int main() {
 	//std::string romName = "World Bowling (USA).gb";
 	//std::string romName = "Yakuman (Japan) (Rev A).gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\01-special.gb"; // DAA
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\02-interrupts.gb"; // missing
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\02-interrupts.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\03-op sp,hl.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\04-op r,imm.gb"; // CE DE
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\04-op r,imm.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\05-op rp.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\06-ld r,r.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\07-jr,jp,call,ret,rst.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\08-misc instrs.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb"; // ADC A,r, SBC A,r
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb";
 	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\10-bit ops.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\11-op a,(hl).gb"; // ADC A,(HL), SBC A,(HL), DAA
+	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\11-op a,(hl).gb"; // DAA
 	//std::string romName = "gb-test-roms-master\\instr_timing\\instr_timing.gb";
 	//std::string romName = "gb-test-roms-master\\interrupt_time\\interrupt_time.gb";
 	//std::string romName = "gb-test-roms-master\\mem_timing\\individual\\01-read_timing.gb";
@@ -167,7 +167,7 @@ int main() {
 	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\6-timing_no_bug.gb";
 	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\7-timing_effect.gb";
 	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\8-instr_effect.gb";
-	//std::string romName = "gb-test-roms-master\\halt_bug.gb";
+	std::string romName = "gb-test-roms-master\\halt_bug.gb";
 
 	Cartridge cartridge(romsPath.append(romName));
 	
@@ -217,8 +217,8 @@ int main() {
 	tilesWindow.renderWindow->setPosition(p);
 
 	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", mmu);
-	p.x = 735;
-	p.y = 50;
+	p.x = 1110;
+	p.y = 380;
 	spritesWindow.renderWindow->setPosition(p);
 
 	TileMapViewer tileMap0Window(256, 256, "Tile map 0", mmu, 0x9800);
@@ -237,28 +237,36 @@ int main() {
 	bool logFPS = false;
 
 	while (gameWindow.renderWindow->isOpen()) {
+		if (interruptService.IE & interruptService.IF) {
+			if (cpu.isHalted) {
+				cpu.isHalted = false;
+				cpu.lastOpCycles = 1;
+			}
+			if (interruptService.IME) {
+				for (int i = 0; i < 5; i++) {
+					if (interruptService.IsInterruptSet(i) && interruptService.IsInterruptEnabled(i)) {
+						interruptService.IME = false;
+						mmu.ResetInterruptFlag(i);
+						cpu.Push16(cpu.pc); // cpu.lastOpCycles = 2
+						cpu.pc = 0x40 + i * 8; //0x40, 0x48, 0x50, 0x58, 0x60
+						cpu.lastOpCycles += 3; // +2 idle cycles, +1 updating PC
+						break;
+					}
+				}
+			}
+		}
+		
+
 		if (interruptService.eiDelay) {
 			interruptService.IME = true;
 			interruptService.eiDelay = false;
-		} else if (interruptService.IME) {
-			for (int i = 0; i < 5; i++) {
-				if (interruptService.IsInterruptSet(i) && interruptService.IsInterruptEnabled(i)) {
-					cpu.isHalted = false;
-					interruptService.IME = false;
-					mmu.ResetInterruptFlag(i);
-					cpu.Push16(cpu.pc); // cpu.lastOpCycles = 2
-					cpu.pc = 0x40 + i * 8; //0x40, 0x48, 0x50, 0x58, 0x60
-					cpu.lastOpCycles += 3; // +2 idle cycles, +1 updating PC
-					break;
-				}
-			}
 		}
 		
 		if (!skipBios && cpu.pc == 0x100)
 			SaveState(cpu, gpu, mmu, interruptService, dma);
 
 		// used only for debugging to break at specific instructions
-		if (cpu.pc == 0x0416) {
+		if (cpu.pc == 0xC36F) {
 			int a = 0;
 		}
 

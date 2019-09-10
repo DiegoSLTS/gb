@@ -54,6 +54,7 @@ public:
 
 	u8 lastOpCycles = 0;
 	bool isHalted = false;
+	bool haltBug = false;
 
 	u8 Read8BitReg(CPU8BitReg reg) const;
 	u16 Read16BitReg(CPU16BitReg reg) const;
@@ -86,13 +87,13 @@ public:
 	void SetFlag(FlagBit flagBit, bool set);
 	bool HasFlag(FlagBit flagBit) const;
 
-	void UpdateZeroFlag(u8 value);
-	void UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd);
-	void UpdateCarryFlag(u8 previous, u8 current, bool isAdd);
+	bool UpdateZeroFlag(u8 value);
+	bool UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd);
+	bool UpdateCarryFlag(u8 previous, u8 current, bool isAdd);
 
-	void UpdateZeroFlag(u16 value);
-	void UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd);
-	void UpdateCarryFlag(u16 previous, u16 current, bool isAdd);
+	bool UpdateZeroFlag(u16 value);
+	bool UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd);
+	bool UpdateCarryFlag(u16 previous, u16 current, bool isAdd);
 	// flags
 
 	// API
@@ -101,7 +102,12 @@ public:
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
-	//
+	// API
+
+	// internal
+	void ADCA(u8 value);
+	void SBCA(u8 value);
+	// internal
 
 	// instructions
 	void ADCAr8(CPU8BitReg reg);

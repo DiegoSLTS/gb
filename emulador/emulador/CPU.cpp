@@ -52,32 +52,40 @@ bool CPU::HasFlag(FlagBit flagBit) const {
 	return (flags & flagBit) != 0;
 }
 
-void CPU::UpdateZeroFlag(u8 value) {
-	SetFlag(FlagBit::Zero, value == 0);
+bool CPU::UpdateZeroFlag(u8 value) {
+	bool set = value == 0;
+	SetFlag(FlagBit::Zero, set);
+	return set;
 }
 
-void CPU::UpdateZeroFlag(u16 value) {
-	SetFlag(FlagBit::Zero, value == 0);
+bool CPU::UpdateZeroFlag(u16 value) {
+	bool set = value == 0;
+	SetFlag(FlagBit::Zero, set);
+	return set;
 }
 
-void CPU::UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd) {
+bool CPU::UpdateHalfCarryFlag(u8 previous, u8 current, bool isAdd) {
 	bool set = isAdd ? (current & 0x0F) < (previous & 0x0F) : (current & 0x0F) > (previous & 0x0F);
 	SetFlag(FlagBit::HalfCarry, set);
+	return set;
 }
 
-void CPU::UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd) {
+bool CPU::UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd) {
 	bool set = isAdd ? (current & 0x0FFF) < (previous & 0x0FFF) : (current & 0x0FFF) > (previous & 0x0FFF);
 	SetFlag(FlagBit::HalfCarry, set);
+	return set;
 }
 
-void CPU::UpdateCarryFlag(u8 previous, u8 current, bool isAdd) {
+bool CPU::UpdateCarryFlag(u8 previous, u8 current, bool isAdd) {
 	bool set = isAdd ? current < previous : current > previous;
 	SetFlag(FlagBit::Carry, set);
+	return set;
 }
 
-void CPU::UpdateCarryFlag(u16 previous, u16 current, bool isAdd) {
+bool CPU::UpdateCarryFlag(u16 previous, u16 current, bool isAdd) {
 	bool set = isAdd ? current < previous : current > previous;
 	SetFlag(FlagBit::Carry, set);
+	return set;
 }
 
 
@@ -109,7 +117,10 @@ void CPU::WriteMemory(u16 address, u8 value) {
 
 u8 CPU::ReadAtPC() {
 	u8 valueAtPC = mmu.Read(pc);
-	pc++;
+	if (!haltBug)
+		pc++;
+	else
+		haltBug = false;
 	lastOpCycles++;
 	return valueAtPC;
 }
@@ -701,44 +712,70 @@ void CPU::CallCBOpCode(u8 opCode) {
 	}
 }
 
-
-void CPU::ADCAr8(CPU8BitReg reg) {
+void CPU::ADCA(u8 value) {
 	u8 current = ReadAcc();
-	u8 result = current + Read8BitReg(reg) + (u8)HasFlag(FlagBit::Carry);
+	u8 result = current + value;
+
+	// save carry state before updating
+	bool addCarry = HasFlag(FlagBit::Carry);
+
+	bool carrySet = UpdateCarryFlag(current, result, true);
+	bool halfCarrySet = UpdateHalfCarryFlag(current, result, true);
+
+	if (addCarry) {
+		// update "current" to properly detect carry when adding 1
+		current = result;
+		result += 1;
+		// only update carry if it wasn't set by the previous sum
+		if (!carrySet)
+			UpdateCarryFlag(current, result, true);
+		if (!halfCarrySet)
+			UpdateHalfCarryFlag(current, result, true);
+	}
+
 	WriteAcc(result);
-	lastOpCycles++;
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
-	UpdateHalfCarryFlag(current, result, true);
-	UpdateCarryFlag(current, result, true);
+}
+
+void CPU::SBCA(u8 value) {
+	u8 current = ReadAcc();
+	u8 result = current - value;
+
+	// save carry state before updating
+	bool subCarry = HasFlag(FlagBit::Carry);
+
+	bool carrySet = UpdateCarryFlag(current, result, false);
+	bool halfCarrySet = UpdateHalfCarryFlag(current, result, false);
+
+	if (subCarry) {
+		// update "current" to properly detect carry when substracting 1
+		current = result;
+		result -= 1;
+		// only update carry if it wasn't set by the previous sub
+		if (!carrySet)
+			UpdateCarryFlag(current, result, false);
+		if (!halfCarrySet)
+			UpdateHalfCarryFlag(current, result, false);
+	}
+
+	WriteAcc(result);
+
+	UpdateZeroFlag(result);
+	SetFlag(FlagBit::Negative, true);
+}
+
+void CPU::ADCAr8(CPU8BitReg reg) {
+	ADCA(Read8BitReg(reg));
 }
 
 void CPU::ADCAHL() {
-	u8 mem = ReadMemory(ReadHL());
-	u8 current = ReadAcc();
-	u8 result = current + mem + (u8)HasFlag(FlagBit::Carry);
-	WriteAcc(result);
-	
-	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, false);
-	UpdateHalfCarryFlag(current, result, true);
-	UpdateCarryFlag(current, result, true);
+	ADCA(ReadMemory(ReadHL()));
 }
 
 void CPU::ADCAn8() {
-	u8 constant = ReadAtPC();
-	u8 current = ReadAcc();
-	u8 result = current + constant + (u8)HasFlag(FlagBit::Carry);
-	WriteAcc(result);
-	
-	// TODO to pass Blargg tests: https://stackoverflow.com/questions/42091214/gbz80-adc-instructions-fail-test
-	// TODO also for ADCAr8 and ADCAHL
-
-	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, false);
-	UpdateHalfCarryFlag(current, result, true);
-	UpdateCarryFlag(current, result, true);
+	ADCA(ReadAtPC());
 }
 
 void CPU::ADDAr8(CPU8BitReg reg) {
@@ -995,13 +1032,9 @@ void CPU::EI() {
 }
 
 void CPU::HALT() {
-	/*The halt instruction is used to halt the CPU until an interrupt is received. Whilst halted the CPU enters a lower power state and does not execute any instructions,
-	however the clock still runs and all other parts of the system continue as normal.*/
-	/*There is a bug in the CPU which is triggered when a halt instruction is executed and interrupts are disabled.	In this situation the halt state will still be exited
-	when an interrupt fires, but the program counter is not advanced after reading the initial instruction byte of the subsequent instruction. So, for example, the code*/
-	// 1 byte? 0 cycles?
 	isHalted = true;
-
+	if (!interruptService->IME && (interruptService->IE & interruptService->IF))
+		haltBug = true;
 	//no flags affected
 }
 
@@ -1477,38 +1510,15 @@ void CPU::RSTvec(u8 vec) {
 }
 
 void CPU::SBCAr8(CPU8BitReg reg) {
-	u8 current = ReadAcc();
-	u8 result = current - Read8BitReg(reg) - (u8)HasFlag(FlagBit::Carry);
-	WriteAcc(result);
-
-	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, true);
-	UpdateHalfCarryFlag(current, result, false);
-	UpdateCarryFlag(current, result, false);
+	SBCA(Read8BitReg(reg));
 }
 
 void CPU::SBCAHL() {
-	u8 mem = ReadMemory(ReadHL());
-	u8 current = ReadAcc();
-	u8 result = current - mem - (u8)HasFlag(FlagBit::Carry);
-	WriteAcc(result);
-
-	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, true);
-	UpdateHalfCarryFlag(current, result, false);
-	UpdateCarryFlag(current, result, false);
+	SBCA(ReadMemory(ReadHL()));
 }
 
 void CPU::SBCAn8() {
-	u8 constant = ReadAtPC();
-	u8 current = ReadAcc();
-	u8 result = current - constant - (u8)HasFlag(FlagBit::Carry);
-	WriteAcc(result);
-
-	UpdateZeroFlag(result);
-	SetFlag(FlagBit::Negative, true);
-	UpdateHalfCarryFlag(current, result, false);
-	UpdateCarryFlag(current, result, false);
+	SBCA(ReadAtPC());
 }
 
 void CPU::SCF() {
