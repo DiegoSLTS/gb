@@ -12,14 +12,11 @@ u8 MMU::Read(u16 address) {
 		return bootRom[address];
 	else if (address < 0x8000) {
 		// TODO MBC: https://gekkio.fi/files/gb-docs/gbctr.pdf
-		if (cartridge == nullptr)
-			return 0xFF;
-		else
-			return cartridge->Read(address);
+		return cartridge == nullptr ? 0xFF : cartridge->Read(address);
 	} else if (address < 0xA000)
 		return videoRAM[address - 0x8000];
 	else if (address < 0xC000) // external (cart) ram
-		return cartridge->Read(address);
+		return cartridge == nullptr ? 0xFF : cartridge->Read(address);
 	else if (address < 0xE000)
 		return internalRAM[address - 0xC000];
 	else if (address < 0xFE00)
@@ -41,13 +38,15 @@ void MMU::Write(u16 address, u8 value) {
 		return;
 	}
 
-	if (address < 0x8000)
-		cartridge->Write(value, address);
-	else if (address < 0xA000)
+	if (address < 0x8000) {
+		if (cartridge != nullptr)
+			cartridge->Write(value, address);
+	} else if (address < 0xA000)
 		videoRAM[address - 0x8000] = value;
-	else if (address < 0xC000) // external (cart) ram
-		cartridge->Write(value, address);
-	else if (address < 0xE000)
+	else if (address < 0xC000) {
+		if (cartridge != nullptr)
+			cartridge->Write(value, address);
+	} else if (address < 0xE000)
 		internalRAM[address - 0xC000] = value;
 	else if (address < 0xFE00)
 		internalRAM[address - 0xE000] = value;

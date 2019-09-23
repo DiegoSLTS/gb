@@ -963,28 +963,31 @@ void CPU::CPL() {
 }
 
 void CPU::DAA() {
-	//https://ehaskins.com/2018-01-30%20Z80%20DAA/
+	// https://ehaskins.com/2018-01-30%20Z80%20DAA/
+	// https://www.reddit.com/r/EmuDev/comments/cdtuyw/gameboy_emulator_fails_blargg_daa_test/
 	u8 old = ReadAcc();
 	u8 result = old;
-	bool setCarry = false;
 
 	if (HasFlag(FlagBit::Negative)) {
 		if (HasFlag(FlagBit::HalfCarry))
 			result -= 0x06;
-		if (HasFlag(FlagBit::Carry))
+		if (HasFlag(FlagBit::Carry)) {
 			result -= 0x60;
+			SetFlag(FlagBit::Carry, true);
+		}
 	} else {
-		if ((ReadAcc() & 0x0F) > 0x09 || HasFlag(FlagBit::HalfCarry))
+		if ((old & 0x0F) > 0x09 || HasFlag(FlagBit::HalfCarry))
 			result += 0x06;
-		if (ReadAcc() > 0x9F || HasFlag(FlagBit::Carry))
+		if (old > 0x99 || HasFlag(FlagBit::Carry)) {
 			result += 0x60;
-		setCarry = result > 0x100;
+			SetFlag(FlagBit::Carry, true);
+		}
 	}
+
     WriteAcc(result);
 
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::HalfCarry, false);
-	SetFlag(FlagBit::Carry, setCarry);
 }
 
 void CPU::DECr8(CPU8BitReg reg) {

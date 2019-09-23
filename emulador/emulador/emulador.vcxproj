@@ -131,6 +131,7 @@
     <ClCompile Include="InterruptServiceRoutine.cpp" />
     <ClCompile Include="Joypad.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MBC.cpp" />
     <ClCompile Include="MMU.cpp" />
     <ClCompile Include="RomParser.cpp" />
     <ClCompile Include="SerialDataTransfer.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="InterruptServiceRoutine.h" />
     <ClInclude Include="IState.h" />
     <ClInclude Include="Joypad.h" />
+    <ClInclude Include="MBC.h" />
     <ClInclude Include="MMU.h" />
     <ClInclude Include="RomParser.h" />
     <ClInclude Include="SerialDataTransfer.h" />

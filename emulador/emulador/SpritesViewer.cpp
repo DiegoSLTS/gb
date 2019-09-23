@@ -9,7 +9,7 @@ SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std:
 SpritesViewer::~SpritesViewer() {}
 
 void SpritesViewer::Update() {
-	memset(screenArray, 255, (256 + 8)*(256 + 16) * 4);
+	memset(screenArray, 0, (256 + 8) * (256 + 16) * 4);
 	for (u8 i = 0; i < 40; i++)
 		DrawSprite(i);
 

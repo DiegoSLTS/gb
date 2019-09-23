@@ -9,3 +9,4 @@ gb-test-roms-master/
 roms/
 emulador/emulador/out.txt
 SFML-2.5.1/
+*.sav
