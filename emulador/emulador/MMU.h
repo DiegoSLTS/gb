@@ -7,7 +7,29 @@ class IAddressable;
 
 class MMU : public IState {
 public:
+	MMU();
+	virtual ~MMU();
 
+	IAddressable* cartridge = nullptr;
+	IAddressable* joypad = nullptr;
+	IAddressable* gpu = nullptr;
+	IAddressable* timer = nullptr;
+	IAddressable* dma = nullptr;
+	IAddressable* serial = nullptr;
+	IAddressable* interruptServiceRoutine = nullptr;
+
+	u8 Read(u16 address);
+	void Write(u16 address, u8 value);
+	void Copy(u16 from, u16 to);
+
+	//TODO move to InterruptServiceRoutine?
+	void SetInterruptFlag(u8 interruptPosition);
+	void ResetInterruptFlag(u8 interruptPosition);
+
+	virtual void Load(std::ifstream& stream) const override;
+	virtual void Save(std::ofstream& stream) const override;
+
+private:
 	/*
 	Interrupt Enable Register
 	--------------------------- FFFF
@@ -39,27 +61,9 @@ public:
 	u8 internalRAM[0x2000] = { 0 };
 	u8 videoRAM[0x2000] = { 0 };
 
-	IAddressable* cartridge = nullptr;
-	IAddressable* joypad = nullptr;
-	IAddressable* gpu = nullptr;
-	IAddressable* timer = nullptr;
-	IAddressable* dma = nullptr;
-	IAddressable* serial = nullptr;
-	IAddressable* interruptServiceRoutine = nullptr;
-
-	u8 Read(u16 address);
-	void Write(u16 address, u8 value);
 	void WriteBit(u16 address, u8 bitPosition, bool set);
-	void Copy(u16 from, u16 to);
 
 	bool IsBootRomEnabled();
 
-	//TODO move to InterruptServiceRoutine?
-	void SetInterruptFlag(u8 interruptPosition);
-	void ResetInterruptFlag(u8 interruptPosition);
-
 	IAddressable* GetAddresableFor(u16 address);
-
-	virtual void Load(std::ifstream& stream) const override;
-	virtual void Save(std::ofstream& stream) const override;
 };

@@ -15,7 +15,7 @@ void TileViewer::Update() {
 		for (u8 x = 0; x < tilesPerRow; x++)
 			UpdateTile(x, y);
 
-	screenTexture.update(screenArray);
+	screenTexture.update(screenArray.get());
 	screenSprite.setTexture(screenTexture, true);
 
 	renderWindow->clear();

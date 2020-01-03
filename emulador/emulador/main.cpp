@@ -23,6 +23,8 @@
 #include "SpritesViewer.h"
 #include "StateViewer.h"
 
+#include "Roms.h"
+
 void printCPUFlags(const CPU& cpu) {
 	std::bitset<8> flags(cpu.Read8BitReg(CPU8BitReg::f));
 	std::cout << "flags: 0b" << flags << std::endl;
@@ -36,7 +38,7 @@ bool isLittleEndian() {
 	return isLittleEndian;
 }
 
-void UpdateSFMLScreenArray(sf::Uint8 sfmlScreen[], u8 gpuScreen[]) {
+void UpdateSFMLScreenArray(std::unique_ptr<sf::Uint8[]>& sfmlScreen, u8 gpuScreen[]) {
     int index = 0;
 	for (; index < 160 * 144; index++) {
 		// turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
@@ -72,170 +74,33 @@ void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptSe
 	stream.close();
 }
 
-int main() {
-	std::string romsPath = "D:/Programacion/gb/roms/";
+int main(int argc, char *argv[]) {
+	std::string romPath;
+	std::string romDir;
+	std::string romName;
 
-	// ROM-ONLY
-	//std::string romName = "Alleyway (World).gb"; // broken joypad
-	//std::string romName = "Amida (Japan).gb";
-	//std::string romName = "Asteroids (USA, Europe).gb";
-	//std::string romName = "BattleCity (Japan).gb";
-	//std::string romName = "Bomb Jack (Europe).gb";
-	//std::string romName = "Bouken! Puzzle Road (Japan).gb"; // "Daedalian Opus (USA).gb"
-	//std::string romName = "Boxxle (USA, Europe) (Rev A).gb";
-	//std::string romName = "Boxxle II (USA, Europe).gb";
-	//std::string romName = "Brain Bender (Europe).gb";
-	//std::string romName = "Bubble Ghost (USA, Europe).gb";
-	//std::string romName = "Castelian (Europe).gb"; // "Kyoro-chan Land (Japan).gb"
-	//std::string romName = "Catrap (USA).gb";
-	//std::string romName = "Centipede (USA, Europe).gb";
-	//std::string romName = "Chiki Chiki Tengoku (Japan).gb";
-	//std::string romName = "Cool Ball (USA).gb";
-	//std::string romName = "Daedalian Opus (USA).gb"; // "Bouken! Puzzle Road (Japan).gb"
-	//std::string romName = "Crystal Quest (USA).gb";
-	//std::string romName = "Dr. Mario (World) (Rev A).gb";
-	//std::string romName = "Dragon Slayer I (Japan).gb"; // broken map/offsets
-	//std::string romName = "Dropzone (Europe).gb";
-	//std::string romName = "Flappy Special (Japan).gb";
-	//std::string romName = "Flipull (USA).gb";
-	//std::string romName = "Heiankyo Alien (USA).gb";
-	//std::string romName = "Hong Kong (Japan).gb";
-	//std::string romName = "Hyper Lode Runner (World) (Rev A).gb";
-	//std::string romName = "Ishido - The Way of Stones (Japan).gb"; // level doesn't start
-	//std::string romName = "Kakomunja (Japan).gb";
-	//std::string romName = "Klax (Japan).gb";
-	//std::string romName = "Koi wa Kakehiki (Japan).gb";
-	//std::string romName = "Koro Dice (Japan).gb";
-	//std::string romName = "Kwirk - He's A-maze-ing! (USA, Europe).gb";
-	//std::string romName = "Kyoro-chan Land (Japan).gb"; // Castelian (Europe).gb
-    //std::string romName = "Loopz (World).gb";
-	//std::string romName = "Master Karateka (Japan).gb";
-	//std::string romName = "Migrain (Japan).gb"; // "Brain Bender (Europe).gb"
-	//std::string romName = "Minesweeper - Soukaitei (Japan).gb";
-	//std::string romName = "Missile Command (USA, Europe).gb";
-	//std::string romName = "Mogura de Pon! (Japan).gb";
-	//std::string romName = "Motocross Maniacs (Europe) (Rev A).gb"; // levels break after scrolling a bit
-	//std::string romName = "NFL Football (USA).gb";
-	//std::string romName = "Othello (Europe).gb"; // "Game Start" broken
-	//std::string romName = "Palamedes (Europe).gb";
-	//std::string romName = "Penguin Land (Japan).gb";
-	//std::string romName = "Pipe Dream (USA).gb"; // broken "current" tile
-	//std::string romName = "Pitman (Japan).gb"; //"Catrap (USA).gb"
-	//std::string romName = "Pop Up (Europe).gb"; //"Cool Ball (USA).gb"
-	//std::string romName = "Puzzle Boy (Japan).gb"; //"Kwirk - He's A-maze-ing! (USA, Europe).gb"
-	//std::string romName = "Q Billion (USA).gb";
-	//std::string romName = "Serpent (USA).gb";
-	//std::string romName = "Shanghai (USA).gb";
-	//std::string romName = "Soukoban (Japan).gb"; // "Boxxle (USA, Europe) (Rev A).gb"
-	//std::string romName = "Soukoban 2 (Japan).gb"; // "Boxxle II (USA, Europe).gb"
-	//std::string romName = "Space Invaders (Japan).gb";
-	//std::string romName = "Spot (USA).gb"; // freeze after logo
-	//std::string romName = "Tasmania Story (USA).gb";
-	//std::string romName = "Tennis (World).gb";
-	//std::string romName = "Tesserae (Europe) (En,Fr,De,Es,It).gb";
-	//std::string romName = "Tetris (World) (Rev A).gb";
-	//std::string romName = "Trump Boy (Japan).gb";
-	//std::string romName = "Volley Fire (Japan).gb";
-	//std::string romName = "World Bowling (USA).gb";
-	//std::string romName = "Yakuman (Japan) (Rev A).gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\01-special.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\02-interrupts.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\03-op sp,hl.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\04-op r,imm.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\05-op rp.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\06-ld r,r.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\07-jr,jp,call,ret,rst.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\08-misc instrs.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\09-op r,r.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\10-bit ops.gb";
-	//std::string romName = "gb-test-roms-master\\cpu_instrs\\individual\\11-op a,(hl).gb";
-	//std::string romName = "gb-test-roms-master\\instr_timing\\instr_timing.gb";
-	//std::string romName = "gb-test-roms-master\\interrupt_time\\interrupt_time.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing\\individual\\01-read_timing.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing\\individual\\02-write_timing.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing\\individual\\03-modify_timing.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing-2\\rom_singles\\01-read_timing.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing-2\\rom_singles\\02-write_timing.gb";
-	//std::string romName = "gb-test-roms-master\\mem_timing-2\\rom_singles\\03-modify_timing.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\1-lcd_sync.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\2-causes.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\3-non_causes.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\4-scanline_timing.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\5-timing_bug.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\6-timing_no_bug.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\7-timing_effect.gb";
-	//std::string romName = "gb-test-roms-master\\oam_bug\\rom_singles\\8-instr_effect.gb";
-	//std::string romName = "gb-test-roms-master\\halt_bug.gb";
-	//std::string romName = "gekkio\\bits\\mem_oam.gb";
-	//std::string romName = "gekkio\\bits\\reg_f.gb";
-	//std::string romName = "gekkio\\bits\\unused_hwio-GS.gb";
-	//std::string romName = "gekkio\\instr\\daa.gb";
-	//std::string romName = "gekkio\\interrupts\\ie_push.gb";
-	//std::string romName = "gekkio\\oam_dma\\basic.gb";
-	//std::string romName = "gekkio\\oam_dma\\reg_read.gb";
-	//std::string romName = "gekkio\\oam_dma\\sources-GS.gb";
-	//std::string romName = "gekkio\\add_sp_e_timing.gb";
-	//std::string romName = "gekkio\\boot_div2-S.gb";
-	//std::string romName = "gekkio\\call_cc_timing.gb";
-	//std::string romName = "gekkio\\intr_timing.gb";
-	//std::string romName = "homebrew\\exeman.gb";
-
-	// ROM + MBC1
-	//std::string romName = "Addams Family, The - Pugsley's Scavenger Hunt (USA, Europe).gb"; //shift and b moves 
-	//std::string romName = "Addams Family, The (USA).gb"; // freeze after menu
-	//std::string romName = "Adventure Island (USA, Europe).gb";
-	//std::string romName = "Adventure Island II - Aliens in Paradise (USA, Europe).gb";
-	//std::string romName = "Adventures of Lolo (Europe) (SGB Enhanced).gb";
-	//std::string romName = "Alien 3 (USA, Europe).gb";
-	//std::string romName = "Super Mario Land (World) (Rev A).gb";
-
-	// ROM + MBC1 + RAM + BATTERY
-	//std::string romName = "Donkey Kong Land (USA, Europe) (SGB Enhanced).gb";
-	//std::string romName = "Legend of Zelda, The - Link's Awakening (USA, Europe).gb";
-	//std::string romName = "Mario's Picross (USA, Europe) (SGB Enhanced).gb";
-	//std::string romName = "Metroid II - Return of Samus (World).gb";
-	//std::string romName = "Super Mario Land 2 - 6 Golden Coins (USA, Europe).gb"; // crashes emulator
-	//std::string romName = "Harvest Moon GB (USA) (SGB Enhanced).gb"; // doesn't boot
-
-	// ROM + MBC2 
-	//std::string romName = "Aretha (Japan).gb";
-	//std::string romName = "Final Fantasy Adventure (USA).gb";
-	//std::string romName = "Final Fantasy Legend, The (USA).gb";
-	//std::string romName = "Kirby's Pinball Land (USA, Europe).gb"; // doesn't boot
-
-
-	// ROM + MBC3
-	//std::string romName = "Pocket Monsters - Pikachu (Japan) (SGB Enhanced).gb";
-	//std::string romName = "Pokemon - Blue Version (USA, Europe) (SGB Enhanced).gb";
-	//std::string romName = "Kandume Monsters (Japan) (SGB Enhanced).gb"; // doesn't boot
-	//std::string romName = "Mini Yonku GB Let's & Go!! - All-Star Battle Max (Japan) (SGB Enhanced).gb";
-	//std::string romName = "Wario Land II (USA, Europe) (SGB Enhanced).gb";
-	std::string romName = "Bokujou Monogatari GB (Japan) (SGB Enhanced).gb";
-	
-
-	// ROM + MBC5
-	//std::string romName = "Pokemon - Edicion Amarilla - Edicion Especial Pikachu (Spain) (GBC,SGB Enhanced).gb";
-	//std::string romName = "Pokemon - Gelbe Edition - Special Pikachu Edition (Germany) (GBC,SGB Enhanced).gb";
-
-	std::string romPath = romsPath.append(romName);
-	Cartridge cartridge(romPath);
-	if (cartridge.hasBattery) {
-		size_t dotPosition = romName.find_last_of(".");
-		std::string savePath = romName.substr(0,dotPosition).append(".sav");
-
-		std::ifstream readStream(savePath, std::ios::in | std::ios::binary);
-
-		if (readStream.good())
-			cartridge.LoadRam(readStream);
-		
-		readStream.close();
+	if (argc > 1) {
+		//TODO validate path
+		romPath = argv[1];
+		size_t slashPosition = romPath.find_last_of("/");
+		romDir = romPath.substr(0, slashPosition + 1);
+		romName = romPath.substr(slashPosition + 1);
+		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
+	} else {
+		romDir = "D:/Programacion/gb/roms/";
+		romName = Games::METROID_II_RETURN_OF_SAMUS;
+		romPath = romDir.append(romName);
+		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
 
+	Cartridge cartridge(romPath);
+	
+	// TODO move parse logic into Cartridge class
 	bool parseRom = false;
 	if (parseRom) {
 		RomParser parser;
 		// TODO support more cartridge sizes
-		parser.ParseCartridgeROM(cartridge.mbc->rom, 32 * 1024);
+		// TODO parser.ParseCartridgeROM(cartridge.mbc->rom.get(), 32 * 1024);
 		parser.PrintCodeToFile();
 	}
 	
@@ -329,7 +194,7 @@ int main() {
 			SaveState(cpu, gpu, mmu, interruptService, dma);
 
 		// used only for debugging to break at specific instructions
-		if (cpu.pc == 0x4000) {
+		if (cpu.pc == 0x3155 /*0x3306*/) {
 			int a = 0;
 		}
 
@@ -346,7 +211,7 @@ int main() {
 		u8 lastOpCycles = cpu.lastOpCycles;
 		if (gpu.Step(lastOpCycles * 4)) {
 			UpdateSFMLScreenArray(gameWindow.screenArray, gpu.screen);
-			gameWindow.screenTexture.update(gameWindow.screenArray);
+			gameWindow.screenTexture.update(gameWindow.screenArray.get());
 			gameWindow.screenSprite.setTexture(gameWindow.screenTexture, true);
 
 			gameWindow.renderWindow->clear();
@@ -376,7 +241,7 @@ int main() {
             framesCount = 0;
         }
 
-		if (currentTimer - previousFrameTimer >= 0.2) {
+		if (currentTimer - previousFrameTimer >= 0.13) {
 			previousFrameTimer = currentTimer;
 			sf::Event event;
 			while (gameWindow.renderWindow->pollEvent(event))
@@ -395,17 +260,5 @@ int main() {
 		}
 	}
 
-	if (cartridge.hasBattery) {
-		size_t dotPosition = romName.find_last_of(".");
-		std::string savePath = romName.substr(0, dotPosition).append(".sav");
-
-		std::ofstream writeStream(savePath, std::ios::binary);
-
-		if (writeStream.good())
-			cartridge.SaveRam(writeStream);
-
-		writeStream.close();
-	}
-	
 	return 0;
 }

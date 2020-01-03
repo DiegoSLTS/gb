@@ -12,11 +12,12 @@ public:
 	StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu);
 	virtual ~StateViewer();
 
+	void Update();
+
+private:
 	CPU& cpu;
 	GPU& gpu;
 	MMU& mmu;
-
-	void Update();
 
 	sf::Font font;
 
@@ -36,5 +37,4 @@ public:
 
 	void SetupLabel(sf::Text& label, const std::string& text, float x, float y);
 	void SetupValue(sf::Text& value, float x, float y);
-
 };

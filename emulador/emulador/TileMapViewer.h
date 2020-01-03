@@ -11,5 +11,6 @@ public:
 	TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu, u16 Address);
 	virtual ~TileMapViewer();
 
+protected:
 	virtual u16 GetTileAddress(u8 x, u8 y) const override;
 };

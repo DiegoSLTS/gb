@@ -1,5 +1,8 @@
 #include "SerialDataTransfer.h"
 
+SerialDataTransfer::SerialDataTransfer() {}
+SerialDataTransfer::~SerialDataTransfer() {}
+
 u8 SerialDataTransfer::Read(u16 address) {
 	switch (address) {
 	case 0xFF01:

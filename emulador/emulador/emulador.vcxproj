@@ -158,6 +158,7 @@
     <ClInclude Include="MBC.h" />
     <ClInclude Include="MMU.h" />
     <ClInclude Include="RomParser.h" />
+    <ClInclude Include="Roms.h" />
     <ClInclude Include="SerialDataTransfer.h" />
     <ClInclude Include="SpritesViewer.h" />
     <ClInclude Include="StateViewer.h" />

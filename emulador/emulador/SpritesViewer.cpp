@@ -9,11 +9,11 @@ SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std:
 SpritesViewer::~SpritesViewer() {}
 
 void SpritesViewer::Update() {
-	memset(screenArray, 0, (256 + 8) * (256 + 16) * 4);
+	memset(screenArray.get(), 0, (256 + 8) * (256 + 16) * 4);
 	for (u8 i = 0; i < 40; i++)
 		DrawSprite(i);
 
-	screenTexture.update(screenArray);
+	screenTexture.update(screenArray.get());
 	screenSprite.setTexture(screenTexture, true);
 
 	renderWindow->clear();

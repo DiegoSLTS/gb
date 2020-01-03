@@ -3,6 +3,9 @@
 #include "BootRom.h"
 #include "IAddressable.h"
 
+MMU::MMU() {}
+MMU::~MMU() {}
+
 u8 MMU::Read(u16 address) {
 	IAddressable* addressable = GetAddresableFor(address);
 	if (addressable != nullptr)

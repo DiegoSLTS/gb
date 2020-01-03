@@ -9,6 +9,13 @@ public:
     Timer(MMU& mmu);
     virtual ~Timer();
 
+	// TODO http://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
+	void Step(u8 cycles);
+
+	virtual u8 Read(u16 address) override;
+	virtual void Write(u8 value, u16 address) override;
+
+private:
 	MMU& mmu;
 
 	u16 dividerCounter = 0;
@@ -18,10 +25,4 @@ public:
 	u8 TIMA = 0x00;			//0xFF05 Timer counter (R/W)
 	u8 TMA = 0x00;			//0xFF06 Timer Modulo (R/W)
 	u8 TAC = 0b11111000;	//0xFF07 Timer Control (R/W)
-	
-	// TODO http://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
-	void Step(u8 cycles);
-
-	virtual u8 Read(u16 address) override;
-	virtual void Write(u8 value, u16 address) override;
 };

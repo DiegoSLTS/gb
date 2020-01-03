@@ -22,6 +22,16 @@ struct CodeSection {
 class RomParser {
 public:
 
+	RomParser();
+	virtual ~RomParser();
+
+	void ParseBiosROM(const u8* bytes, u16 size);
+	void ParseCartridgeROM(const u8* bytes, u16 size);
+
+	void PrintCode();
+	void PrintCodeToFile();
+
+private:
 	std::vector<CodeSection> sections;
 	std::deque<u16> jumpTargets;
 	u16 pc = 0;
@@ -31,17 +41,12 @@ public:
 
 	bool IsAlreadyParsed(u16 address);
 
-	void ParseBiosROM(const u8* bytes, u16 size);
-	void ParseCartridgeROM(const u8* bytes, u16 size);
 	void Parse(const u8* bytes, u16 size);
 
 	u8 GetSize(u8 opCode) const;
 	std::string GetFormat(u8 opCode, u8 byte1) const;
 
-	void PrintCode();
 	void PrintInstruction(const Instruction& instruction);
-
-	void PrintCodeToFile();
 	void PrintInstructionToFile(std::ostream& stream, const Instruction& instruction);
 
 	size_t GetInsertIndex(const CodeSection& section) const;

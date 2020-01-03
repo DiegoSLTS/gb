@@ -45,18 +45,31 @@ public:
 	CPU(MMU& mmu);
 	virtual ~CPU();
 	
-	MMU& mmu;
 	InterruptServiceRoutine* interruptService = nullptr;
+
+	bool isHalted = false;
+	u8 lastOpCycles = 0;
+	u16 pc = 0;
+
+	u8 Read8BitReg(CPU8BitReg reg) const;
+	void Push16(u16 value);
+
+	u8 ReadOpCode();
+	void CallOpCode(u8 opCode);
+	void CallCBOpCode(u8 opCode);
+
+	virtual void Load(std::ifstream& stream) const override;
+	virtual void Save(std::ofstream& stream) const override;
+
+private:
+	MMU& mmu;
 
 	// registers
 	u8 registers[8] = { 0 };
-	u16 pc = 0, sp = 0;
+	u16 sp = 0;
 
-	u8 lastOpCycles = 0;
-	bool isHalted = false;
 	bool haltBug = false;
 
-	u8 Read8BitReg(CPU8BitReg reg) const;
 	u16 Read16BitReg(CPU16BitReg reg) const;
 
 	void Write8BitReg(CPU8BitReg reg, u8 value);
@@ -68,7 +81,6 @@ public:
 	u16 ReadHL() const;
 	void WriteHL(u16 value);
 
-	void Push16(u16 value);
 	u16 Pop16();
 	// registers
 
@@ -77,7 +89,6 @@ public:
 	void WriteMemory(u16 address, u8 value);
 
 	u8 ReadAtPC();
-	u8 ReadOpCode();
 	// memory
 
 	// flags
@@ -95,14 +106,6 @@ public:
 	bool UpdateHalfCarryFlag(u16 previous, u16 current, bool isAdd);
 	bool UpdateCarryFlag(u16 previous, u16 current, bool isAdd);
 	// flags
-
-	// API
-	void CallOpCode(u8 opCode);
-	void CallCBOpCode(u8 opCode);
-
-	virtual void Load(std::ifstream& stream) const override;
-	virtual void Save(std::ofstream& stream) const override;
-	// API
 
 	// internal
 	void ADCA(u8 value);

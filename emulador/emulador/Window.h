@@ -3,6 +3,7 @@
 #include <SFML\System.hpp>
 #include <SFML\Graphics.hpp>
 #include <string>
+#include <memory>
 
 class Window {
 public:
@@ -10,9 +11,9 @@ public:
 	Window(unsigned int Width, unsigned int Height, const std::string& Title);
 	virtual ~Window();
 
-	sf::Uint8* screenArray = nullptr;
+	std::unique_ptr<sf::Uint8[]> screenArray;
 	sf::Texture screenTexture;
 	sf::Sprite screenSprite;
 
-	sf::RenderWindow* renderWindow = nullptr;
+	std::unique_ptr<sf::RenderWindow> renderWindow;
 };

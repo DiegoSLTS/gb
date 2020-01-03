@@ -8,6 +8,9 @@
 #include <fstream>
 #include <iostream>
 
+RomParser::RomParser() {}
+RomParser::~RomParser() {}
+
 void RomParser::ParseSection(const u8* bytes, u16 from, u16 to) {
 	// 0xC0, 0xD0, 0xC8, 0xD8, 0xC9 = RET
 	// 0xD9 = RETI

@@ -1,31 +1,28 @@
 #include "MBC.h"
 
+#include <iostream>
 #include <ctime>
 
 void RomHeader::Print() {
-	printf("title: %s\n", title);
-	printf("newLicenseeCode: %d\n", newLicenseeCode);
-	printf("sgbFlag: %d\n", sgbFlag);
-	printf("cartridgeType: 0x%x\n", cartridgeType);
-	printf("romSize: %d\n", romSize);
-	printf("ramSize: %d\n", ramSize);
-	printf("destinationCode: %d\n", destinationCode);
-	printf("oldLicenseeCode: %d\n", oldLicenseeCode);
-	printf("maskROMVersionNumber: %d\n", maskROMVersionNumber);
-	printf("headerChecksum: %d\n", headerChecksum);
-	printf("globalChecksum: %d\n", globalChecksum);
+	std::cout << "title: " << title << std::endl;
+	std::cout << "newLicenseeCode: " << (unsigned int)newLicenseeCode << std::endl;
+	std::cout << "sgbFlag: " << (unsigned int)sgbFlag << std::endl;
+	std::cout << "cartridgeType: " << (unsigned int)cartridgeType << std::endl;
+	std::cout << "romSize: " << (unsigned int)romSize << std::endl;
+	std::cout << "ramSize: " << (unsigned int)ramSize << std::endl;
+	std::cout << "destinationCode: " << (unsigned int)destinationCode << std::endl;
+	std::cout << "oldLicenseeCode: " << (unsigned int)oldLicenseeCode << std::endl;
+	std::cout << "maskROMVersionNumber: " << (unsigned int)maskROMVersionNumber << std::endl;
+	std::cout << "headerChecksum: " << (unsigned int)headerChecksum << std::endl;
+	std::cout << "globalChecksum: " << (unsigned int)globalChecksum << std::endl;
 }
 
 MBC::MBC(const RomHeader& header) : header(header) {}
+MBC::~MBC() {}
 
 void MBC::InitArrays() {
-	rom = new u8[GetRomSize()];
-	ram = new u8[GetRamSize()];
-}
-
-MBC::~MBC() {
-	delete[] rom;
-	delete[] ram;
+	rom = std::make_unique<u8[]>(GetRomSize());
+	ram = std::make_unique<u8[]>(GetRamSize());
 }
 
 u32 MBC::GetRomSize() const {
@@ -39,7 +36,7 @@ u32 MBC::GetRomSize() const {
 		}
 	}
 
-	printf("ERROR: Invalid romSize value %d\n", (unsigned int)header.romSize);
+	std::cout << "ERROR: Invalid romSize value " << (unsigned int)header.romSize << std::endl;
 	return 0;
 }
 
@@ -53,20 +50,20 @@ u32 MBC::GetRamSize() const {
 	case 0x05: return 64 * 1024;
 	}
 
-	printf("ERROR: Invalid ramSize value %d\n", (unsigned int)header.ramSize);
+	std::cout << "ERROR: Invalid ramSize value " << (unsigned int)header.ramSize << std::endl;
 	return 0;
 }
 
 void MBC::LoadRom(std::ifstream& readStream) {
-	readStream.read((char*)rom, GetRomSize());
+	readStream.read((char*)rom.get(), GetRomSize());
 }
 
 void MBC::LoadRam(std::ifstream& readStream) {
-	readStream.read((char*)ram, GetRamSize());
+	readStream.read((char*)ram.get(), GetRamSize());
 }
 
 void MBC::SaveRam(std::ofstream& writeStream) {
-	writeStream.write((const char*)ram, GetRamSize());
+	writeStream.write((const char*)ram.get(), GetRamSize());
 }
 
 RomOnly::RomOnly(const RomHeader& header) : MBC(header) {}

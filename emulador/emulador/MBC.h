@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "IAddressable.h"
 #include "IState.h"
 
@@ -30,7 +32,10 @@ public:
 
 	void InitArrays();
 
-	const RomHeader& header;
+	void LoadRom(std::ifstream& readStream);
+
+	virtual void LoadRam(std::ifstream& readStream);
+	virtual void SaveRam(std::ofstream& readStream);
 
 	virtual u8 Read(u16 address) = 0;
 	virtual void Write(u8 value, u16 address) = 0;
@@ -38,16 +43,15 @@ public:
 	virtual void Load(std::ifstream& stream) const = 0;
 	virtual void Save(std::ofstream& stream) const = 0;
 
-	void LoadRom(std::ifstream& readStream);
+protected:
+	std::unique_ptr<u8[]> rom;
+	std::unique_ptr<u8[]> ram;
 
-	virtual void LoadRam(std::ifstream& readStream);
-	virtual void SaveRam(std::ofstream& readStream);
+private:
+	const RomHeader& header;
 
 	virtual u32 GetRomSize() const;
 	virtual u32 GetRamSize() const;
-
-	u8* rom = nullptr;
-	u8* ram = nullptr;
 };
 
 class RomOnly : public MBC {
@@ -73,6 +77,7 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
+private:
 	u8 romBank = 1;
 	u8 ramBank = 0;
 	unsigned int romBankOffset = 16 * 1024;
@@ -97,7 +102,8 @@ public:
 	virtual void Save(std::ofstream& stream) const override;
 		
 	virtual u32 GetRamSize() const override;
-	
+
+private:
 	u8 romBank = 1;
 	unsigned int romBankOffset = 16 * 1024;
 	u8 ramEnabled = 0; // The least significant bit of the upper address byte must be zero to enable/disable cart RAM
@@ -117,6 +123,7 @@ public:
 	virtual void LoadRam(std::ifstream& readStream) override;
 	virtual void SaveRam(std::ofstream& readStream) override;
 
+private:
 	u8 romBank = 1; // 0x01-0x1F
 	u8 ramBank = 0; // 0x00-0x03
 	unsigned int romBankOffset = 16 * 1024;
@@ -147,6 +154,7 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 	
+private:
 	u16 romBank = 1;
 	u8 ramBank = 0;
 	unsigned int romBankOffset = 16 * 1024;

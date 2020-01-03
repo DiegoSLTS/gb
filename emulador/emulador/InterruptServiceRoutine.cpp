@@ -1,5 +1,8 @@
 #include "InterruptServiceRoutine.h"
 
+InterruptServiceRoutine::InterruptServiceRoutine() {}
+InterruptServiceRoutine::~InterruptServiceRoutine() {}
+
 u8 InterruptServiceRoutine::Read(u16 address) {
 	switch (address) {
 	case 0xFFFF:
