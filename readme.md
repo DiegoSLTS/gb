@@ -34,7 +34,7 @@ Para configurar los paths de las bibliotecas e includes de SFML seguí estas ins
 
 Antes de copiar los .dll tenés que generar el .exe compilado, y los .dll tienen que estar en la misma carpeta para que funcione el emulador.
 
-Por el momento el path del juego a cargar está hardcodeado, así que hay que editar el código en main.cpp con el path y el nombre de la rom. No puedo compartir juegos ni links para descargar juegos, tenés que conseguirlos por tu cuenta.
+Se puede cargar una rom desde cualquier ubicación local pasando el path absoluto entre comillas como único argumento, o se puede editar el código en main.cpp y roms.h donde hay varios paths hardcodeados. Esta última opción es solo para hacer pruebas y en el futuro planeo reemplazarla con alguna configuración o con una ventana de selección de rom como cualquier otro emulador.
 
 ----
 
@@ -44,7 +44,7 @@ To setup SFML bin and include paths follow this: https://www.sfml-dev.org/tutori
 
 Before copying the .dll files you'll have to generate the .exe, and then copy the .dll files in the same folder for the emulator to work.
 
-For now the path to the game rom is hardcoded, so you have to modify the code in main.cpp with the path and name of your rom. I can't share the roms or links to get roms, you'll have to find games on your own.
+You can load a rom from any location from your disk passing the absolut path between quotes as an argument when launching the emulator, or by editing the code in main.cpp and roms.h where a few paths are hardcoded. This last method is just for testing purposes and I plan to replace it at some point with a setting or with a browse file window just like any other emulator.
 
 
 ## Contributing / Contribuciones
