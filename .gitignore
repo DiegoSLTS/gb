@@ -10,3 +10,4 @@ roms/
 emulador/emulador/out.txt
 SFML-2.5.1/
 *.sav
+emulador/emulador/samples.bin

@@ -18,9 +18,11 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
+    u8* GetRomPtr() { return mbc->GetRomPtr(); }
+
 private:
 	RomHeader header;
-	std::unique_ptr<MBC> mbc;
+	MBC* mbc = nullptr;
 	bool hasBattery = false;
 	std::string romFullPath;
 	std::string romName;
@@ -32,4 +34,3 @@ private:
 	void LoadRam(std::ifstream& readStream);
 	void SaveRam(std::ofstream& writeStream);
 };
-

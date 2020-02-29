@@ -7,10 +7,6 @@ MMU::MMU() {}
 MMU::~MMU() {}
 
 u8 MMU::Read(u16 address) {
-	IAddressable* addressable = GetAddresableFor(address);
-	if (addressable != nullptr)
-		return addressable->Read(address);
-	
 	if (address < 0x100 && IsBootRomEnabled())
 		return bootRom[address];
 	else if (address < 0x8000) {
@@ -28,18 +24,21 @@ u8 MMU::Read(u16 address) {
 		return oam[address - 0xFE00];
 	else if (address < 0xFF00)
 		return 0; //TODO validate if 0 or 0xFF
-	else if (address < 0xFF80)
-		return ioPorts[address - 0xFF00];
-	else
-		return zeroPageRAM[address - 0xFF80];
+    else {
+        IAddressable* addressable = GetAddresableFor(address);
+        if (addressable != nullptr)
+            return addressable->Read(address);
+
+        if (address < 0xFF80)
+            return ioPorts[address - 0xFF00];
+        else
+            return zeroPageRAM[address - 0xFF80];
+    }
 }
 
 void MMU::Write(u16 address, u8 value) {
-	IAddressable* addressable = GetAddresableFor(address);
-	if (addressable != nullptr) {
-		addressable->Write(value, address);
-		return;
-	}
+    if (address >= 0xFF30 && address <= 0xFF3F)
+        int a = 0;
 
 	if (address < 0x8000) {
 		if (cartridge != nullptr)
@@ -57,10 +56,18 @@ void MMU::Write(u16 address, u8 value) {
 		oam[address - 0xFE00] = value;
 	else if (address < 0xFF00) { // unused
 		//TODO ignore?
-	} else if (address < 0xFF80)
-		ioPorts[address - 0xFF00] = value;
-	else
-		zeroPageRAM[address - 0xFF80] = value;
+    } else {
+        IAddressable* addressable = GetAddresableFor(address);
+        if (addressable != nullptr) {
+            addressable->Write(value, address);
+            return;
+        }
+
+        if (address < 0xFF80)
+            ioPorts[address - 0xFF00] = value;
+        else
+            zeroPageRAM[address - 0xFF80] = value;
+    }
 }
 
 void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {
@@ -85,7 +92,8 @@ void MMU::SetInterruptFlag(u8 interruptPosition) {
 }
 
 IAddressable* MMU::GetAddresableFor(u16 address) {
-	//TODO sound registers
+    if (address >= 0xFF30 && address <= 0xFF3F)
+        return audio;
 
 	switch (address) {
 	case 0xFF40:
@@ -109,6 +117,28 @@ IAddressable* MMU::GetAddresableFor(u16 address) {
 	case 0xFF06:
 	case 0xFF07:
 		return timer;
+    case 0xFF10:
+    case 0xFF11:
+    case 0xFF12:
+    case 0xFF13:
+    case 0xFF14:
+    case 0xFF16:
+    case 0xFF17:
+    case 0xFF18:
+    case 0xFF19:
+    case 0xFF1A:
+    case 0xFF1B:
+    case 0xFF1C:
+    case 0xFF1D:
+    case 0xFF1E:
+    case 0xFF20:
+    case 0xFF21:
+    case 0xFF22:
+    case 0xFF23:
+    case 0xFF24:
+    case 0xFF25:
+    case 0xFF26:
+        return audio;
 	case 0xFF01:
 	case 0xFF02:
 		return serial;

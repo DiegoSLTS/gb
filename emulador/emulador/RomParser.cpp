@@ -130,6 +130,8 @@ Instruction RomParser::ParseInstruction(const u8* bytes, u16 size) {
 		newInstruction.displayText = format;
 	else if (opCodeSize == 2) {
 		size_t pos = format.find("n");
+        if (pos == std::string::npos)
+            pos = format.find("d");
 		newInstruction.displayText = format.replace(pos, 1, "0x" + ByteToHex(newInstruction.byte1));
 	} else {
 		size_t pos = format.find("nn");

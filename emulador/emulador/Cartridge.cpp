@@ -33,6 +33,9 @@ Cartridge::~Cartridge() {
 
 		writeStream.close();
 	}
+
+    if (mbc != nullptr)
+        delete mbc;
 }
 
 void Cartridge::LoadHeader(std::ifstream& readStream) {
@@ -51,23 +54,23 @@ void Cartridge::LoadRom(std::ifstream& readStream) {
 	case 0:
 	case 8:
 	case 9:
-		mbc = std::make_unique<RomOnly>(header);
+		mbc = new RomOnly(header);
 		break;
 	case 1:
 	case 2:
 	case 3:
-		mbc = std::make_unique<MBC1>(header);
+		mbc = new MBC1(header);
 		break;
 	case 5:
 	case 6:
-		mbc = std::make_unique<MBC2>(header);
+		mbc = new MBC2(header);
 		break;
 	case 0x0F:
 	case 0x10:
 	case 0x11:
 	case 0x12:
 	case 0x13:
-		mbc = std::make_unique<MBC3>(header);
+		mbc = new MBC3(header);
 		break;
 	case 0x19:
 	case 0x1A:
@@ -75,7 +78,7 @@ void Cartridge::LoadRom(std::ifstream& readStream) {
 	case 0x1C:
 	case 0x1D:
 	case 0x1E:
-		mbc = std::make_unique<MBC5>(header);
+		mbc = new MBC5(header);
 		break;
 	}
 
@@ -103,7 +106,13 @@ void Cartridge::SaveRam(std::ofstream& writeStream) {
 
 void Cartridge::LoadFile(const std::string& path) {
 	std::ifstream readStream;
-	readStream.open(path, std::ios::in | std::ios::binary);
+    readStream.open(path, std::ios::in | std::ios::binary);
+
+    if (readStream.fail()) {
+        char errorMessage[256];
+        strerror_s(errorMessage, 256);
+        std::cout << "ERROR: Could not open file " << path << ". " << errorMessage << std::endl;
+    }
 
 	LoadHeader(readStream);
 	LoadRom(readStream);

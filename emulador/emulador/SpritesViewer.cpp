@@ -2,18 +2,21 @@
 #include "MMU.h"
 #include "GPU.h"
 
-SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu) : Window(Width, Height, Title), mmu(Mmu) {
+SpritesViewer::SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu) : Window(Width, Height, Title, Position, false), mmu(Mmu) {
 	Update();
 }
 
 SpritesViewer::~SpritesViewer() {}
 
 void SpritesViewer::Update() {
-	memset(screenArray.get(), 0, (256 + 8) * (256 + 16) * 4);
+    if (!IsOpen())
+        return;
+
+	memset(screenArray, 0, width * height * 4);
 	for (u8 i = 0; i < 40; i++)
 		DrawSprite(i);
 
-	screenTexture.update(screenArray.get());
+	screenTexture.update(screenArray);
 	screenSprite.setTexture(screenTexture, true);
 
 	renderWindow->clear();
@@ -62,9 +65,12 @@ void SpritesViewer::DrawSprite(u8 index) {
 }
 
 void SpritesViewer::SetPixel(unsigned int pixelIndex, u8 gbColor) {
-	u8 gpuColor = 255 - gbColor * 85;
-	screenArray[pixelIndex * 4] = gpuColor;
-	screenArray[pixelIndex * 4 + 1] = gpuColor;
-	screenArray[pixelIndex * 4 + 2] = gpuColor;
+    // turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
+    const static u8 sfmlColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
+
+	u8 sfmlColor = sfmlColors[gbColor];
+	screenArray[pixelIndex * 4] = sfmlColor;
+	screenArray[pixelIndex * 4 + 1] = sfmlColor;
+	screenArray[pixelIndex * 4 + 2] = sfmlColor;
 	screenArray[pixelIndex * 4 + 3] = 0xFF;
 }

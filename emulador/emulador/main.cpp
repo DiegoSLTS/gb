@@ -1,29 +1,23 @@
-#include <SFML/Graphics.hpp>
 #include <fstream>
-#include <ctime>
 #include <iostream>
 #include <bitset>
+#include <chrono>
+#include <SFML/Audio.hpp>
 
 #include "Types.h"
-#include "BootRom.h"
+#include "GameBoy.h"
 
-#include "Cartridge.h"
-#include "MMU.h"
-#include "CPU.h"
-#include "GPU.h"
-#include "Timer.h"
-#include "Joypad.h"
-#include "DMA.h"
-#include "SerialDataTransfer.h"
-#include "InterruptServiceRoutine.h"
-#include "RomParser.h"
 #include "Window.h"
+#include "GameWindow.h"
 #include "TileViewer.h"
 #include "TileMapViewer.h"
 #include "SpritesViewer.h"
+#include "SoundViewer.h"
 #include "StateViewer.h"
 
 #include "Roms.h"
+
+#include "CustomAudioStream.h"
 
 void printCPUFlags(const CPU& cpu) {
 	std::bitset<8> flags(cpu.Read8BitReg(CPU8BitReg::f));
@@ -36,42 +30,6 @@ bool isLittleEndian() {
 	bool isLittleEndian = t16[0] == t8[0];
 	std::cout << "t8[0] = " << (unsigned int)t8[0] << " t16[0] = " << (unsigned int)t16[0] << " - is " << (isLittleEndian ? "little endian" : "big endian") << std::endl;
 	return isLittleEndian;
-}
-
-void UpdateSFMLScreenArray(std::unique_ptr<sf::Uint8[]>& sfmlScreen, u8 gpuScreen[]) {
-    int index = 0;
-	for (; index < 160 * 144; index++) {
-		// turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
-		u8 gpuColor = 255 - gpuScreen[index] * 85;
-		sfmlScreen[index * 4] = gpuColor;
-		sfmlScreen[index * 4 + 1] = gpuColor;
-		sfmlScreen[index * 4 + 2] = gpuColor;
-		sfmlScreen[index * 4 + 3] = 0xFF;
-	}
-}
-
-void SaveState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService, const DMA& dma) {
-	std::ofstream stream("bootState.txt", std::ios::binary);
-
-	cpu.Save(stream);
-	mmu.Save(stream);
-	gpu.Save(stream);
-	interruptService.Save(stream);
-    //dma.Save(stream);
-	
-	stream.close();
-}
-
-void LoadState(const CPU& cpu, const GPU& gpu, const MMU& mmu, const InterruptServiceRoutine& interruptService, const DMA& dma) {
-	std::ifstream stream("bootState.txt", std::ios::binary);
-
-	cpu.Load(stream);
-	mmu.Load(stream);
-	gpu.Load(stream);
-	interruptService.Load(stream);
-    //dma.Load(stream);
-
-	stream.close();
 }
 
 int main(int argc, char *argv[]) {
@@ -88,177 +46,132 @@ int main(int argc, char *argv[]) {
 		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
 	} else {
 		romDir = "D:/Programacion/gb/roms/";
-		romName = Games::METROID_II_RETURN_OF_SAMUS;
+		romName = Games::LEGEND_OF_ZELDA_LINKS_AWAKENING;
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
 
-	Cartridge cartridge(romPath);
+    GameBoy gameBoy(romPath);
+    
+    sf::Vector2i p(50, 50);
+	GameWindow gameWindow(160, 144, "Game", p, gameBoy.gpu);
 	
-	// TODO move parse logic into Cartridge class
-	bool parseRom = false;
-	if (parseRom) {
-		RomParser parser;
-		// TODO support more cartridge sizes
-		// TODO parser.ParseCartridgeROM(cartridge.mbc->rom.get(), 32 * 1024);
-		parser.PrintCodeToFile();
-	}
+    p.x = 385;
+    p.y = 50;
+	TileViewer tilesWindow(168, 144, "Tiles", p, gameBoy.mmu, 0x8000);
+
+    p.x = 1110;
+    p.y = 380;
+	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", p, gameBoy.mmu);
 	
-	MMU mmu;
-	mmu.cartridge = &cartridge;
+    p.x = 50;
+    p.y = 380;
+	TileMapViewer tileMap0Window(256, 256, "Tile map 0", p, gameBoy.mmu, 0x9800);
 
-	CPU cpu(mmu);
+    p.x = 580;
+    p.y = 380;
+	TileMapViewer tileMap1Window(256, 256, "Tile map 1", p, gameBoy.mmu, 0x9C00);
 
-	InterruptServiceRoutine interruptService;
-	mmu.interruptServiceRoutine = &interruptService;
-	cpu.interruptService = &interruptService;
+    p.x = 50;
+    p.y = 380;
+    SoundViewer soundWindow(735, 128, "Sound", p, gameBoy.audio);
 
-	GPU gpu(mmu);
-	mmu.gpu = &gpu;
+    CustomAudioStream audioStream(gameBoy);
+    if (gameBoy.syncWithAudio)
+        audioStream.play();
 
-	Timer timer(mmu);
-	mmu.timer = &timer;
-
-	Joypad joypad(mmu);
-	mmu.joypad = &joypad;
-
-	DMA dma(mmu);
-	mmu.dma = &dma;
-
-	SerialDataTransfer serial;
-	mmu.serial = &serial;
-
-	bool skipBios = true;
-	if (skipBios)
-		LoadState(cpu, gpu, mmu, interruptService, dma);
-
-	Window gameWindow(160, 144, "Game");
-	sf::Vector2i p(50, 50);
-	gameWindow.renderWindow->setPosition(p);
-	
-	TileViewer tilesWindow(168, 144, "Tiles", mmu, 0x8000);
-	p.x = 385;
-	p.y = 50;
-	tilesWindow.renderWindow->setPosition(p);
-
-	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", mmu);
-	p.x = 1110;
-	p.y = 380;
-	spritesWindow.renderWindow->setPosition(p);
-
-	TileMapViewer tileMap0Window(256, 256, "Tile map 0", mmu, 0x9800);
-	p.x = 50;
-	p.y = 380;
-	tileMap0Window.renderWindow->setPosition(p);
-
-	TileMapViewer tileMap1Window(256, 256, "Tile map 1", mmu, 0x9C00);
-	p.x = 580;
-	p.y = 380;
-	tileMap1Window.renderWindow->setPosition(p);
-
-    std::time_t previousFPSTimer = time(NULL);
-    std::time_t currentTimer;
     u16 framesCount = 0;
-	bool logFPS = false;
-	bool updateViewers = false;
+    auto previousFPSTime = std::chrono::system_clock::now();
 
-	float elapsedTime = 0;
-	std::time_t previousFrameTimer = time(NULL);
+    // Used only when not syncing emulation with audio
+    constexpr u16 Samples_Size = 735;
+    sf::Int16 samples[Samples_Size] = { 0 };
+    u32 sampleIndex = 0;
+    sf::SoundBuffer Buffer;
+    sf::Sound Sound;
 
-	while (gameWindow.renderWindow->isOpen()) {
-		if (interruptService.IE & interruptService.IF) {
-			if (cpu.isHalted) {
-				cpu.isHalted = false;
-				cpu.lastOpCycles = 1;
-			}
-			if (interruptService.IME) {
-				for (int i = 0; i < 5; i++) {
-					if (interruptService.IsInterruptSet(i) && interruptService.IsInterruptEnabled(i)) {
-						interruptService.IME = false;
-						mmu.ResetInterruptFlag(i);
-						cpu.Push16(cpu.pc); // cpu.lastOpCycles = 2
-						cpu.pc = 0x40 + i * 8; //0x40, 0x48, 0x50, 0x58, 0x60
-						cpu.lastOpCycles += 3; // +2 idle cycles, +1 updating PC
-						break;
-					}
-				}
-			}
-		}
+	while (gameWindow.IsOpen()) {
+        if (!gameBoy.syncWithAudio) {
+            gameBoy.MainLoop();
 
-		if (interruptService.eiDelay) {
-			interruptService.IME = true;
-			interruptService.eiDelay = false;
-		}
-		
-		if (!skipBios && cpu.pc == 0x100)
-			SaveState(cpu, gpu, mmu, interruptService, dma);
+            if (gameBoy.sampleGenerated) {
+                samples[sampleIndex] = gameBoy.audio.sample;
+                sampleIndex++;
 
-		// used only for debugging to break at specific instructions
-		if (cpu.pc == 0x3155 /*0x3306*/) {
-			int a = 0;
-		}
-
-		if (!cpu.isHalted) {
-			u8 opCode = cpu.ReadOpCode();
-			if (opCode == 0xCB) {
-				opCode = cpu.ReadOpCode();
-				cpu.CallCBOpCode(opCode);
-			} else
-				cpu.CallOpCode(opCode);
-		} else
-			cpu.lastOpCycles = 1;
-
-		u8 lastOpCycles = cpu.lastOpCycles;
-		if (gpu.Step(lastOpCycles * 4)) {
-			UpdateSFMLScreenArray(gameWindow.screenArray, gpu.screen);
-			gameWindow.screenTexture.update(gameWindow.screenArray.get());
-			gameWindow.screenSprite.setTexture(gameWindow.screenTexture, true);
-
-			gameWindow.renderWindow->clear();
-			gameWindow.renderWindow->draw(gameWindow.screenSprite);
-			gameWindow.renderWindow->display();
-
-			if (updateViewers) {
-				tilesWindow.Update();
-				tileMap0Window.Update();
-				tileMap1Window.Update();
-				spritesWindow.Update();
-			}
-
-			if (logFPS)
-				framesCount++;
-		}
-		
-		timer.Step(lastOpCycles * 4);
-		dma.Step(lastOpCycles);
-		
-		cpu.lastOpCycles = 0;
-
-        time(&currentTimer);
-        if (logFPS && currentTimer - previousFPSTimer >= 1) {
-            std::cout << framesCount << " - ";
-            previousFPSTimer = currentTimer;
-            framesCount = 0;
+                if (sampleIndex == Samples_Size) {
+                    Buffer.loadFromSamples(samples, Samples_Size, 1, 44100);
+                    Sound.setBuffer(Buffer);
+                    Sound.play();
+                    sampleIndex = 0;
+                }
+            }
         }
 
-		if (currentTimer - previousFrameTimer >= 0.13) {
-			previousFrameTimer = currentTimer;
-			sf::Event event;
-			while (gameWindow.renderWindow->pollEvent(event))
-				if (event.type == sf::Event::Closed)
-					gameWindow.renderWindow->close();
-				else if (event.type == sf::Event::KeyPressed) {
-					if (event.key.code == sf::Keyboard::F) {
-						logFPS = !logFPS;
-						time(&previousFPSTimer);
-						framesCount = 0;
+        if (gameBoy.frameFinished) {
+            gameWindow.Update();
+            tilesWindow.Update();
+            tileMap0Window.Update();
+            tileMap1Window.Update();
+            spritesWindow.Update();
+
+            sf::Event event;
+            while (gameWindow.PollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    gameWindow.Close();
+                else if (event.type == sf::Event::KeyPressed) {
+					if (event.key.code == sf::Keyboard::Escape) {
+						gameWindow.Close();
+					} else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num5) {
+						switch (event.key.code) {
+						case sf::Keyboard::Num1: tilesWindow.Toggle(); break;
+						case sf::Keyboard::Num2: tileMap0Window.Toggle(); break;
+						case sf::Keyboard::Num3: tileMap1Window.Toggle(); break;
+						case sf::Keyboard::Num4: spritesWindow.Toggle(); break;
+                        case sf::Keyboard::Num5: soundWindow.Toggle(); break;
+						}
+						gameWindow.GetFocus();
+					} else if (event.key.code >= sf::Keyboard::Num6 && event.key.code <= sf::Keyboard::Num9) {
+						switch (event.key.code) {
+						case sf::Keyboard::Num6: gameBoy.audio.ToggleChannel(1); break;
+						case sf::Keyboard::Num7: gameBoy.audio.ToggleChannel(2); break;
+						case sf::Keyboard::Num8: gameBoy.audio.ToggleChannel(3); break;
+						case sf::Keyboard::Num9: gameBoy.audio.ToggleChannel(4); break;
+						}
+					} else if (event.key.code == sf::Keyboard::PageUp)
+                        soundWindow.NextFrame();
+					else if (event.key.code == sf::Keyboard::PageDown)
+                        soundWindow.PreviousFrame();
+					else if (event.key.code == sf::Keyboard::Add)
+                        soundWindow.IncrementFramesPerScreen();
+					else if (event.key.code == sf::Keyboard::Subtract)
+                        soundWindow.DecrementFramesPerScreen();
+					else if (event.key.code == sf::Keyboard::R) {
+						if (!audioStream.IsRecording()) {
+                            soundWindow.CloseStream();
+							audioStream.StartRecording();
+						} else {
+							audioStream.StopRecording();
+                            soundWindow.OpenStream();
+						}
+					} else if (event.key.code == sf::Keyboard::Y) {
+						if (audioStream.IsRecording())
+							audioStream.StopRecording();
+                        soundWindow.OpenStream();
 					}
-					else if (event.key.code == sf::Keyboard::Q) {
-						updateViewers = !updateViewers;
-					}
-				}
-		}
+                }
+            }
+
+            framesCount++;
+            auto currentTime = std::chrono::system_clock::now();
+            if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - previousFPSTime).count() >= 1) {
+				gameWindow.SetTitle("Game - FPS: " + std::to_string(framesCount));
+                previousFPSTime = currentTime;
+                framesCount = 0;
+            }
+        }
 	}
+
+    audioStream.stop();
 
 	return 0;
 }

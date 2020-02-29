@@ -32,7 +32,7 @@ public:
     GPU(MMU& mmu);
     virtual ~GPU();
 
-	u8 screen[LCDWidth*LCDHeight] = { 0 };
+	u8 screen[LCDWidth*LCDHeight*4*4] = { 0 };
 
 	// returns true if a frame was drawn
 	bool Step(u8 cycles);
@@ -73,4 +73,6 @@ private:
 	u8 OBP1 = 0;		// 0xFF49
 	u8 WY = 0;			// 0xFF4A
 	u8 WX = 0;			// 0xFF4B
+
+    u8 BGPCache[4] = { 0 };
 };

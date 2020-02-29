@@ -147,4 +147,16 @@ namespace Games {
 	// ROM + MBC5
 	const std::string POKEMON_AMARILLA = "Pokemon - Edicion Amarilla - Edicion Especial Pikachu (Spain) (GBC,SGB Enhanced).gb";
 	const std::string POKEMON_GELBE = "Pokemon - Gelbe Edition - Special Pikachu Edition (Germany) (GBC,SGB Enhanced).gb";
+
+	const std::string SOUND_DEMO = "sound_demo.gb";
+	const std::string GBSOUND = "gbsound.gb";
+    const std::string SFXGENERATOR = "SFXGenerator.gb";
+    const std::string DEATHRAY = "DeathrayFreeVersion2009-fixed.gb";
+    const std::string DRUMTECH = "DrumTechFreeVersion2009-fixed.gb";
+    const std::string MUSICTECH_1 = "MusicTechV1FreeVersion2009-fixed.gb";
+    const std::string MUSICTECH_2 = "MusicTechV2FreeVersion2009-fixed.gb";
+    
+    const std::string FACEBALL_2000 = "Faceball 2000 (USA).gb";
+    const std::string F1_RACE = "F-1 Race (World).gb";
+    
 }

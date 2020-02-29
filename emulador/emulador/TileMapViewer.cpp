@@ -2,7 +2,7 @@
 #include "MMU.h"
 #include "GPU.h"
 
-TileMapViewer::TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu, u16 Address) : TileViewer(Width, Height, Title, Mmu, Address) {}
+TileMapViewer::TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu, u16 Address) : TileViewer(Width, Height, Title, Position, Mmu, Address) {}
 TileMapViewer::~TileMapViewer() {}
 
 u16 TileMapViewer::GetTileAddress(u8 x, u8 y) const {

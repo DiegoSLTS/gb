@@ -1,21 +1,72 @@
 #include "Window.h"
 
-Window::Window(unsigned int Width, unsigned int Height, const std::string& Title) {
-	screenArray = std::make_unique<sf::Uint8[]>(Width * Height * 4);
+Window::Window(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i Position, bool Open) : width(Width), height(Height), title(Title), position(Position) {
+	screenArray = new sf::Uint8[width * height * 4];
 
-	screenTexture.create(Width, Height);
-	screenTexture.update(screenArray.get());
+	screenTexture.create(width, height);
+	screenTexture.update(screenArray);
 
 	screenSprite.setTexture(screenTexture, true);
 	screenSprite.setPosition(0.0f, 0.0f);
 
-	renderWindow = std::make_unique<sf::RenderWindow>(sf::VideoMode(Width, Height), Title);
-	sf::Vector2u s(Width * 2, Height * 2);
-	renderWindow->setSize(s);
-	renderWindow->setVerticalSyncEnabled(false);
-	renderWindow->clear();
-	renderWindow->draw(screenSprite);
-	renderWindow->display();
+    renderWindow = new sf::RenderWindow(sf::VideoMode(width, height), title);
+    Initialize();
+
+    if (!Open)
+        Close();
 }
 
-Window::~Window() {}
+Window::~Window() {
+    Close();
+    delete[] screenArray;
+    screenArray = nullptr;
+    delete renderWindow;
+    renderWindow = nullptr;
+}
+
+void Window::Toggle() {
+    if (renderWindow->isOpen())
+        Close();
+    else
+        Open();
+}
+
+void Window::Open() {
+    if (!renderWindow->isOpen()) {
+        renderWindow->create(sf::VideoMode(width, height), title);
+        Initialize();
+    }
+}
+
+void Window::Close() {
+    if (renderWindow->isOpen())
+        renderWindow->close();
+}
+
+bool Window::IsOpen() const {
+    return renderWindow->isOpen();
+}
+
+void Window::SetPosition(const sf::Vector2i& NewPosition) {
+    position = NewPosition;
+    renderWindow->setPosition(position);
+}
+
+void Window::GetFocus() {
+    renderWindow->requestFocus();
+}
+
+bool Window::PollEvent(sf::Event& event) {
+    return renderWindow->pollEvent(event);
+}
+
+void Window::Initialize() {
+    renderWindow->setPosition(position);
+    sf::Vector2u s(width * 2, height * 2);
+    renderWindow->setSize(s);
+    renderWindow->setVerticalSyncEnabled(false);
+}
+
+void Window::SetTitle(const std::string& newTitle) {
+    renderWindow->setTitle(newTitle);
+}

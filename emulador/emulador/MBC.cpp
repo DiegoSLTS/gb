@@ -18,11 +18,14 @@ void RomHeader::Print() {
 }
 
 MBC::MBC(const RomHeader& header) : header(header) {}
-MBC::~MBC() {}
+MBC::~MBC() {
+    delete[] rom;
+    delete[] ram;
+}
 
 void MBC::InitArrays() {
-	rom = std::make_unique<u8[]>(GetRomSize());
-	ram = std::make_unique<u8[]>(GetRamSize());
+	rom = new u8[GetRomSize()];
+	ram = new u8[GetRamSize()];
 }
 
 u32 MBC::GetRomSize() const {
@@ -55,25 +58,22 @@ u32 MBC::GetRamSize() const {
 }
 
 void MBC::LoadRom(std::ifstream& readStream) {
-	readStream.read((char*)rom.get(), GetRomSize());
+	readStream.read((char*)rom, GetRomSize());
 }
 
 void MBC::LoadRam(std::ifstream& readStream) {
-	readStream.read((char*)ram.get(), GetRamSize());
+	readStream.read((char*)ram, GetRamSize());
 }
 
 void MBC::SaveRam(std::ofstream& writeStream) {
-	writeStream.write((const char*)ram.get(), GetRamSize());
+	writeStream.write((const char*)ram, GetRamSize());
 }
 
 RomOnly::RomOnly(const RomHeader& header) : MBC(header) {}
 RomOnly::~RomOnly() {}
 
 u8 RomOnly::Read(u16 address) {
-	if (address <= 0x7FFF)
-		return rom[address];
-
-	return 0xFF;
+	return rom[address];
 }
 
 void RomOnly::Write(u8 value, u16 address) {}

@@ -7,7 +7,7 @@ class MMU;
 
 class SpritesViewer : public Window {
 public:
-	SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu);
+	SpritesViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu);
 	virtual ~SpritesViewer();
 
 	void Update();

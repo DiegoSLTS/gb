@@ -43,9 +43,11 @@ public:
 	virtual void Load(std::ifstream& stream) const = 0;
 	virtual void Save(std::ofstream& stream) const = 0;
 
+    u8* GetRomPtr() { return rom; }
+
 protected:
-	std::unique_ptr<u8[]> rom;
-	std::unique_ptr<u8[]> ram;
+	u8* rom = nullptr;
+	u8* ram = nullptr;
 
 private:
 	const RomHeader& header;

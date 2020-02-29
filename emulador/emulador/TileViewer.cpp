@@ -2,7 +2,7 @@
 #include "MMU.h"
 #include "GPU.h"
 
-TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu, u16 Address) : Window(Width,Height,Title), mmu(Mmu), address(Address) {
+TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu, u16 Address) : Window(Width, Height, Title, Position, false), mmu(Mmu), address(Address) {
 	tilesPerRow = Width / 8;
 	rows = Height / 8;
 	Update();
@@ -11,11 +11,14 @@ TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::strin
 TileViewer::~TileViewer() {}
 
 void TileViewer::Update() {
+    if (!IsOpen())
+        return;
+
 	for (u8 y = 0; y < rows; y++)
 		for (u8 x = 0; x < tilesPerRow; x++)
 			UpdateTile(x, y);
 
-	screenTexture.update(screenArray.get());
+	screenTexture.update(screenArray);
 	screenSprite.setTexture(screenTexture, true);
 
 	renderWindow->clear();
@@ -28,7 +31,6 @@ u16 TileViewer::GetTileAddress(u8 x, u8 y) const {
 }
 
 void TileViewer::UpdateTile(u8 x, u8 y) {
-	const u8 paletteMask = 0b00000011;
 	u8 bgPalette = mmu.Read(0xFF47);
 
 	u16 tileDataAddress = GetTileAddress(x, y);
@@ -51,9 +53,12 @@ void TileViewer::UpdateTile(u8 x, u8 y) {
 }
 
 void TileViewer::SetPixel(unsigned int pixelIndex, u8 gbColor) {
-	u8 gpuColor = 255 - gbColor * 85;
-	screenArray[pixelIndex * 4] = gpuColor;
-	screenArray[pixelIndex * 4 + 1] = gpuColor;
-	screenArray[pixelIndex * 4 + 2] = gpuColor;
-	screenArray[pixelIndex * 4 + 3] = 0xFF;
+    // turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
+    const static u8 sfmlColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
+
+    u8 sfmlColor = sfmlColors[gbColor];
+    screenArray[pixelIndex * 4] = sfmlColor;
+    screenArray[pixelIndex * 4 + 1] = sfmlColor;
+    screenArray[pixelIndex * 4 + 2] = sfmlColor;
+    screenArray[pixelIndex * 4 + 3] = 0xFF;
 }

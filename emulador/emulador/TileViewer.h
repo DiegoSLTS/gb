@@ -7,7 +7,7 @@ class MMU;
 
 class TileViewer : public Window {
 public:
-	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, MMU& Mmu, u16 Address);
+	TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu, u16 Address);
 	virtual ~TileViewer();
 
 	void Update();

@@ -2,7 +2,7 @@
 
 #include "CPU.h"
 
-StateViewer::StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu) : Window(150,144,"State"), cpu(Cpu), gpu(Gpu), mmu(Mmu) {
+StateViewer::StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu) : Window(150, 144, "State", {0,0}), cpu(Cpu), gpu(Gpu), mmu(Mmu) {
 	if (!font.loadFromFile("Pokemon_GB[1].ttf"))
 	{
 		// error...

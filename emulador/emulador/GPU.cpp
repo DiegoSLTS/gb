@@ -53,7 +53,10 @@ void GPU::Write(u8 value, u16 address) {
 	case 0xFF45:
 		LYC = value; break;
 	case 0xFF47:
-		BGP = value; break;
+		BGP = value;
+        for (u32 index = 0; index < 4; index++)
+            BGPCache[index] = (BGP >> (index << 1)) & 0x03;
+        break;
 	case 0xFF48:
 		OBP0 = value; break;
 	case 0xFF49:
@@ -232,7 +235,7 @@ void GPU::DrawBackground(u8 line) {
 				u8 highBit = (highByte >> pixel) & 0x01;
 				u8 index = lowBit | (highBit << 1);
 
-				screen[screenPos] = (BGP >> (index << 1)) & 0x03;
+                screen[screenPos] = BGPCache[index];// (BGP >> (index << 1)) & 0x03;
 			}
 		}
 	}
@@ -266,7 +269,7 @@ void GPU::DrawWindow(u8 line) {
 				u8 highBit = (highByte >> pixel) & 0x01;
 				u8 index = lowBit | (highBit << 1);
 
-				screen[screenPos] = (BGP >> (index << 1)) & 0x03;
+				screen[screenPos] = BGPCache[index]; //(BGP >> (index << 1)) & 0x03;
 			}
 		}
 	}
@@ -289,7 +292,7 @@ void GPU::DrawSprites(u8 line) {
 			bool hasPriority = (attributes & 0b10000000) == 0;
 			bool flipY = (attributes & 0b01000000) > 0;
 			bool flipX = (attributes & 0b00100000) > 0;
-			u16 palette = (attributes & 0b00010000) > 0 ? OBP1 : OBP0;
+			u8 palette = (attributes & 0b00010000) > 0 ? OBP1 : OBP0;
 
 			u16 tileAddress = 0x8000 + tileIndex * 16;
 

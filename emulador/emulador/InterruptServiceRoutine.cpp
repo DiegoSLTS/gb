@@ -35,9 +35,9 @@ void InterruptServiceRoutine::Save(std::ofstream& stream) const {
 }
 
 bool InterruptServiceRoutine::IsInterruptEnabled(u8 interruptPosition) {
-	return IE & (1 << interruptPosition);
+	return ((IE & (1 << interruptPosition)) != 0);
 }
 
 bool InterruptServiceRoutine::IsInterruptSet(u8 interruptPosition) {
-	return IF & (1 << interruptPosition);
+	return ((IF & (1 << interruptPosition)) != 0);
 }
