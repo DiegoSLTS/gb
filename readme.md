@@ -44,7 +44,7 @@ To setup SFML bin and include paths follow this: https://www.sfml-dev.org/tutori
 
 Before copying the .dll files you'll have to generate the .exe, and then copy the .dll files in the same folder for the emulator to work.
 
-You can load a rom from any location from your disk passing the absolut path between quotes as an argument when launching the emulator, or by editing the code in main.cpp and roms.h where a few paths are hardcoded. This last method is just for testing purposes and I plan to replace it at some point with a setting or with a browse file window just like any other emulator.
+You can load a rom from any location from your disk passing the absolute path between quotes as an argument when launching the emulator, or by editing the code in main.cpp and roms.h where a few paths are hardcoded. This last method is just for testing purposes and I plan to replace it at some point with a setting or with a browse file window just like any other emulator.
 
 ## Current Features / Funcionalidad actual
 
@@ -55,6 +55,7 @@ You can load a rom from any location from your disk passing the absolut path bet
 * Especificar un path del rom por línea de comando
 * Multiples herramientas para debugear
 * Decompilación estática de la rom (se hace sobre la ROM antes de ejecutar el juego)
+* Soporte para juegos de GameBoy Color
 
 ----
 
@@ -65,22 +66,21 @@ You can load a rom from any location from your disk passing the absolut path bet
 * Specify the rom path through command line arguments
 * Multiple debug tools
 * Statically decompile a rom (done with the ROM bytes before running the game)
+* Support for GameBoy Color games
 
 ## Planned Features / Funcionalidad planeada
 
-* Soporte para juegos de GameBoy Color
 * Soporte para juegos comprimidos (.zip)
 * UI para cargar un rom y para la funcionalidad básica
-* Emulación de Super Game Boy
+* Emulación de Super Game Boy?
 * Decompilación dinámica (los roms pueden escribir y ejecutar código en runtime)
 * Soporte para Linux (capaz funciona, no probé)
 
 ----
 
-* Support for GameBoy Color games
 * Support for compressed files (.zip)
 * UI to load a rom and the basic funtionality
-* Emulation of the Super Game Boy
+* Emulation of the Super Game Boy?
 * Dynamic decompile (roms can write and execute code on runtime)
 * Linux support (Maybe it works already, haven't tested yet)
 

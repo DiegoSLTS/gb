@@ -1,11 +1,15 @@
 #include "TileViewer.h"
-#include "MMU.h"
+#include "GameBoy.h"
 #include "GPU.h"
+#include "MMU.h"
 
-TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, MMU& Mmu, u16 Address) : Window(Width, Height, Title, Position, false), mmu(Mmu), address(Address) {
+TileViewer::TileViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, GameBoy& GameBoy) : Window(Width, Height, Title, Position, false), gameBoy(GameBoy) {
 	tilesPerRow = Width / 8;
 	rows = Height / 8;
 	Update();
+
+    isCGB = gameBoy.IsCGB;
+    UpdateTitle();
 }
 
 TileViewer::~TileViewer() {}
@@ -27,17 +31,23 @@ void TileViewer::Update() {
 }
 
 u16 TileViewer::GetTileAddress(u8 x, u8 y) const {
-	return address + (y * tilesPerRow + x) * 16;
+	return 0x8000 + (y * tilesPerRow + x) * 16;
 }
 
 void TileViewer::UpdateTile(u8 x, u8 y) {
-	u8 bgPalette = mmu.Read(0xFF47);
-
 	u16 tileDataAddress = GetTileAddress(x, y);
 
 	for (int line = 0; line < 8; line++) {
-		u8 lowByte = mmu.Read(tileDataAddress + line * 2);
-		u8 highByte = mmu.Read(tileDataAddress + line * 2 + 1);
+        u8 lowByte = 0;
+        u8 highByte = 0;
+
+        if (VRAMBank == 0) {
+            lowByte = gameBoy.gpu.ReadVRAM0(tileDataAddress + line * 2);
+            highByte = gameBoy.gpu.ReadVRAM0(tileDataAddress + line * 2 + 1);
+        } else {
+            lowByte = gameBoy.gpu.ReadVRAM1(tileDataAddress + line * 2);
+            highByte = gameBoy.gpu.ReadVRAM1(tileDataAddress + line * 2 + 1);
+        }
 		
         u16 screenPosBase = (y * 8 + line) * screenTexture.getSize().x + x * 8;
 
@@ -47,18 +57,37 @@ void TileViewer::UpdateTile(u8 x, u8 y) {
 			u8 highBit = (highByte >> pixel) & 0x01;
 			u8 index = lowBit | (highBit << 1);
 
-            SetPixel(screenPos, (bgPalette >> (index << 1)) & 0x03);
+			if (isCGB)
+				index |= (cgbPaletteIndex << 2);
+
+			index |= 0x20;
+			((sf::Uint32*)screenArray)[screenPos] = gameBoy.gpu.GetABGR(index);
         }
 	}
 }
 
-void TileViewer::SetPixel(unsigned int pixelIndex, u8 gbColor) {
-    // turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
-    const static u8 sfmlColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
+void TileViewer::NextPalette() {
+    if (cgbPaletteIndex == 7)
+        cgbPaletteIndex = 0;
+    else
+        cgbPaletteIndex++;
+    UpdateTitle();
+}
 
-    u8 sfmlColor = sfmlColors[gbColor];
-    screenArray[pixelIndex * 4] = sfmlColor;
-    screenArray[pixelIndex * 4 + 1] = sfmlColor;
-    screenArray[pixelIndex * 4 + 2] = sfmlColor;
-    screenArray[pixelIndex * 4 + 3] = 0xFF;
+void TileViewer::PreviousPalette() {
+    if (cgbPaletteIndex == 0)
+        cgbPaletteIndex = 7;
+    else
+        cgbPaletteIndex--;
+    UpdateTitle();
+}
+
+void TileViewer::ToggleBank() {
+    VRAMBank = (VRAMBank + 1) % 2;
+    UpdateTitle();
+}
+
+void TileViewer::UpdateTitle() {
+    if (isCGB)
+        SetTitle(title + " (CGB) - Bank: " + std::to_string(VRAMBank) + " - Palette: " + std::to_string(cgbPaletteIndex));
 }

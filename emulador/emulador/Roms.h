@@ -158,5 +158,50 @@ namespace Games {
     
     const std::string FACEBALL_2000 = "Faceball 2000 (USA).gb";
     const std::string F1_RACE = "F-1 Race (World).gb";
+
+	// CGB
+
+	const std::string CGB_ALADDIN = "cgb/Aladdin (Europe) (En,Fr,De,Es,It,Nl).gbc";
+    const std::string CGB_ALONE_IN_THE_DARK = "cgb/Alone in the Dark - The New Nightmare (Europe) (En,Fr,De,Es,It,Nl).gbc";
+    const std::string CGB_DUKE_NUKEM = "cgb/Duke Nukem (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_GEX_ENTER_THE_GECKO = "cgb/Gex - Enter the Gecko (USA, Europe) (GB Compatible).gbc";
+    const std::string CGB_GRAND_THEFT_AUTO = "cgb/Grand Theft Auto (Europe) (En,Fr,De,Es,It) (GB Compatible).gbc";
+    const std::string CGB_GRAND_THEFT_AUTO_2 = "cgb/Grand Theft Auto 2 (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_LEGEND_OF_ZELDA_LINKS_AWAKENING_DX = "cgb/Legend of Zelda, The - Link_s Awakening DX (USA, Europe) (Rev B) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_LEGEND_OF_ZELDA_ORACLE_OF_SEASONS = "cgb/Legend of Zelda, The - Oracle of Seasons (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_MARIO_TENNIS = "cgb/Mario Tennis (Europe).gbc";
+    const std::string CGB_POKEMON_CRYSTAL = "cgb/Pokemon - Crystal Version (USA, Europe) (Rev A).gbc";
+    const std::string CGB_RAYMAN_2 = "cgb/Rayman 2 - The Great Escape (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_SUPER_MARIO_BROS_DELUX = "cgb/Super Mario Bros. Deluxe (USA, Europe) (Rev B).gbc";
+    const std::string CGB_TETRIS_DX = "cgb/Tetris DX (World) (SGB Enhanced) (GB Compatible).gbc";
+
+    const std::string CGB_BATMAN_OF_THE_FUTURE = "cgb/Batman of the Future - Return of the Joker (Europe) (En,Fr,De).gbc";
+    const std::string CGB_BOMBERMAN_MAX = "cgb/Bomberman Max - Blue Champion (USA).gbc";
+    const std::string CGB_CANNON_FODDER = "cgb/Cannon Fodder (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_CONKERS = "cgb/Conker's Pocket Tales (USA, Europe) (En,Fr,De) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_CROC = "cgb/Croc (USA, Europe).gbc";
+    const std::string CGB_CROC_2 = "cgb/Croc 2 (USA, Europe).gbc";
+    const std::string CGB_DONKEY_KONG_COUNTRY = "cgb/Donkey Kong Country (USA, Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_EARTHWORM_JIM = "cgb/Earthworm Jim - Menace 2 the Galaxy (USA, Europe) (GB Compatible).gbc";
+    const std::string CGB_GEX_3 = "cgb/Gex 3 - Deep Cover Gecko (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_MEGAMAN_EXTREME_2 = "cgb/Mega Man Xtreme 2 (USA, Europe).gbc";
+    const std::string CGB_METAL_GEAR_SOLID = "cgb/Metal Gear Solid (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_MS_PAC_MAN = "cgb/Ms. Pac-Man - Special Color Edition (USA) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_POKEMON_PINBALL = "cgb/Pokemon Pinball (Europe) (En,Fr,De,Es,It) (Rumble Version) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_POKEMON_TRADING_CARD = "cgb/Pokemon Trading Card Game (Europe) (En,Es,It) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_PRINCE_OF_PERSIA = "cgb/Prince of Persia (USA, Europe) (En,Fr,De,Es,It) (GB Compatible).gbc";
+    const std::string CGB_RAYMAN = "cgb/Rayman (USA) (En,Fr,De,Es,It,Nl).gbc";
+    const std::string CGB_RESIDENT_EVIL_GAIDEN = "cgb/Resident Evil Gaiden (Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_R_TYPE_DX = "cgb/R-Type DX (USA, Europe) (GB Compatible).gbc";
+    const std::string CGB_SPIDER_MAN_2 = "cgb/Spider-Man 2 - The Sinister Six (USA, Europe).gbc";
+    const std::string CGB_STREET_FIGHTER_ALPHA = "cgb/Street Fighter Alpha - Warriors' Dreams (Europe)).gbc";
+    const std::string CGB_TOMB_RAIDER_CURSE = "cgb/Tomb Raider - Curse of the Sword (USA, Europe).gbc";
+    const std::string CGB_TOMB_RAIDER = "cgb/Tomb Raider (USA, Europe) (En,Fr,De,Es,It).gbc";
+    const std::string CGB_TONY_HAWKS = "cgb/Tony Hawk's Pro Skater (USA, Europe).gbc";
+    const std::string CGB_TONY_HAWKS_2 = "cgb/Tony Hawk's Pro Skater 2 (USA, Europe).gbc";
+    const std::string CGB_TONY_HAWKS_3 = "cgb/Tony Hawk's Pro Skater 3 (USA, Europe).gbc";
+    const std::string CGB_V_RALLY = "cgb/V-Rally - Championship Edition (USA) (En,Fr,Es).gbc";
+    const std::string CGB_WARIO_LAND_2 = "cgb/Wario Land II (USA, Europe) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_WARIO_LAND_3 = "cgb/Wario Land 3 (World) (En,Ja).gbc";
     
 }

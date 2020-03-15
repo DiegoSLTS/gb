@@ -3,8 +3,10 @@
 Audio::Audio() {}
 Audio::~Audio() {}
 
-bool Audio::Step(u8 cycles) {
+bool Audio::Step(u8 cycles, bool isDoubleSpeedEnabled) {
     float delta = deltaTimePerEmulatedCycle * cycles;
+    if (isDoubleSpeedEnabled)
+        delta /= 2;
 	elapsedTime += delta;
     
     UpdateChannel1(delta);
@@ -89,8 +91,6 @@ void Audio::UpdateChannel1(float deltaTime) {
         if (channel1.FrequencySweepPeriod > 0.0f && channel1.FrequencySweepShifts > 0 && channel1.FrequencySweepEnabled) {
             channel1.FrequencySweepElapsedTime += deltaTime;
 
-            // TODO "Note that sweep shifts are repeatedly performed until the new value becomes either less than 0 (the previous value is then retained) or, when incrementing, if the new frequency value exceeds the maximum frequency (131Khz or 2048 in register value)"
-            // http://belogic.com/gba/channel1.shtml
             if (channel1.FrequencySweepElapsedTime >= channel1.FrequencySweepPeriod) {
                 u16 temp = channel1.FrequencyXShadow >> channel1.FrequencySweepShifts;
                 if (channel1.FrequencyIncrease) {
@@ -100,13 +100,13 @@ void Audio::UpdateChannel1(float deltaTime) {
                         channel1.Enabled = false;
                         return;
                     }
-                }
-                else {
+                } else {
+                    // TODO "Note that sweep shifts are repeatedly performed until the new value becomes either less than 0 (the previous value is then retained) or, when incrementing, if the new frequency value exceeds the maximum frequency (131Khz or 2048 in register value)"
+                    // http://belogic.com/gba/channel1.shtml
+                    //if (temp <= channel1.FrequencyXShadow)
                     channel1.FrequencyXShadow -= temp;
-                    if (channel1.FrequencyXShadow > 2047) { // underflow
-                        channel1.FrequencyXShadow = 0;
-                        channel1.FrequencySweepEnabled = false;
-                    }
+                    //else
+                    //    channel1.FrequencySweepEnabled = false;
                 }
 
                 channel1.Frequency = 131072.0f / (2048 - channel1.FrequencyXShadow);

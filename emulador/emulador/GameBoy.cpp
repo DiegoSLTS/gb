@@ -1,17 +1,36 @@
 #include "GameBoy.h"
 #include "RomParser.h"
 
-GameBoy::GameBoy(const std::string& RomPath) : cartridge(RomPath), cpu(mmu), gpu(mmu), timer(mmu), joypad(mmu), dma(mmu) {
+GameBoy::GameBoy(const std::string& RomPath)
+	: cartridge(RomPath), cpu(mmu), gpu(mmu), timer(mmu), joypad(mmu) {
+
+    emulationModeSetting = EmulationModeSetting::Detect;
+
+    switch (emulationModeSetting) {
+    case EmulationModeSetting::Detect:
+        IsCGB = cartridge.IsGBCCartridge();
+        break;
+    case EmulationModeSetting::GameBoy:
+        IsCGB = false;
+        break;
+    case EmulationModeSetting::GameBoyColor:
+        IsCGB = true;
+        break;
+    }
+
     cpu.interruptService = &interruptService;
+
+    gpu.isCGB = IsCGB;
 
     mmu.cartridge = &cartridge;
     mmu.interruptServiceRoutine = &interruptService;
     mmu.gpu = &gpu;
     mmu.timer = &timer;
     mmu.joypad = &joypad;
-    mmu.dma = &dma;
     mmu.serial = &serial;
     mmu.audio = &audio;
+
+    mmu.LoadBootRom(IsCGB);
 
     bool parseRom = false;
     if (parseRom) {
@@ -22,13 +41,36 @@ GameBoy::GameBoy(const std::string& RomPath) : cartridge(RomPath), cpu(mmu), gpu
         parser.PrintCodeToFile();
     }
 
+    skipBios = true;
+
     if (skipBios)
         LoadState();
 }
 
 GameBoy::~GameBoy() {}
 
+void GameBoy::Pause() {
+    isPaused = true;
+}
+
+void GameBoy::Resume() {
+    isPaused = false;
+}
+
+bool GameBoy::IsPaused() {
+    return isPaused;
+};
+
+void GameBoy::Reset() {
+    cpu.pc = 0;
+    mmu.Write(0xFF50, 0);
+    // TODO reset all components
+}
+
 void GameBoy::MainLoop() {
+    if (isPaused)
+        return;
+
     if (interruptService.IE & interruptService.IF) {
         if (cpu.isHalted) {
             cpu.isHalted = false;
@@ -53,8 +95,10 @@ void GameBoy::MainLoop() {
         interruptService.eiDelay = false;
     }
 
-    if (!skipBios && cpu.pc == 0x100)
-        SaveState();
+	if (cpu.pc == 0x100) { // boot rom finished, entry point of game code
+		if (!skipBios)
+			SaveState();
+	}
 
     // used only for debugging to break at specific instructions
     if (cpu.pc == 0x3155 /*0x3306*/) {
@@ -74,36 +118,35 @@ void GameBoy::MainLoop() {
         cpu.lastOpCycles = 1;
 
     u8 lastOpCycles = cpu.lastOpCycles;
-    frameFinished = gpu.Step(lastOpCycles * 4);
+    frameFinished = gpu.Step(lastOpCycles * 4, cpu.IsDoubleSpeedEnabled());
 
     timer.Step(lastOpCycles * 4);
-    dma.Step(lastOpCycles);
 
     cpu.lastOpCycles = 0;
 
-    sampleGenerated = audio.Step(lastOpCycles);
+    sampleGenerated = audio.Step(lastOpCycles, cpu.IsDoubleSpeedEnabled());
 }
 
 void GameBoy::LoadState() {
-    std::ifstream stream("bootState.txt", std::ios::binary);
+    std::string bootStateFileName = IsCGB ? "CGBBootState.bin" : "DMGBootState.bin";
+    std::ifstream stream(bootStateFileName, std::ios::binary);
 
     cpu.Load(stream);
     mmu.Load(stream);
     gpu.Load(stream);
     interruptService.Load(stream);
-    //dma.Load(stream);
 
     stream.close();
 }
 
 void GameBoy::SaveState() {
-    std::ofstream stream("bootState.txt", std::ios::binary);
+    std::string bootStateFileName = IsCGB ? "CGBBootState.bin" : "DMGBootState.bin";
+    std::ofstream stream(bootStateFileName, std::ios::binary);
 
     cpu.Save(stream);
     mmu.Save(stream);
     gpu.Save(stream);
     interruptService.Save(stream);
-    //dma.Save(stream);
 
     stream.close();
 }

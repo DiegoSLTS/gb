@@ -44,6 +44,11 @@ void Cartridge::LoadHeader(std::ifstream& readStream) {
 	// copy all fields from header from stream to header struct (not just the title)
 	// IMPORTANT: variables defined in the same order as the header
 	readStream.read((char*)header.title, 0x014F - 0x0134 + 1);
+
+	for (u8 index = 0; index < 4; index++)
+		header.manufacturerCode[index] = header.title[12 + index];
+	header.cgbFlag = (header.title[15] == 0x80) || (header.title[15] == 0xC0);
+
 	header.Print();
 
 	readStream.seekg(0,std::ios_base::beg);
@@ -135,3 +140,8 @@ void Cartridge::Load(std::ifstream& stream) const {
 void Cartridge::Save(std::ofstream& stream) const {
 	mbc->Save(stream);
 }
+
+bool Cartridge::IsGBCCartridge() const {
+    return header.cgbFlag;
+}
+

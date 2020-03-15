@@ -14,7 +14,7 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
-	bool Step(u8 cycles);
+	bool Step(u8 cycles, bool isDoubleSpeedEnabled);
 
     void ToggleChannel(u8 channel);
 
@@ -135,7 +135,7 @@ private:
     bool channel1UserOn = true;
     bool channel2UserOn = true;
     bool channel3UserOn = true;
-    bool channel4UserOn = true;
+    bool channel4UserOn = false;
 
 	// Sound Channel 1 - Tone & Sweep
 	u8 NR10 = 0x80;	// 0xFF10 Sweep register (R/W)

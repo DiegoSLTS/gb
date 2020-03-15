@@ -12,7 +12,10 @@ public:
 
     void Update();
 
+    void Clear();
+
+    void DrawLine(u8 line);
+
 private:
     GPU& gpu;
-    u8 previousState[160 * 144];
 };

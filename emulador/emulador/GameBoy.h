@@ -7,9 +7,14 @@
 #include "GPU.h"
 #include "Timer.h"
 #include "Joypad.h"
-#include "DMA.h"
 #include "SerialDataTransfer.h"
 #include "Audio.h"
+
+enum class EmulationModeSetting {
+    Detect,
+    GameBoy,
+    GameBoyColor
+};
 
 class GameBoy {
 public:
@@ -23,7 +28,6 @@ public:
     GPU gpu;
     Timer timer;
     Joypad joypad;
-    DMA dma;
     SerialDataTransfer serial;
     Audio audio;
 
@@ -35,7 +39,18 @@ public:
     bool skipBios = false;
     bool syncWithAudio = true;
 
+    EmulationModeSetting emulationModeSetting = EmulationModeSetting::Detect;
+	bool IsCGB = false;
+    bool IsNonCGBMode = false;
+
+    void Pause();
+    void Resume();
+    bool IsPaused();
+    void Reset();
+
 private:
     void LoadState();
     void SaveState();    
+
+    bool isPaused = false;
 };

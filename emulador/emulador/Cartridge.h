@@ -18,6 +18,8 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
+	bool IsGBCCartridge() const;
+
     u8* GetRomPtr() { return mbc->GetRomPtr(); }
 
 private:

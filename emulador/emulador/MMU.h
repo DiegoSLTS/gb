@@ -10,11 +10,12 @@ public:
 	MMU();
 	virtual ~MMU();
 
+    void LoadBootRom(bool isCGB);
+
 	IAddressable* cartridge = nullptr;
 	IAddressable* joypad = nullptr;
 	IAddressable* gpu = nullptr;
 	IAddressable* timer = nullptr;
-	IAddressable* dma = nullptr;
 	IAddressable* serial = nullptr;
 	IAddressable* interruptServiceRoutine = nullptr;
     IAddressable* audio = nullptr;
@@ -59,12 +60,17 @@ private:
 	u8 zeroPageRAM[0x80] = { 0 };
 	u8 ioPorts[0x80] = { 0 };
 	u8 oam[0xA0] = { 0 };
-	u8 internalRAM[0x2000] = { 0 };
-	u8 videoRAM[0x2000] = { 0 };
 
+	u8 internalRAM[0x8000] = { 0 }; // 0xC000 - 0xCFFF bank 0, 0xD000 - 0xDFFF bank N based on internalRAMIndex
+	u8 bankNIndex = 1; // [1,7], never set to 0
+	
+	bool IsCGB = false;
+    u8* bootRom = nullptr;
+	
 	void WriteBit(u16 address, u8 bitPosition, bool set);
 
 	bool IsBootRomEnabled();
 
 	IAddressable* GetAddresableFor(u16 address);
+    bool IsUnusedReg(u16 address);
 };

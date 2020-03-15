@@ -10,10 +10,10 @@ void Timer::Step(u8 cycles) {
 		DIV++;
 		dividerCounter -= 255;
 	}
-	
-	if (TAC & 0x04) { // is on
-		timerCounter += cycles;
 
+    timerCounter += cycles;
+
+	if (TAC & 0x04) { // is on
 		u8 frequency = TAC & 0x03;
 		u16 maxCounter = 0;
 
@@ -52,7 +52,7 @@ u8 Timer::Read(u16 address) {
 void Timer::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFF04:
-		DIV = 0; TIMA = 0; break;
+        DIV = 0; TIMA = 0; timerCounter = 0; break;
 	case 0xFF05:
 		TIMA = value; break;
 	case 0xFF06:

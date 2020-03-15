@@ -50,6 +50,7 @@ public:
 	bool isHalted = false;
 	u8 lastOpCycles = 0;
 	u16 pc = 0;
+    bool IsDoubleSpeedEnabled() const;
 
 	u8 Read8BitReg(CPU8BitReg reg) const;
 	void Push16(u16 value);
@@ -60,9 +61,10 @@ public:
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
-
+    
 private:
 	MMU& mmu;
+    bool isDoubleSpeedEnabled = false;
 
 	// registers
 	u8 registers[8] = { 0 };

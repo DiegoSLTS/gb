@@ -1,26 +1,64 @@
 #include "MMU.h"
 
-#include "BootRom.h"
+//#include "BootRom.h"
 #include "IAddressable.h"
 
+#include <iostream>
+#include "RomParser.h"
+
 MMU::MMU() {}
-MMU::~MMU() {}
+
+MMU::~MMU() {
+    if (bootRom != nullptr)
+        delete[] bootRom;
+}
+
+void MMU::LoadBootRom(bool isCGB) {
+    IsCGB = isCGB;
+    const char* romFileName = IsCGB ? "cgb_bios.bin" : "dmg_boot.bin";
+
+    std::ifstream readStream;
+    readStream.open(romFileName, std::ios::in | std::ios::binary);
+
+    if (readStream.fail()) {
+        char errorMessage[256];
+        strerror_s(errorMessage, 256);
+        std::cout << "ERROR: Could not open bootrom file " << romFileName << " - Error: " << errorMessage << std::endl;
+    }
+
+    struct stat bootRomStats;
+    stat(romFileName, &bootRomStats);
+    bootRom = new u8[bootRomStats.st_size]{ 0 };
+    readStream.read((char*)bootRom, bootRomStats.st_size);
+
+    /*RomParser parser;
+    parser.ParseBiosROM(bootRom, bootRomStats.st_size);
+    parser.PrintCodeToFile();*/
+    readStream.close();
+}
 
 u8 MMU::Read(u16 address) {
-	if (address < 0x100 && IsBootRomEnabled())
-		return bootRom[address];
-	else if (address < 0x8000) {
-		// TODO MBC: https://gekkio.fi/files/gb-docs/gbctr.pdf
-		return cartridge == nullptr ? 0xFF : cartridge->Read(address);
+	if (address < 0x8000) {
+        if (!IsBootRomEnabled() || (address >= 0x0100 && address <= 0x014F)) {
+            // TODO MBC: https://gekkio.fi/files/gb-docs/gbctr.pdf
+            return cartridge == nullptr ? 0xFF : cartridge->Read(address);
+        } else
+            return bootRom[address];
 	} else if (address < 0xA000)
-		return videoRAM[address - 0x8000];
+		return gpu->Read(address);
 	else if (address < 0xC000) // external (cart) ram
 		return cartridge == nullptr ? 0xFF : cartridge->Read(address);
-	else if (address < 0xE000)
-		return internalRAM[address - 0xC000];
-	else if (address < 0xFE00)
-		return internalRAM[address - 0xE000];
-	else if (address < 0xFEA0)
+	else if (address < 0xE000) {
+		if (address < 0xD000)
+			return internalRAM[address - 0xC000];
+		else
+			return internalRAM[address - 0xC000 + bankNIndex * 0x1000];
+	} else if (address < 0xFE00) {
+		if (address < 0xF000)
+			return internalRAM[address - 0xE000];
+		else
+			return internalRAM[address - 0xE000 + bankNIndex * 0x1000];
+	} else if (address < 0xFEA0)
 		return oam[address - 0xFE00];
 	else if (address < 0xFF00)
 		return 0; //TODO validate if 0 or 0xFF
@@ -28,6 +66,9 @@ u8 MMU::Read(u16 address) {
         IAddressable* addressable = GetAddresableFor(address);
         if (addressable != nullptr)
             return addressable->Read(address);
+
+        if (IsUnusedReg(address))
+            return 0xFF;
 
         if (address < 0xFF80)
             return ioPorts[address - 0xFF00];
@@ -37,22 +78,25 @@ u8 MMU::Read(u16 address) {
 }
 
 void MMU::Write(u16 address, u8 value) {
-    if (address >= 0xFF30 && address <= 0xFF3F)
-        int a = 0;
-
 	if (address < 0x8000) {
 		if (cartridge != nullptr)
 			cartridge->Write(value, address);
 	} else if (address < 0xA000)
-		videoRAM[address - 0x8000] = value;
+		gpu->Write(value, address);
 	else if (address < 0xC000) {
 		if (cartridge != nullptr)
 			cartridge->Write(value, address);
-	} else if (address < 0xE000)
-		internalRAM[address - 0xC000] = value;
-	else if (address < 0xFE00)
-		internalRAM[address - 0xE000] = value;
-	else if (address < 0xFEA0)
+	} else if (address < 0xE000) {
+		if (address < 0xD000)
+			internalRAM[address - 0xC000] = value;
+		else
+            internalRAM[address - 0xC000 + bankNIndex * 0x1000] = value;
+	} else if (address < 0xFE00) {
+		if (address < 0xF000)
+			internalRAM[address - 0xE000] = value;
+		else
+            internalRAM[address - 0xE000 + bankNIndex * 0x1000] = value;
+	} else if (address < 0xFEA0)
 		oam[address - 0xFE00] = value;
 	else if (address < 0xFF00) { // unused
 		//TODO ignore?
@@ -63,11 +107,29 @@ void MMU::Write(u16 address, u8 value) {
             return;
         }
 
-        if (address < 0xFF80)
+		if (address < 0xFF80) {
+            if (IsUnusedReg(address))
+                return;
+
+            if (address == 0xFF70) {
+                u8 bankIndex = value & 0x03;
+                bankNIndex = bankIndex == 0 ? 1 : bankIndex;
+                // TODO confirm if writing a 0 should be read as 0 or as 1 too
+                value |= bankNIndex;
+            }
+            
             ioPorts[address - 0xFF00] = value;
-        else
+		} else
             zeroPageRAM[address - 0xFF80] = value;
     }
+}
+
+bool MMU::IsUnusedReg(u16 address) {
+    switch (address) {
+    case 0xFF02:
+        return true;
+    }
+    return false;
 }
 
 void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {
@@ -107,9 +169,19 @@ IAddressable* MMU::GetAddresableFor(u16 address) {
 	case 0xFF49:
 	case 0xFF4A:
 	case 0xFF4B:
+	case 0xFF68: // CGB
+	case 0xFF69:
+	case 0xFF6A:
+	case 0xFF6B:
+	case 0xFF4F:
+    case 0xFF4C: // GBC Non-CGB mode
+    case 0xFF46: // dma
+    case 0xFF51: // CGB
+    case 0xFF52:
+    case 0xFF53:
+    case 0xFF54:
+    case 0xFF55:
 		return gpu;
-	case 0xFF46:
-		return dma;
 	case 0xFF00:
 		return joypad;
 	case 0xFF04:
@@ -155,17 +227,17 @@ void MMU::Copy(u16 from, u16 to) {
 }
 
 void MMU::Load(std::ifstream& stream) const {
-	stream.read((char*)internalRAM, 8192);
+	stream.read((char*)internalRAM, 0x8000);
+    stream.read((char*)&bankNIndex, 1);
 	stream.read((char*)ioPorts, 128);
 	stream.read((char*)oam, 160);
-	stream.read((char*)videoRAM, 8192);
 	stream.read((char*)zeroPageRAM, 128);
 }
 
 void MMU::Save(std::ofstream& stream) const {
-	stream.write((const char*)internalRAM, 8192);
+	stream.write((const char*)internalRAM, 0x8000);
+    stream.write((const char*)&bankNIndex, 1);
 	stream.write((const char*)ioPorts, 128);
 	stream.write((const char*)oam, 160);
-	stream.write((const char*)videoRAM, 8192);
 	stream.write((const char*)zeroPageRAM, 128);
 }

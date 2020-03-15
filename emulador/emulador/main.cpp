@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
 	} else {
 		romDir = "D:/Programacion/gb/roms/";
-		romName = Games::LEGEND_OF_ZELDA_LINKS_AWAKENING;
+		romName = Games::CGB_ALADDIN;
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
@@ -56,21 +56,27 @@ int main(int argc, char *argv[]) {
     sf::Vector2i p(50, 50);
 	GameWindow gameWindow(160, 144, "Game", p, gameBoy.gpu);
 	
+    gameBoy.gpu.gameWindow = &gameWindow;
+
     p.x = 385;
     p.y = 50;
-	TileViewer tilesWindow(168, 144, "Tiles", p, gameBoy.mmu, 0x8000);
+	TileViewer tilesWindow(128, 192, "Tiles", p, gameBoy);
+    //tilesWindow.Open();
 
     p.x = 1110;
     p.y = 380;
-	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", p, gameBoy.mmu);
-	
+	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", p, gameBoy);
+    //spritesWindow.Open();
+
     p.x = 50;
     p.y = 380;
-	TileMapViewer tileMap0Window(256, 256, "Tile map 0", p, gameBoy.mmu, 0x9800);
+	TileMapViewer tileMap0Window(256, 256, "Tile map 0", p, gameBoy, 0);
+    //tileMap0Window.Open();
 
     p.x = 580;
     p.y = 380;
-	TileMapViewer tileMap1Window(256, 256, "Tile map 1", p, gameBoy.mmu, 0x9C00);
+	TileMapViewer tileMap1Window(256, 256, "Tile map 1", p, gameBoy, 1);
+    //tileMap1Window.Open();
 
     p.x = 50;
     p.y = 380;
@@ -107,7 +113,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (gameBoy.frameFinished) {
+        if (gameBoy.IsPaused() || gameBoy.frameFinished) {
             gameWindow.Update();
             tilesWindow.Update();
             tileMap0Window.Update();
@@ -119,45 +125,84 @@ int main(int argc, char *argv[]) {
                 if (event.type == sf::Event::Closed)
                     gameWindow.Close();
                 else if (event.type == sf::Event::KeyPressed) {
-					if (event.key.code == sf::Keyboard::Escape) {
-						gameWindow.Close();
-					} else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num5) {
-						switch (event.key.code) {
-						case sf::Keyboard::Num1: tilesWindow.Toggle(); break;
-						case sf::Keyboard::Num2: tileMap0Window.Toggle(); break;
-						case sf::Keyboard::Num3: tileMap1Window.Toggle(); break;
-						case sf::Keyboard::Num4: spritesWindow.Toggle(); break;
+                    if (event.key.code == sf::Keyboard::Escape) {
+                        gameWindow.Close();
+                    }
+                    else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num5) {
+                        switch (event.key.code) {
+                        case sf::Keyboard::Num1: tilesWindow.Toggle(); break;
+                        case sf::Keyboard::Num2: tileMap0Window.Toggle(); break;
+                        case sf::Keyboard::Num3: tileMap1Window.Toggle(); break;
+                        case sf::Keyboard::Num4: spritesWindow.Toggle(); break;
                         case sf::Keyboard::Num5: soundWindow.Toggle(); break;
-						}
-						gameWindow.GetFocus();
-					} else if (event.key.code >= sf::Keyboard::Num6 && event.key.code <= sf::Keyboard::Num9) {
-						switch (event.key.code) {
-						case sf::Keyboard::Num6: gameBoy.audio.ToggleChannel(1); break;
-						case sf::Keyboard::Num7: gameBoy.audio.ToggleChannel(2); break;
-						case sf::Keyboard::Num8: gameBoy.audio.ToggleChannel(3); break;
-						case sf::Keyboard::Num9: gameBoy.audio.ToggleChannel(4); break;
-						}
-					} else if (event.key.code == sf::Keyboard::PageUp)
-                        soundWindow.NextFrame();
-					else if (event.key.code == sf::Keyboard::PageDown)
-                        soundWindow.PreviousFrame();
-					else if (event.key.code == sf::Keyboard::Add)
-                        soundWindow.IncrementFramesPerScreen();
-					else if (event.key.code == sf::Keyboard::Subtract)
-                        soundWindow.DecrementFramesPerScreen();
-					else if (event.key.code == sf::Keyboard::R) {
-						if (!audioStream.IsRecording()) {
+                        }
+                        gameWindow.GetFocus();
+                    }
+                    else if (event.key.code >= sf::Keyboard::Num6 && event.key.code <= sf::Keyboard::Num9) {
+                        switch (event.key.code) {
+                        case sf::Keyboard::Num6: gameBoy.audio.ToggleChannel(1); break;
+                        case sf::Keyboard::Num7: gameBoy.audio.ToggleChannel(2); break;
+                        case sf::Keyboard::Num8: gameBoy.audio.ToggleChannel(3); break;
+                        case sf::Keyboard::Num9: gameBoy.audio.ToggleChannel(4); break;
+                        }
+                    }
+                    else if (event.key.code == sf::Keyboard::P) {
+                        if (gameBoy.IsPaused())
+                            gameBoy.Resume();
+                        else
+                            gameBoy.Pause();
+                    }
+                    else if (event.key.code == sf::Keyboard::R) {
+                        gameBoy.Reset();
+                        gameWindow.Clear();
+                    }
+                }
+            }
+
+            while (tilesWindow.PollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    tilesWindow.Close();
+                else if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Escape)
+                        tilesWindow.Close();
+                    else if (event.key.code == sf::Keyboard::PageUp)
+                        tilesWindow.NextPalette();
+                    else if (event.key.code == sf::Keyboard::PageDown)
+                        tilesWindow.PreviousPalette();
+                    else if (event.key.code == sf::Keyboard::End)
+                        tilesWindow.ToggleBank();
+                    else if (event.key.code == sf::Keyboard::R) {
+                        if (!audioStream.IsRecording()) {
                             soundWindow.CloseStream();
-							audioStream.StartRecording();
-						} else {
-							audioStream.StopRecording();
+                            audioStream.StartRecording();
+                        }
+                        else {
+                            audioStream.StopRecording();
                             soundWindow.OpenStream();
-						}
-					} else if (event.key.code == sf::Keyboard::Y) {
-						if (audioStream.IsRecording())
-							audioStream.StopRecording();
+                        }
+                    }
+                }
+            }
+
+            while (soundWindow.PollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    soundWindow.Close();
+                else if (event.type == sf::Event::KeyPressed) {
+                    if (event.key.code == sf::Keyboard::Escape)
+                        soundWindow.Close();
+                    else if (event.key.code == sf::Keyboard::PageUp)
+                        soundWindow.NextFrame();
+                    else if (event.key.code == sf::Keyboard::PageDown)
+                        soundWindow.PreviousFrame();
+                    else if (event.key.code == sf::Keyboard::Add)
+                        soundWindow.IncrementFramesPerScreen();
+                    else if (event.key.code == sf::Keyboard::Subtract)
+                        soundWindow.DecrementFramesPerScreen();
+                    else if (event.key.code == sf::Keyboard::Y) {
+                        if (audioStream.IsRecording())
+                            audioStream.StopRecording();
                         soundWindow.OpenStream();
-					}
+                    }
                 }
             }
 

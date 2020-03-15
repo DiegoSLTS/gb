@@ -5,6 +5,10 @@
 CPU::CPU(MMU& mmu) : mmu(mmu) {}
 CPU::~CPU() {}
 
+bool CPU::IsDoubleSpeedEnabled() const {
+    return isDoubleSpeedEnabled;
+}
+
 u8 CPU::Read8BitReg(CPU8BitReg reg) const {
 	return registers[reg];
 }
@@ -1625,9 +1629,23 @@ void CPU::SRLHL() {
 }
 
 void CPU::STOP() {
-	//2 bytes? 0 cycles?
-	//TODO Enter CPU very low power mode. Also used to switch between double and normal speed CPU modes in GBC.
-	isHalted = true;
+    //2 bytes? 0 cycles?
+    //TODO Enter CPU very low power mode. Also used to switch between double and normal speed CPU modes in GBC.
+    u8 key1 = mmu.Read(0xFF4D);
+    if ((key1 & 0x01) == 1) {
+        if (isDoubleSpeedEnabled) {
+            isDoubleSpeedEnabled = false;
+            key1 &= 0x7F;
+            printf("Double Speed disabled\n");
+        }
+        else {
+            isDoubleSpeedEnabled = true;
+            key1 |= 0x80; // set 1 for double speed
+            printf("Double Speed enabled\n");
+        }
+        mmu.Write(0xFF4D, key1 & 0xFE);
+    } else
+        isHalted = true;
 	// TODO turn off LCD
 	//no flags affected
 }

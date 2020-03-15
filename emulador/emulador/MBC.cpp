@@ -15,6 +15,8 @@ void RomHeader::Print() {
 	std::cout << "maskROMVersionNumber: " << (unsigned int)maskROMVersionNumber << std::endl;
 	std::cout << "headerChecksum: " << (unsigned int)headerChecksum << std::endl;
 	std::cout << "globalChecksum: " << (unsigned int)globalChecksum << std::endl;
+	std::cout << "manufacturerCode: " << manufacturerCode << std::endl;
+	std::cout << "Is CGB: " << cgbFlag << std::endl;
 }
 
 MBC::MBC(const RomHeader& header) : header(header) {}
@@ -306,7 +308,7 @@ void MBC5::Write(u8 value, u16 address) {
 	}
 
 	if (address >= 0x2000 && address < 0x4000)
-		romBankOffset = 16 * 1024 * romBank;
+        romBankOffset = 16 * 1024 * romBank;
 }
 
 void MBC5::Load(std::ifstream& stream) const {
