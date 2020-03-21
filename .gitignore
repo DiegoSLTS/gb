@@ -13,3 +13,6 @@ SFML-2.5.1/
 emulador/emulador/samples.bin
 emulador/emulador/cgb_bios.bin
 emulador/emulador/dmg_boot.bin
+*.vspx
+Gearboy-2.7.0-Windows/
+PlayGuy_1_03b/

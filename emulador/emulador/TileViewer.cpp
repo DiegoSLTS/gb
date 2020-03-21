@@ -38,30 +38,23 @@ void TileViewer::UpdateTile(u8 x, u8 y) {
 	u16 tileDataAddress = GetTileAddress(x, y);
 
 	for (int line = 0; line < 8; line++) {
-        u8 lowByte = 0;
-        u8 highByte = 0;
+		u8 lowByte = gameBoy.gpu.ReadVRAM(tileDataAddress + line * 2, VRAMBank);
+		u8 highByte = gameBoy.gpu.ReadVRAM(tileDataAddress + line * 2 + 1, VRAMBank);
 
-        if (VRAMBank == 0) {
-            lowByte = gameBoy.gpu.ReadVRAM0(tileDataAddress + line * 2);
-            highByte = gameBoy.gpu.ReadVRAM0(tileDataAddress + line * 2 + 1);
-        } else {
-            lowByte = gameBoy.gpu.ReadVRAM1(tileDataAddress + line * 2);
-            highByte = gameBoy.gpu.ReadVRAM1(tileDataAddress + line * 2 + 1);
-        }
-		
         u16 screenPosBase = (y * 8 + line) * screenTexture.getSize().x + x * 8;
 
         for (s8 pixel = 7; pixel >= 0; pixel--) {
             u16 screenPos = screenPosBase + (7 - pixel);
 			u8 lowBit = (lowByte >> pixel) & 0x01;
 			u8 highBit = (highByte >> pixel) & 0x01;
-			u8 index = lowBit | (highBit << 1);
+			PixelInfo pixelInfo = { 0 };
+			pixelInfo.colorIndex = lowBit | (highBit << 1);
 
 			if (isCGB)
-				index |= (cgbPaletteIndex << 2);
+				pixelInfo.paletteIndex = cgbPaletteIndex;
 
-			index |= 0x20;
-			((sf::Uint32*)screenArray)[screenPos] = gameBoy.gpu.GetABGR(index);
+			pixelInfo.isBG = true;
+			((sf::Uint32*)screenArray)[screenPos] = gameBoy.gpu.GetABGR(pixelInfo).v;
         }
 	}
 }

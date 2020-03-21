@@ -248,25 +248,25 @@ u8 Audio::Read(u16 address) {
 	case 0xFF1B:
 		return NR31;
 	case 0xFF1C:
-		return NR32 | 0b10011111;
+		return NR32 | 0x9F;
 	case 0xFF1D:
 		return NR33;
 	case 0xFF1E:
 		return NR34;
 	case 0xFF20:
-		return NR41 | 0b11000000;
+		return NR41 | 0xC0;
 	case 0xFF21:
 		return NR42;
 	case 0xFF22:
 		return NR43;
 	case 0xFF23:
-		return NR44 | 0b00111111;
+		return NR44 | 0x3F;
 	case 0xFF24:
 		return NR50;
 	case 0xFF25:
 		return NR51;
 	case 0xFF26:
-		return NR52 | 0b01110000;
+		return NR52 | 0x70;
 	}
 
 	return 0xFF;
@@ -367,7 +367,7 @@ void Audio::Write(u8 value, u16 address) {
 	case 0xFF1B:
 		NR31 = value; break;
 	case 0xFF1C:
-		NR32 = value | 0b10011111; break;
+		NR32 = value | 0x9F; break;
 	case 0xFF1D:
 		NR33 = value; break;
 	case 0xFF1E:
@@ -395,13 +395,13 @@ void Audio::Write(u8 value, u16 address) {
         }
         break;
 	case 0xFF20:
-		NR41 = value | 0b11000000; break;
+		NR41 = value | 0xC0; break;
 	case 0xFF21:
 		NR42 = value; break;
 	case 0xFF22:
         NR43 = value; break;
 	case 0xFF23:
-		NR44 = value | 0b00111111;
+		NR44 = value | 0x3F;
         channel4.Initial = ((NR44 & 0x80) != 0);
         
 		if (channel4.Initial)
@@ -433,7 +433,7 @@ void Audio::Write(u8 value, u16 address) {
 	case 0xFF25:
 		NR51 = value; break;
 	case 0xFF26:
-		NR52 = (value & 0xF0) | (NR52 & 0x0F) | 0b01110000; break;
+		NR52 = (value & 0xF0) | (NR52 & 0x0F) | 0x70; break;
 	}
 }
 

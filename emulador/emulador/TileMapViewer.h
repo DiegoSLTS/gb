@@ -18,4 +18,5 @@ protected:
 private:
     u8 mapNumber = 0;
     u16 address = 0;
+	LCDC_t& LCDC;
 };

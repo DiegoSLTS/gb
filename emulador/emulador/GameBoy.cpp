@@ -42,12 +42,24 @@ GameBoy::GameBoy(const std::string& RomPath)
     }
 
     skipBios = true;
-
+	syncWithAudio = true;
+	
     if (skipBios)
         LoadState();
 }
 
 GameBoy::~GameBoy() {}
+
+void GameBoy::ToggleLogging() {
+    if (isLogging) {
+        gpu.logger = nullptr;
+        cpu.logger = nullptr;
+    } else {
+        gpu.logger = &logger;
+        cpu.logger = &logger;
+    }
+    isLogging = !isLogging;
+}
 
 void GameBoy::Pause() {
     isPaused = true;

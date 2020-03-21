@@ -156,6 +156,9 @@ int main(int argc, char *argv[]) {
                         gameBoy.Reset();
                         gameWindow.Clear();
                     }
+                    else if (event.key.code == sf::Keyboard::L) {
+                        gameBoy.ToggleLogging();
+                    }
                 }
             }
 

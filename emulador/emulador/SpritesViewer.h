@@ -18,4 +18,6 @@ private:
 	void DrawSprite(u8 index);
 
     bool isCGB = false;
+	LCDC_t& LCDC;
+	u8* oam = nullptr;
 };

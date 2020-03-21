@@ -59,7 +59,6 @@ private:
 	--------------------------- 0000 --*/
 	u8 zeroPageRAM[0x80] = { 0 };
 	u8 ioPorts[0x80] = { 0 };
-	u8 oam[0xA0] = { 0 };
 
 	u8 internalRAM[0x8000] = { 0 }; // 0xC000 - 0xCFFF bank 0, 0xD000 - 0xDFFF bank N based on internalRAMIndex
 	u8 bankNIndex = 1; // [1,7], never set to 0
@@ -71,6 +70,6 @@ private:
 
 	bool IsBootRomEnabled();
 
-	IAddressable* GetAddresableFor(u16 address);
+	IAddressable* GetIOPortAddressable(u16 address);
     bool IsUnusedReg(u16 address);
 };

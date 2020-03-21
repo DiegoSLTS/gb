@@ -9,6 +9,7 @@
 #include "Joypad.h"
 #include "SerialDataTransfer.h"
 #include "Audio.h"
+#include "Logger.h"
 
 enum class EmulationModeSetting {
     Detect,
@@ -48,9 +49,14 @@ public:
     bool IsPaused();
     void Reset();
 
+    void ToggleLogging();
+
 private:
     void LoadState();
     void SaveState();    
 
     bool isPaused = false;
+    bool isLogging = false;
+
+    Logger logger;
 };

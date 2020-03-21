@@ -86,43 +86,38 @@ MBC1::MBC1(const RomHeader& header) : MBC(header) {}
 MBC1::~MBC1() {}
 
 u8 MBC1::Read(u16 address) {
-	if (address < 0x4000) {
+	if (address < 0x4000)
 		return rom[address];
-	} else if (address < 0x8000) {
-		unsigned int mappedAddress = romBankOffset + address - 0x4000;
-		return rom[mappedAddress];
-	} else if (address >= 0xA000 && address < 0xC000) {
-		unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-		return ram[mappedAddress];
-	}
+	else if (address < 0x8000)
+		return rom[romBankOffset + address - 0x4000];
+	else if (address >= 0xA000 && address < 0xC000)
+		return ram[ramBankOffset + address - 0xA000];
 
 	return 0xFF;
 }
 
 void MBC1::Write(u8 value, u16 address) {
-	if (address < 0x2000) {
+	if (address < 0x2000)
 		ramEnabled = value;
-	} else if (address >= 0x2000 && address < 0x4000) {
-		u8 lowBits = value & 0b00011111;
+	else if (address >= 0x2000 && address < 0x4000) {
+		u8 lowBits = value & 0x1F;
 		if (lowBits == 0)
 			lowBits = 1;
-		romBank &= 0b01100000;
+		romBank &= 0x60;
 		romBank |= lowBits;
 	} else if (address >= 0x4000 && address < 0x6000) {
 		if (romRamSwitch == 0) {
-			u8 highBits = value & 0b01100000;
-			romBank &= 0b00011111;
+			u8 highBits = value & 0x60;
+			romBank &= 0x1F;
 			romBank |= highBits;
 		} else if (ramEnabled) {
 			ramBank = value & 0x03;
 			ramBankOffset = 8 * 1024 * ramBank;
 		}
-	} else if (address >= 0x6000 && address < 0x8000) {
+	} else if (address >= 0x6000 && address < 0x8000)
 		romRamSwitch = value;
-	} else if (address >= 0xA000 && address < 0xC000 && ramEnabled) {
-		unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-		ram[mappedAddress] = value;
-	}
+	else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
+		ram[ramBankOffset + address - 0xA000] = value;
 
 	if (romRamSwitch == 0)
 		romBankOffset = 16 * 1024 * romBank;
@@ -144,15 +139,12 @@ u32 MBC2::GetRamSize() const {
 }
 
 u8 MBC2::Read(u16 address) {
-	if (address < 0x4000) {
+	if (address < 0x4000)
 		return rom[address];
-	} else if (address < 0x8000) {
-		unsigned int mappedAddress = romBankOffset + address - 0x4000;
-		return rom[mappedAddress];
-	} else if (address >= 0xA000 && address < 0xA200) {
-		unsigned int mappedAddress = address - 0xA000;
-		return ram[mappedAddress] & 0x0F;
-	}
+	else if (address < 0x8000)
+		return rom[romBankOffset + address - 0x4000];
+	else if (address >= 0xA000 && address < 0xA200)
+		return ram[address - 0xA000] & 0x0F;
 
 	return 0xFF;
 }
@@ -166,9 +158,8 @@ void MBC2::Write(u8 value, u16 address) {
 			romBank = value & 0x0F;
 			romBankOffset = 16 * 1024 * romBank;
 		}
-	} else if (address >= 0xA000 && address < 0xA200 && ramEnabled) {
+	} else if (address >= 0xA000 && address < 0xA200 && ramEnabled)
 		ram[address - 0xA000] = value;
-	}
 }
 
 void MBC2::Load(std::ifstream& stream) const {
@@ -183,27 +174,24 @@ MBC3::MBC3(const RomHeader& header) : MBC(header) {}
 MBC3::~MBC3() {}
 
 u8 MBC3::Read(u16 address) {
-	if (address < 0x4000) {
+	if (address < 0x4000)
 		return rom[address];
-	} else if (address < 0x8000) {
-		unsigned int mappedAddress = romBankOffset + address - 0x4000;
-		return rom[mappedAddress];
-	} else if (address >= 0xA000 && address < 0xC000) {
-		if (ramMapped) {
-			unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-			return ram[mappedAddress];
-		} else {
+	else if (address < 0x8000)
+		return rom[romBankOffset + address - 0x4000];
+	else if (address >= 0xA000 && address < 0xC000) {
+		if (ramMapped)
+			return ram[ramBankOffset + address - 0xA000];
+		else
 			return rtcRegisters[mappedRtcRegister - 0x08];
-		}
 	}
 
 	return 0xFF;
 }
 
 void MBC3::Write(u8 value, u16 address) {
-	if (address < 0x2000) {
+	if (address < 0x2000)
 		ramTimerEnabled = value;
-	} else if (address >= 0x2000 && address < 0x4000) {
+	else if (address >= 0x2000 && address < 0x4000) {
 		u8 romBank = value & 0x7F;
 		if (romBank == 0)
 			romBank = 1;
@@ -242,12 +230,10 @@ void MBC3::Write(u8 value, u16 address) {
 			latch0Wrote = true;
 		}
 	} else if (address >= 0xA000 && address < 0xC000 && ramTimerEnabled) {
-		if (ramMapped) {
-			unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-			ram[mappedAddress] = value;
-		} else {
+		if (ramMapped)
+			ram[ramBankOffset + address - 0xA000] = value;
+		else
 			rtcRegisters[mappedRtcRegister - 0x08] = value;
-		}
 	}
 }
 
@@ -273,15 +259,12 @@ MBC5::MBC5(const RomHeader& header) : MBC(header) {}
 MBC5::~MBC5() {}
 
 u8 MBC5::Read(u16 address) {
-	if (address < 0x4000) {
+	if (address < 0x4000)
 		return rom[address];
-	} else if (address < 0x8000) {
-		unsigned int mappedAddress = romBankOffset + address - 0x4000;
-		return rom[mappedAddress];
-	} else if (address >= 0xA000 && address < 0xC000) {
-		unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-		return ram[mappedAddress];
-	}
+	else if (address < 0x8000)
+		return rom[romBankOffset + address - 0x4000];
+	else if (address >= 0xA000 && address < 0xC000)
+		return ram[ramBankOffset + address - 0xA000];
 
 	return 0xFF;
 }
@@ -302,10 +285,8 @@ void MBC5::Write(u8 value, u16 address) {
 			ramBank = value & 0x0F;
 			ramBankOffset = 8 * 1024 * ramBank;
 		}
-	} else if (address >= 0xA000 && address < 0xC000 && ramEnabled) {
-		unsigned int mappedAddress = ramBankOffset + address - 0xA000;
-		ram[mappedAddress] = value;
-	}
+	} else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
+		ram[ramBankOffset + address - 0xA000] = value;
 
 	if (address >= 0x2000 && address < 0x4000)
         romBankOffset = 16 * 1024 * romBank;

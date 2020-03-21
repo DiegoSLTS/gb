@@ -167,7 +167,7 @@ namespace Games {
     const std::string CGB_GEX_ENTER_THE_GECKO = "cgb/Gex - Enter the Gecko (USA, Europe) (GB Compatible).gbc";
     const std::string CGB_GRAND_THEFT_AUTO = "cgb/Grand Theft Auto (Europe) (En,Fr,De,Es,It) (GB Compatible).gbc";
     const std::string CGB_GRAND_THEFT_AUTO_2 = "cgb/Grand Theft Auto 2 (Europe) (En,Fr,De,Es,It).gbc";
-    const std::string CGB_LEGEND_OF_ZELDA_LINKS_AWAKENING_DX = "cgb/Legend of Zelda, The - Link_s Awakening DX (USA, Europe) (Rev B) (SGB Enhanced) (GB Compatible).gbc";
+    const std::string CGB_LEGEND_OF_ZELDA_LINKS_AWAKENING_DX = "cgb/Legend of Zelda, The - Link's Awakening DX (USA, Europe) (Rev B) (SGB Enhanced) (GB Compatible).gbc";
     const std::string CGB_LEGEND_OF_ZELDA_ORACLE_OF_SEASONS = "cgb/Legend of Zelda, The - Oracle of Seasons (Europe) (En,Fr,De,Es,It).gbc";
     const std::string CGB_MARIO_TENNIS = "cgb/Mario Tennis (Europe).gbc";
     const std::string CGB_POKEMON_CRYSTAL = "cgb/Pokemon - Crystal Version (USA, Europe) (Rev A).gbc";
@@ -181,6 +181,7 @@ namespace Games {
     const std::string CGB_CONKERS = "cgb/Conker's Pocket Tales (USA, Europe) (En,Fr,De) (SGB Enhanced) (GB Compatible).gbc";
     const std::string CGB_CROC = "cgb/Croc (USA, Europe).gbc";
     const std::string CGB_CROC_2 = "cgb/Croc 2 (USA, Europe).gbc";
+	const std::string CGB_CRYSTALIS = "cgb/Crystalis (USA).gbc";
     const std::string CGB_DONKEY_KONG_COUNTRY = "cgb/Donkey Kong Country (USA, Europe) (En,Fr,De,Es,It).gbc";
     const std::string CGB_EARTHWORM_JIM = "cgb/Earthworm Jim - Menace 2 the Galaxy (USA, Europe) (GB Compatible).gbc";
     const std::string CGB_GEX_3 = "cgb/Gex 3 - Deep Cover Gecko (Europe) (En,Fr,De,Es,It).gbc";

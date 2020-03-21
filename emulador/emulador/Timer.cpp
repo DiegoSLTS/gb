@@ -44,7 +44,7 @@ u8 Timer::Read(u16 address) {
 	case 0xFF06:
 		return TMA;
 	case 0xFF07:
-		return TAC | 0b11111000;
+		return TAC | 0xF8;
 	}
 	return 0xFF;
 }
@@ -58,6 +58,6 @@ void Timer::Write(u8 value, u16 address) {
 	case 0xFF06:
 		TMA = value; break;
 	case 0xFF07:
-		TAC = value | 0b11111000; break;
+		TAC = value | 0xF8; break;
 	}
 }

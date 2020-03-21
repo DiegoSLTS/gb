@@ -133,6 +133,7 @@
     <ClCompile Include="GPU.cpp" />
     <ClCompile Include="InterruptServiceRoutine.cpp" />
     <ClCompile Include="Joypad.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MBC.cpp" />
     <ClCompile Include="MMU.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="InterruptServiceRoutine.h" />
     <ClInclude Include="IState.h" />
     <ClInclude Include="Joypad.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="MBC.h" />
     <ClInclude Include="MMU.h" />
     <ClInclude Include="RomParser.h" />
@@ -173,6 +175,7 @@
     <ClInclude Include="TileMapViewer.h" />
     <ClInclude Include="TileViewer.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="Types.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

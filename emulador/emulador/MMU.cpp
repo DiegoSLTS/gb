@@ -59,11 +59,11 @@ u8 MMU::Read(u16 address) {
 		else
 			return internalRAM[address - 0xE000 + bankNIndex * 0x1000];
 	} else if (address < 0xFEA0)
-		return oam[address - 0xFE00];
+		return gpu->Read(address);
 	else if (address < 0xFF00)
 		return 0; //TODO validate if 0 or 0xFF
     else {
-        IAddressable* addressable = GetAddresableFor(address);
+        IAddressable* addressable = GetIOPortAddressable(address);
         if (addressable != nullptr)
             return addressable->Read(address);
 
@@ -96,12 +96,12 @@ void MMU::Write(u16 address, u8 value) {
 			internalRAM[address - 0xE000] = value;
 		else
             internalRAM[address - 0xE000 + bankNIndex * 0x1000] = value;
-	} else if (address < 0xFEA0)
-		oam[address - 0xFE00] = value;
+	}else if (address < 0xFEA0)
+		gpu->Write(value, address);
 	else if (address < 0xFF00) { // unused
 		//TODO ignore?
     } else {
-        IAddressable* addressable = GetAddresableFor(address);
+        IAddressable* addressable = GetIOPortAddressable(address);
         if (addressable != nullptr) {
             addressable->Write(value, address);
             return;
@@ -142,7 +142,7 @@ void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {
 }
 
 bool MMU::IsBootRomEnabled() {
-	return Read(0xFF50) == 0;
+	return ioPorts[0x50] == 0; //0xFF50
 }
 
 void MMU::ResetInterruptFlag(u8 interruptPosition) {
@@ -153,7 +153,7 @@ void MMU::SetInterruptFlag(u8 interruptPosition) {
 	WriteBit(0xFF0F, interruptPosition, true);
 }
 
-IAddressable* MMU::GetAddresableFor(u16 address) {
+IAddressable* MMU::GetIOPortAddressable(u16 address) {
     if (address >= 0xFF30 && address <= 0xFF3F)
         return audio;
 
@@ -230,7 +230,6 @@ void MMU::Load(std::ifstream& stream) const {
 	stream.read((char*)internalRAM, 0x8000);
     stream.read((char*)&bankNIndex, 1);
 	stream.read((char*)ioPorts, 128);
-	stream.read((char*)oam, 160);
 	stream.read((char*)zeroPageRAM, 128);
 }
 
@@ -238,6 +237,5 @@ void MMU::Save(std::ofstream& stream) const {
 	stream.write((const char*)internalRAM, 0x8000);
     stream.write((const char*)&bankNIndex, 1);
 	stream.write((const char*)ioPorts, 128);
-	stream.write((const char*)oam, 160);
 	stream.write((const char*)zeroPageRAM, 128);
 }

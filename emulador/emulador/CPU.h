@@ -22,8 +22,11 @@ https://rednex.github.io/rgbds/gbz80.7.html
 #include "IState.h"
 #include "CPUFlags.h"
 
+#include <string>
+
 class MMU;
 class InterruptServiceRoutine;
+class Logger;
 
 enum CPU8BitReg {
 #if defined(BIG_ENDIAN)
@@ -62,7 +65,15 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
     
+    Logger* logger = nullptr;
+
 private:
+    std::string r8Names[8] = { "F","A","C","B","E","D","L","H" };
+    std::string r16Names[4] = { "AF","BC","DE","HL" };
+
+    std::string reg8ToString(CPU8BitReg reg);
+    std::string reg16ToString(CPU16BitReg reg);
+
 	MMU& mmu;
     bool isDoubleSpeedEnabled = false;
 

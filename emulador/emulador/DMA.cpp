@@ -1,12 +1,12 @@
 #include "DMA.h"
 #include "MMU.h"
 
-DMA::DMA(MMU& mmu) : mmu(mmu) {}
+DMA::DMA(MMU& mmu, u8* oam) : mmu(mmu), oam(oam) {}
 DMA::~DMA() {}
 
 void DMA::Step(u8 cycles) {
 	while (currentCycles < 160 && cycles > 0) {
-		mmu.Copy(addressBase + currentCycles, 0xFE00 + currentCycles);
+		oam[currentCycles] = mmu.Read(addressBase + currentCycles);
 		currentCycles++;
 		cycles--;
 	}

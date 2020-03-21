@@ -24,5 +24,5 @@ private:
 	u8 DIV = 0x00;			//0xFF04 Divider Register (R/W)
 	u8 TIMA = 0x00;			//0xFF05 Timer counter (R/W)
 	u8 TMA = 0x00;			//0xFF06 Timer Modulo (R/W)
-	u8 TAC = 0b11111000;	//0xFF07 Timer Control (R/W)
+	u8 TAC = 0xF8;	//0xFF07 Timer Control (R/W)
 };

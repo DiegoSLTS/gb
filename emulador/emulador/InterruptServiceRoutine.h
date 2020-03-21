@@ -8,8 +8,8 @@ public:
 	InterruptServiceRoutine();
 	virtual ~InterruptServiceRoutine();
 
-	u8 IE = 0;			// 0xFFFF - Interrupt Enabled (R/W)
-	u8 IF = 0b11100000;	// 0xFF0F - Interrupt Flag (R/W)
+	u8 IE = 0;		// 0xFFFF - Interrupt Enabled (R/W)
+	u8 IF = 0xE0;	// 0xFF0F - Interrupt Flag (R/W)
 
 	bool IME = false; // not addressable - Interrupt Master Enable Flag(Write Only)
 	bool eiDelay = false; // EI takes one more instruction to take effect

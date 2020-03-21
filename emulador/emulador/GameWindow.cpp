@@ -22,9 +22,8 @@ void GameWindow::Update() {
 }
 
 void GameWindow::DrawLine(u8 line) {
-    unsigned int x = 0;
-    for (; x < width; x++) {
-        unsigned int index = x + line * width;
-        ((sf::Uint32*)screenArray)[index] = gpu.GetABGR(gpu.screen[index]);
-    }
+    u32 x = line * width;
+	u32 xMax = x + width;
+    for (; x < xMax; x++)
+        ((sf::Uint32*)screenArray)[x] = gpu.GetABGRAt(x).v;
 }

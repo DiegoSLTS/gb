@@ -6,9 +6,9 @@ InterruptServiceRoutine::~InterruptServiceRoutine() {}
 u8 InterruptServiceRoutine::Read(u16 address) {
 	switch (address) {
 	case 0xFFFF:
-		return IE | 0b11100000;
+		return IE | 0xE0;
 	case 0xFF0F:
-		return IF | 0b11100000;
+		return IF | 0xE0;
 	}
 	return 0xFF;
 }
@@ -16,9 +16,9 @@ u8 InterruptServiceRoutine::Read(u16 address) {
 void InterruptServiceRoutine::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFFFF:
-		IE = value | 0b11100000; break;
+		IE = value | 0xE0; break;
 	case 0xFF0F:
-		IF = value | 0b11100000; break;
+		IF = value | 0xE0; break;
 	}
 }
 
