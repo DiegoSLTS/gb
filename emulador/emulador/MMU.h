@@ -24,10 +24,6 @@ public:
 	void Write(u16 address, u8 value);
 	void Copy(u16 from, u16 to);
 
-	//TODO move to InterruptServiceRoutine?
-	void SetInterruptFlag(u8 interruptPosition);
-	void ResetInterruptFlag(u8 interruptPosition);
-
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
@@ -63,7 +59,6 @@ private:
 	u8 internalRAM[0x8000] = { 0 }; // 0xC000 - 0xCFFF bank 0, 0xD000 - 0xDFFF bank N based on internalRAMIndex
 	u8 bankNIndex = 1; // [1,7], never set to 0
 	
-	bool IsCGB = false;
     u8* bootRom = nullptr;
 	
 	void WriteBit(u16 address, u8 bitPosition, bool set);

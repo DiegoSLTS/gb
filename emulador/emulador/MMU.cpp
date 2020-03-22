@@ -14,8 +14,7 @@ MMU::~MMU() {
 }
 
 void MMU::LoadBootRom(bool isCGB) {
-    IsCGB = isCGB;
-    const char* romFileName = IsCGB ? "cgb_bios.bin" : "dmg_boot.bin";
+    const char* romFileName = isCGB ? "cgb_bios.bin" : "dmg_boot.bin";
 
     std::ifstream readStream;
     readStream.open(romFileName, std::ios::in | std::ios::binary);
@@ -132,25 +131,8 @@ bool MMU::IsUnusedReg(u16 address) {
     return false;
 }
 
-void MMU::WriteBit(u16 address, u8 bitPosition, bool set) {
-	u8 reg = Read(address);
-	if (set)
-		reg |= (1 << bitPosition);
-	else
-		reg &= ~(1 << bitPosition);
-	Write(address, reg);
-}
-
 bool MMU::IsBootRomEnabled() {
 	return ioPorts[0x50] == 0; //0xFF50
-}
-
-void MMU::ResetInterruptFlag(u8 interruptPosition) {
-	WriteBit(0xFF0F, interruptPosition, false);
-}
-
-void MMU::SetInterruptFlag(u8 interruptPosition) {
-	WriteBit(0xFF0F, interruptPosition, true);
 }
 
 IAddressable* MMU::GetIOPortAddressable(u16 address) {

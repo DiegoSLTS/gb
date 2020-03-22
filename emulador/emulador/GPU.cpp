@@ -1,11 +1,12 @@
 #include "GPU.h"
 #include "MMU.h"
+#include "InterruptServiceRoutine.h"
 #include "GameWindow.h"
 #include "Logger.h"
 
 #include <iostream>
 
-GPU::GPU(MMU& mmu) : mmu(mmu), dma(mmu, oam) {}
+GPU::GPU(MMU& mmu, InterruptServiceRoutine& interruptService) : mmu(mmu), dma(mmu, oam), interruptService(interruptService) {}
 GPU::~GPU() {}
 
 u8 GPU::Read(u16 address) {
@@ -188,7 +189,7 @@ void GPU::Save(std::ofstream& stream) const {
 	stream.write((const char*)videoRAM1, 0x2000);
 	stream.write((const char*)oam, 160);
 	stream.write((const char*)&VRAMBank, 1);
-	stream.write((const char*)&BGPI, 1); // TODO save BGPD too?
+	stream.write((const char*)&BGPI, 1);
 	stream.write((const char*)&OBPI, 1);
 	stream.write((const char*)BGPMemory, 64);
 	stream.write((const char*)OBPMemory, 64);
@@ -204,6 +205,7 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 	switch (mode) {
 	case GPUMode::OAMAccess: {
 		if (modeCycles >= 80) {
+			// TODO if GB, sort sprites by x into another array
 			SetMode(GPUMode::VRAMAccess);
 			modeCycles -= 80;
 		}
@@ -251,12 +253,12 @@ void GPU::SetMode(GPUMode newMode) {
 	mode = newMode;
 
 	if (mode == GPUMode::VBlank)
-		mmu.SetInterruptFlag(0);
+		interruptService.SetInterruptFlag(InterruptFlag::VBlank);
 
 	if ((mode == GPUMode::OAMAccess && LCDStat.oamInterruptEnabled) ||
 		(mode == GPUMode::VBlank && LCDStat.vBlankInterruptEnabled) ||
 		(mode == GPUMode::HBlank && LCDStat.hBlankInterruptEnabled))
-		mmu.SetInterruptFlag(1);
+		interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
 
 	LCDStat.mode = mode;
 
@@ -268,7 +270,7 @@ void GPU::SetCurrentLine(u8 newLine) {
 	LCDStat.lyc = LYC == newLine;
 
 	if (LCDStat.lycInterruptEnable && LCDStat.lyc)
-		mmu.SetInterruptFlag(1);
+		interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
 
 	if (logger != nullptr) logger->log("-- line: " + std::to_string((unsigned int)LY) + "\n");
 }
@@ -396,8 +398,6 @@ void GPU::DrawSprites(u8 line) {
 	u8 spriteHeight = LCDC.spritesSize == 0 ? 8 : 16;
 	u8 spritesDrawn = 0;
 
-	// TODO if GB, sort by x
-
 	for (u8 i = 0; i < 40; i++) {
 		u8 spriteIndex = i * 4;
 
@@ -454,6 +454,9 @@ ABGR GPU::GetABGRAt(u32 pixelIndex) {
 }
 
 ABGR GPU::GetABGR(PixelInfo pixelInfo) {
+	// turn gb color [0,3] into an 8 bit color [255,0], 85 == 255/3
+	const static u8 greyColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
+
 	u16 gpuColor = 0;
 
 	u8 gbPalette = 0;
@@ -481,11 +484,8 @@ ABGR GPU::GetABGR(PixelInfo pixelInfo) {
 		abgr.r = (gpuColor & 0x1F) * 8;
 		abgr.g = ((gpuColor >> 5) & 0x1F) * 8;
 		abgr.b = ((gpuColor >> 10) & 0x1F) * 8;
-	}
-	else
-		// turn gpuScreen value [0,3] into an 8 bit value [255,0], 85 == 255/3
-		// const static u8 sfmlColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
-		abgr.r = abgr.g = abgr.b = 255 - ((gbPalette >> (pixelInfo.colorIndex << 1)) & 0x03) * 85;
+	} else
+		abgr.r = abgr.g = abgr.b = greyColors[((gbPalette >> (pixelInfo.colorIndex << 1)) & 0x03)];
 
 	return abgr;
 }

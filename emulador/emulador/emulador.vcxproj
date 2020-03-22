@@ -152,7 +152,6 @@
     <ClInclude Include="BootRom.h" />
     <ClInclude Include="Cartridge.h" />
     <ClInclude Include="CPU.h" />
-    <ClInclude Include="CPUFlags.h" />
     <ClInclude Include="CPUOpCodes.h" />
     <ClInclude Include="CustomAudioStream.h" />
     <ClInclude Include="DMA.h" />

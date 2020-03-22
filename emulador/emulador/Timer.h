@@ -2,11 +2,11 @@
 
 #include "IAddressable.h"
 
-class MMU;
+class InterruptServiceRoutine;
 
 class Timer : public IAddressable {
 public:
-    Timer(MMU& mmu);
+    Timer(InterruptServiceRoutine& interruptService);
     virtual ~Timer();
 
 	// TODO http://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
@@ -16,7 +16,7 @@ public:
 	virtual void Write(u8 value, u16 address) override;
 
 private:
-	MMU& mmu;
+	InterruptServiceRoutine& interruptService;
 
 	u16 dividerCounter = 0;
 	u16 timerCounter = 0;

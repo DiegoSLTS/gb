@@ -59,7 +59,7 @@ u8 DMA::Read(u16 address) {
 void DMA::Write(u8 value, u16 address) {
 	switch (address) {
 	case 0xFF46:
-		//TODO assert address is valid
+		//TODO assert addressBase is valid?
 		currentCycles = 0;
 		addressBase = value << 8;
 		break;

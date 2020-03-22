@@ -34,10 +34,18 @@ void InterruptServiceRoutine::Save(std::ofstream& stream) const {
 	stream.write((const char*)&IME, 1);
 }
 
-bool InterruptServiceRoutine::IsInterruptEnabled(u8 interruptPosition) {
-	return ((IE & (1 << interruptPosition)) != 0);
+bool InterruptServiceRoutine::IsInterruptEnabled(InterruptFlag flag) {
+	return ((IE & (u8)flag) != 0);
 }
 
-bool InterruptServiceRoutine::IsInterruptSet(u8 interruptPosition) {
-	return ((IF & (1 << interruptPosition)) != 0);
+bool InterruptServiceRoutine::IsInterruptSet(InterruptFlag flag) {
+	return ((IF & (u8)flag) != 0);
+}
+
+void InterruptServiceRoutine::ResetInterruptFlag(InterruptFlag flag) {
+	IF &= ~(u8)flag;
+}
+
+void InterruptServiceRoutine::SetInterruptFlag(InterruptFlag flag) {
+	IF |= (u8)flag;
 }

@@ -1,10 +1,9 @@
 #pragma once
 
 #include "TileViewer.h"
+#include "GPU.h"
 
 class GameBoy;
-
-//TODO optimize using TileViewer screen pixels instead of reading tile data again for each tile
 
 class TileMapViewer : public TileViewer {
 public:

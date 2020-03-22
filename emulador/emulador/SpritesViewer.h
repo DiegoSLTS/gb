@@ -2,6 +2,7 @@
 
 #include "Types.h"
 #include "Window.h"
+#include "GPU.h"
 
 class GameBoy;
 

@@ -37,16 +37,11 @@ public:
     bool frameFinished = false;
     bool sampleGenerated = false;
 
-    bool skipBios = false;
     bool syncWithAudio = true;
 
-    EmulationModeSetting emulationModeSetting = EmulationModeSetting::Detect;
 	bool IsCGB = false;
-    bool IsNonCGBMode = false;
 
-    void Pause();
-    void Resume();
-    bool IsPaused();
+	bool isPaused = false;
     void Reset();
 
     void ToggleLogging();
@@ -55,8 +50,8 @@ private:
     void LoadState();
     void SaveState();    
 
-    bool isPaused = false;
     bool isLogging = false;
+	bool skipBios = false;
 
     Logger logger;
 };

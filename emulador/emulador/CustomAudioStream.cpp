@@ -7,7 +7,7 @@ CustomAudioStream::CustomAudioStream(GameBoy& gameBoy) : gameBoy(gameBoy) {
 }
 
 bool CustomAudioStream::onGetData(Chunk& data) {
-    while (sampleIndex < Samples_Size) {
+    while (sampleIndex < SamplesSize) {
         gameBoy.MainLoop();
         if (gameBoy.sampleGenerated) {
             samples[sampleIndex] = gameBoy.audio.sample;
@@ -16,14 +16,14 @@ bool CustomAudioStream::onGetData(Chunk& data) {
     }
 
     data.samples = samples;
-    data.sampleCount = Samples_Size;
+    data.sampleCount = SamplesSize;
 
     sampleIndex = 0;
 
     if (recording) {
-		OutFile.write((char*)samples, Samples_Size * sizeof(s16));
+		OutFile.write((char*)samples, SamplesSize * sizeof(s16));
 		recordedFrames++;
-		if (recordedFrames >= 60 * Max_Recorded_Seconds)
+		if (recordedFrames >= 60 * MaxRecordedSeconds)
 			StopRecording();
     }
     return true;

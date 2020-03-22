@@ -1,7 +1,7 @@
 #include "Timer.h"
-#include "MMU.h"
+#include "InterruptServiceRoutine.h"
 
-Timer::Timer(MMU& mmu) : mmu(mmu) {}
+Timer::Timer(InterruptServiceRoutine& interruptService) : interruptService(interruptService) {}
 Timer::~Timer() {}
 
 void Timer::Step(u8 cycles) {
@@ -28,7 +28,7 @@ void Timer::Step(u8 cycles) {
 			TIMA++;
 			if (TIMA == 0) {
 				TIMA = TMA;
-				mmu.SetInterruptFlag(2);
+				interruptService.SetInterruptFlag(InterruptFlag::Timer);
 			}
 			timerCounter -= maxCounter;
 		}

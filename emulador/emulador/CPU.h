@@ -20,7 +20,6 @@ https://rednex.github.io/rgbds/gbz80.7.html
 
 #include "Types.h"
 #include "IState.h"
-#include "CPUFlags.h"
 
 #include <string>
 
@@ -43,24 +42,26 @@ enum CPU16BitReg {
 	hl
 };
 
+enum FlagBit : u8 {
+	Carry = 1 << 4,
+	HalfCarry = 1 << 5,
+	Negative = 1 << 6,
+	Zero = 1 << 7
+};
+
 class CPU : IState {
 public:
-	CPU(MMU& mmu);
+	CPU(MMU& mmu, InterruptServiceRoutine& interruptService);
 	virtual ~CPU();
 	
-	InterruptServiceRoutine* interruptService = nullptr;
+	// Waits one clock if halted or runs one instruction and returns the clocks spent
+	u8 Step();
 
-	bool isHalted = false;
-	u8 lastOpCycles = 0;
 	u16 pc = 0;
     bool IsDoubleSpeedEnabled() const;
 
 	u8 Read8BitReg(CPU8BitReg reg) const;
 	void Push16(u16 value);
-
-	u8 ReadOpCode();
-	void CallOpCode(u8 opCode);
-	void CallCBOpCode(u8 opCode);
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
@@ -76,12 +77,20 @@ private:
 
 	MMU& mmu;
     bool isDoubleSpeedEnabled = false;
+	InterruptServiceRoutine& interruptService;
+
+	bool isHalted = false;
+	u8 lastOpCycles = 0;
 
 	// registers
 	u8 registers[8] = { 0 };
 	u16 sp = 0;
 
 	bool haltBug = false;
+
+	u8 ReadOpCode();
+	void CallOpCode(u8 opCode);
+	void CallCBOpCode(u8 opCode);
 
 	u16 Read16BitReg(CPU16BitReg reg) const;
 
@@ -105,9 +114,6 @@ private:
 	// memory
 
 	// flags
-	u8 ReadFlags() const;
-	void WriteFlags(u8 newFlags);
-	void ResetFlags();
 	void SetFlag(FlagBit flagBit, bool set);
 	bool HasFlag(FlagBit flagBit) const;
 

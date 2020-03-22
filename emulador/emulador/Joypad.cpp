@@ -1,9 +1,9 @@
 #include "Joypad.h"
-#include "MMU.h"
+#include "InterruptServiceRoutine.h"
 
 #include <SFML\Window\Keyboard.hpp>
 
-Joypad::Joypad(MMU& mmu) : mmu(mmu) {}
+Joypad::Joypad(InterruptServiceRoutine& interruptService) : interruptService(interruptService) {}
 Joypad::~Joypad() {}
 
 void Joypad::Update() {
@@ -37,7 +37,7 @@ void Joypad::Update() {
 
     for (u8 bit = 0; bit < 4; bit++) {
         if ((state & (1 << bit)) > (JOYP & (1 << bit))) {
-            mmu.SetInterruptFlag(5);
+			interruptService.SetInterruptFlag(InterruptFlag::Joypad);
             break;
         }
     }

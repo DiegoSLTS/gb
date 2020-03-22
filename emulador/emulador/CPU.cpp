@@ -6,8 +6,53 @@
 #include <iomanip>
 #include <sstream>
 
-CPU::CPU(MMU& mmu) : mmu(mmu) {}
+CPU::CPU(MMU& mmu, InterruptServiceRoutine& interruptService) : mmu(mmu), interruptService(interruptService) {}
 CPU::~CPU() {}
+
+u8 CPU::Step() {
+	lastOpCycles = 0;
+
+	if (interruptService.IE & interruptService.IF) {
+		if (isHalted) {
+			isHalted = false;
+			lastOpCycles = 1;
+		}
+		if (interruptService.IME) {
+			for (int i = 0; i < 5 ; i++) {
+				InterruptFlag flag = (InterruptFlag)(1 << i);
+				if (interruptService.IsInterruptSet(flag) && interruptService.IsInterruptEnabled(flag)) {
+					interruptService.IME = false;
+					interruptService.ResetInterruptFlag(flag);
+					Push16(pc); // cpu.lastOpCycles = 2
+					pc = 0x40 + i * 8; //0x40, 0x48, 0x50, 0x58, 0x60
+					lastOpCycles += 3; // +2 idle cycles, +1 updating PC
+					break;
+				}
+			}
+		}
+	}
+
+	if (interruptService.eiDelay) {
+		interruptService.IME = true;
+		interruptService.eiDelay = false;
+	}
+
+	// used only for debugging to break at specific instructions
+	if (pc == 0x3155)
+		int a = 0;
+
+	if (!isHalted) {
+		u8 opCode = ReadOpCode();
+		if (opCode == 0xCB) {
+			opCode = ReadOpCode();
+			CallCBOpCode(opCode);
+		} else
+			CallOpCode(opCode);
+	} else
+		lastOpCycles = 1;
+
+	return lastOpCycles;
+}
 
 std::string CPU::reg8ToString(CPU8BitReg reg) {
     return r8Names[reg] + " = " + logger->u8ToHex(Read8BitReg(reg));
@@ -43,28 +88,16 @@ void CPU::Write16BitReg(CPU16BitReg reg, u16 value) {
 	regs16[reg] = value;
 }
 
-u8 CPU::ReadFlags() const {
-	return registers[CPU8BitReg::f];
-}
-
-void CPU::WriteFlags(u8 newFlags) {
-	Write8BitReg(CPU8BitReg::f,newFlags);
-}
-
-void CPU::ResetFlags() {
-	WriteFlags(0);
-}
-
 void CPU::SetFlag(FlagBit flagBit, bool set) {
-	u8 flags = ReadFlags();
+	u8 flags = registers[CPU8BitReg::f];
 	if (set)
-		WriteFlags(flags | flagBit);
+		Write8BitReg(CPU8BitReg::f, flags | flagBit);
 	else
-		WriteFlags(flags & ~flagBit);
+		Write8BitReg(CPU8BitReg::f, flags & ~flagBit);
 }
 
 bool CPU::HasFlag(FlagBit flagBit) const {
-	u8 flags = ReadFlags();
+	u8 flags = registers[CPU8BitReg::f];
 	return (flags & flagBit) != 0;
 }
 
@@ -1099,20 +1132,20 @@ void CPU::DECSP() {
 }
 
 void CPU::DI() {
-	interruptService->IME = false;
+	interruptService.IME = false;
 	//no flags affected
     if (logger != nullptr) logger->log("DI", "", "");
 }
 
 void CPU::EI() {
-	interruptService->eiDelay = true;
+	interruptService.eiDelay = true;
 	//no flags affected
     if (logger != nullptr) logger->log("EI", "", "");
 }
 
 void CPU::HALT() {
 	isHalted = true;
-	if (!interruptService->IME && (interruptService->IE & interruptService->IF))
+	if (!interruptService.IME && (interruptService.IE & interruptService.IF))
 		haltBug = true;
 	//no flags affected
     if (logger != nullptr) logger->log("HALT", "", "");
@@ -1474,8 +1507,8 @@ void CPU::RETcc(bool condition) {
 void CPU::RETI() {
 	RET();
 
-	//TODO check if has same bug of EI
-	interruptService->IME = true;
+	//TODO check if this has same bug of EI
+	interruptService.IME = true;
 
 	//no flags affected
     if (logger != nullptr) logger->log("RETI", "", "");
@@ -1790,7 +1823,6 @@ void CPU::SRLHL() {
 
 void CPU::STOP() {
     //2 bytes? 0 cycles?
-    //TODO Enter CPU very low power mode. Also used to switch between double and normal speed CPU modes in GBC.
     u8 key1 = mmu.Read(0xFF4D);
     if ((key1 & 0x01) == 1) {
         if (isDoubleSpeedEnabled) {

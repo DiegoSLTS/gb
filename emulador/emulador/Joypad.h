@@ -2,11 +2,11 @@
 
 #include "IAddressable.h"
 
-class MMU;
+class InterruptServiceRoutine;
 
 class Joypad : public IAddressable {
 public:
-    Joypad(MMU& mmu);
+    Joypad(InterruptServiceRoutine& interruptService);
     virtual ~Joypad();
 
 	void Update();
@@ -15,7 +15,7 @@ public:
 	virtual void Write(u8 value, u16 address) override;
 
 private:
-    MMU& mmu;
+	InterruptServiceRoutine& interruptService;
 
     u8 JOYP = 0xFF; //0xFF00
 };

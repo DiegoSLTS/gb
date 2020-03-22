@@ -1,28 +1,18 @@
-#include <fstream>
 #include <iostream>
-#include <bitset>
 #include <chrono>
 #include <SFML/Audio.hpp>
 
 #include "Types.h"
 #include "GameBoy.h"
+#include "CustomAudioStream.h"
+#include "Roms.h"
 
-#include "Window.h"
 #include "GameWindow.h"
 #include "TileViewer.h"
 #include "TileMapViewer.h"
 #include "SpritesViewer.h"
 #include "SoundViewer.h"
 #include "StateViewer.h"
-
-#include "Roms.h"
-
-#include "CustomAudioStream.h"
-
-void printCPUFlags(const CPU& cpu) {
-	std::bitset<8> flags(cpu.Read8BitReg(CPU8BitReg::f));
-	std::cout << "flags: 0b" << flags << std::endl;
-}
 
 bool isLittleEndian() {
 	u8 t8[2] = { 0x1, 0x0 };
@@ -38,7 +28,6 @@ int main(int argc, char *argv[]) {
 	std::string romName;
 
 	if (argc > 1) {
-		//TODO validate path
 		romPath = argv[1];
 		size_t slashPosition = romPath.find_last_of("/");
 		romDir = romPath.substr(0, slashPosition + 1);
@@ -46,7 +35,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
 	} else {
 		romDir = "D:/Programacion/gb/roms/";
-		romName = Games::CGB_ALADDIN;
+		romName = Games::METROID_II_RETURN_OF_SAMUS;
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
@@ -55,47 +44,50 @@ int main(int argc, char *argv[]) {
     
     sf::Vector2i p(50, 50);
 	GameWindow gameWindow(160, 144, "Game", p, gameBoy.gpu);
-	
     gameBoy.gpu.gameWindow = &gameWindow;
 
     p.x = 385;
     p.y = 50;
 	TileViewer tilesWindow(128, 192, "Tiles", p, gameBoy);
-    //tilesWindow.Open();
-
+    
     p.x = 1110;
     p.y = 380;
 	SpritesViewer spritesWindow(256 + 8, 256 + 16, "Sprites", p, gameBoy);
-    //spritesWindow.Open();
-
+    
     p.x = 50;
     p.y = 380;
 	TileMapViewer tileMap0Window(256, 256, "Tile map 0", p, gameBoy, 0);
-    //tileMap0Window.Open();
-
+    
     p.x = 580;
     p.y = 380;
 	TileMapViewer tileMap1Window(256, 256, "Tile map 1", p, gameBoy, 1);
-    //tileMap1Window.Open();
-
+    
     p.x = 50;
     p.y = 380;
     SoundViewer soundWindow(735, 128, "Sound", p, gameBoy.audio);
 
+	bool openViewersOnLaunch = false;
+	if (openViewersOnLaunch) {
+		tilesWindow.Open();
+		spritesWindow.Open();
+		tileMap0Window.Open();
+		tileMap1Window.Open();
+	}
+
+	// Used only when not syncing emulation with audio
+	constexpr u16 SamplesSize = 735;
+	sf::Int16 samples[SamplesSize] = { 0 };
+	u32 sampleIndex = 0;
+	sf::SoundBuffer Buffer;
+	sf::Sound Sound;
+
+	u16 framesCount = 0;
+	auto previousFPSTime = std::chrono::system_clock::now();
+
     CustomAudioStream audioStream(gameBoy);
     if (gameBoy.syncWithAudio)
         audioStream.play();
-
-    u16 framesCount = 0;
-    auto previousFPSTime = std::chrono::system_clock::now();
-
-    // Used only when not syncing emulation with audio
-    constexpr u16 Samples_Size = 735;
-    sf::Int16 samples[Samples_Size] = { 0 };
-    u32 sampleIndex = 0;
-    sf::SoundBuffer Buffer;
-    sf::Sound Sound;
-
+	    
 	while (gameWindow.IsOpen()) {
         if (!gameBoy.syncWithAudio) {
             gameBoy.MainLoop();
@@ -104,8 +96,8 @@ int main(int argc, char *argv[]) {
                 samples[sampleIndex] = gameBoy.audio.sample;
                 sampleIndex++;
 
-                if (sampleIndex == Samples_Size) {
-                    Buffer.loadFromSamples(samples, Samples_Size, 1, 44100);
+                if (sampleIndex == SamplesSize) {
+                    Buffer.loadFromSamples(samples, SamplesSize, 1, 44100);
                     Sound.setBuffer(Buffer);
                     Sound.play();
                     sampleIndex = 0;
@@ -113,7 +105,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (gameBoy.IsPaused() || gameBoy.frameFinished) {
+        if (gameBoy.isPaused || gameBoy.frameFinished) {
             gameWindow.Update();
             tilesWindow.Update();
             tileMap0Window.Update();
@@ -147,10 +139,7 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     else if (event.key.code == sf::Keyboard::P) {
-                        if (gameBoy.IsPaused())
-                            gameBoy.Resume();
-                        else
-                            gameBoy.Pause();
+						gameBoy.isPaused = !gameBoy.isPaused;
                     }
                     else if (event.key.code == sf::Keyboard::R) {
                         gameBoy.Reset();
