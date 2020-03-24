@@ -13,6 +13,8 @@ public:
 
 	void Update();
 
+	void ToggleBackground();
+
 private:
 	GameBoy& gameBoy;
 
@@ -21,4 +23,6 @@ private:
     bool isCGB = false;
 	LCDC_t& LCDC;
 	u8* oam = nullptr;
+
+	u8 clearColor = 0x00;
 };

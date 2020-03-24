@@ -1,15 +1,15 @@
 #pragma once
 
+#include "Types.h"
 #include "Window.h"
-#include <SFML\System.hpp>
 
+class GameBoy;
 class CPU;
 class GPU;
-class MMU;
 
 class StateViewer : public Window {
 public:
-	StateViewer(CPU& Cpu, GPU& Gpu, MMU& Mmu);
+	StateViewer(GameBoy& gameBoy);
 	virtual ~StateViewer();
 
 	void Update();
@@ -17,14 +17,10 @@ public:
 private:
 	CPU& cpu;
 	GPU& gpu;
-	MMU& mmu;
 
 	sf::Font font;
 
-	sf::Text labelAF;
-	sf::Text labelBC;
-	sf::Text labelDE;
-	sf::Text labelHL;
+	// cpu
 	sf::Text labelPC;
 	sf::Text labelSP;
 
@@ -35,6 +31,38 @@ private:
 	sf::Text valuePC;
 	sf::Text valueSP;
 
+	// gpu
+	sf::Text labelLCDC;
+	sf::Text labelLCDStat;
+	sf::Text labelLY;
+	sf::Text labelLYC;
+	sf::Text labelSCX;
+	sf::Text labelSCY;
+	sf::Text labelWX;
+	sf::Text labelWY;
+	sf::Text labelBGPI;
+	sf::Text labelOBPI;
+	sf::Text labelBGP;
+	sf::Text labelOBP0;
+	sf::Text labelOBP1;
+
+	sf::Text valueLCDC;
+	sf::Text valueLCDStat;
+	sf::Text valueLY;
+	sf::Text valueLYC;
+	sf::Text valueSCX;
+	sf::Text valueSCY;
+	sf::Text valueWX;
+	sf::Text valueWY;
+	sf::Text valueBGPI;
+	sf::Text valueOBPI;
+	sf::Text valueBGP;
+	sf::Text valueOBP0;
+	sf::Text valueOBP1;
+
 	void SetupLabel(sf::Text& label, const std::string& text, float x, float y);
 	void SetupValue(sf::Text& value, float x, float y);
+
+	std::string ToHex(u8 value);
+	std::string ToHex(u16 value);
 };

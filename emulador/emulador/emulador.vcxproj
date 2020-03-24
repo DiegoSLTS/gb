@@ -137,6 +137,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MBC.cpp" />
     <ClCompile Include="MMU.cpp" />
+    <ClCompile Include="PalettesViewer.cpp" />
     <ClCompile Include="RomParser.cpp" />
     <ClCompile Include="SerialDataTransfer.cpp" />
     <ClCompile Include="SoundViewer.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MBC.h" />
     <ClInclude Include="MMU.h" />
+    <ClInclude Include="PalettesViewer.h" />
     <ClInclude Include="RomParser.h" />
     <ClInclude Include="Roms.h" />
     <ClInclude Include="SerialDataTransfer.h" />

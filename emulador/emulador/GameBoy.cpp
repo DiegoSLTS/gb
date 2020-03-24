@@ -68,6 +68,12 @@ void GameBoy::MainLoop() {
     frameFinished = gpu.Step(lastOpCycles * 4, cpu.IsDoubleSpeedEnabled());
     timer.Step(lastOpCycles * 4);
     sampleGenerated = audio.Step(lastOpCycles, cpu.IsDoubleSpeedEnabled());
+
+	if (stepsToEmulate > 0) {
+		stepsToEmulate--;
+		if (stepsToEmulate == 0)
+			isPaused = true;
+	}
 }
 
 void GameBoy::LoadState() {

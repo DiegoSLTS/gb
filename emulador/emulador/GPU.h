@@ -124,6 +124,8 @@ public:
 
 	LCDC_t& GetLCDCRef();
 	u8* GetOAMPtr();
+	u8* GetBGPPtr();
+	u8* GetOBPPtr();
 
 private:
 	MMU& mmu;

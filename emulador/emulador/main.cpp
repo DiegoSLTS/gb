@@ -13,6 +13,7 @@
 #include "SpritesViewer.h"
 #include "SoundViewer.h"
 #include "StateViewer.h"
+#include "PalettesViewer.h"
 
 bool isLittleEndian() {
 	u8 t8[2] = { 0x1, 0x0 };
@@ -35,7 +36,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
 	} else {
 		romDir = "D:/Programacion/gb/roms/";
-		romName = Games::METROID_II_RETURN_OF_SAMUS;
+		romName = Games::CGB_LEGEND_OF_ZELDA_LINKS_AWAKENING_DX;
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
@@ -66,12 +67,18 @@ int main(int argc, char *argv[]) {
     p.y = 380;
     SoundViewer soundWindow(735, 128, "Sound", p, gameBoy.audio);
 
+	StateViewer stateWindow(gameBoy);
+
+	PalettesViewer palettesWindow(gameBoy);
+
 	bool openViewersOnLaunch = false;
 	if (openViewersOnLaunch) {
 		tilesWindow.Open();
 		spritesWindow.Open();
 		tileMap0Window.Open();
 		tileMap1Window.Open();
+		stateWindow.Open();
+		palettesWindow.Open();
 	}
 
 	// Used only when not syncing emulation with audio
@@ -89,6 +96,13 @@ int main(int argc, char *argv[]) {
         audioStream.play();
 	    
 	while (gameWindow.IsOpen()) {
+		/*if (gameBoy.cpu.pc == 0x100) {
+			gameBoy.isPaused = true;
+			stateWindow.Open();
+			palettesWindow.Open();
+			gameWindow.GetFocus();
+		}*/
+
         if (!gameBoy.syncWithAudio) {
             gameBoy.MainLoop();
 
@@ -111,6 +125,8 @@ int main(int argc, char *argv[]) {
             tileMap0Window.Update();
             tileMap1Window.Update();
             spritesWindow.Update();
+			stateWindow.Update();
+			palettesWindow.Update();
 
             sf::Event event;
             while (gameWindow.PollEvent(event)) {
@@ -120,22 +136,24 @@ int main(int argc, char *argv[]) {
                     if (event.key.code == sf::Keyboard::Escape) {
                         gameWindow.Close();
                     }
-                    else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num5) {
+                    else if (event.key.code >= sf::Keyboard::Num1 && event.key.code <= sf::Keyboard::Num7) {
                         switch (event.key.code) {
                         case sf::Keyboard::Num1: tilesWindow.Toggle(); break;
                         case sf::Keyboard::Num2: tileMap0Window.Toggle(); break;
                         case sf::Keyboard::Num3: tileMap1Window.Toggle(); break;
                         case sf::Keyboard::Num4: spritesWindow.Toggle(); break;
                         case sf::Keyboard::Num5: soundWindow.Toggle(); break;
+						case sf::Keyboard::Num6: stateWindow.Toggle(); break;
+						case sf::Keyboard::Num7: palettesWindow.Toggle(); break;
                         }
                         gameWindow.GetFocus();
                     }
-                    else if (event.key.code >= sf::Keyboard::Num6 && event.key.code <= sf::Keyboard::Num9) {
+                    else if (event.key.code >= sf::Keyboard::Num8 && event.key.code <= sf::Keyboard::Num0) {
                         switch (event.key.code) {
-                        case sf::Keyboard::Num6: gameBoy.audio.ToggleChannel(1); break;
-                        case sf::Keyboard::Num7: gameBoy.audio.ToggleChannel(2); break;
-                        case sf::Keyboard::Num8: gameBoy.audio.ToggleChannel(3); break;
-                        case sf::Keyboard::Num9: gameBoy.audio.ToggleChannel(4); break;
+                        case sf::Keyboard::Num8: gameBoy.audio.ToggleChannel(1); break;
+                        case sf::Keyboard::Num9: gameBoy.audio.ToggleChannel(2); break;
+                        case sf::Keyboard::Num0: gameBoy.audio.ToggleChannel(3); break;
+                        //case sf::Keyboard::Num0: gameBoy.audio.ToggleChannel(4); break;
                         }
                     }
                     else if (event.key.code == sf::Keyboard::P) {
@@ -148,6 +166,18 @@ int main(int argc, char *argv[]) {
                     else if (event.key.code == sf::Keyboard::L) {
                         gameBoy.ToggleLogging();
                     }
+					else if (event.key.code == sf::Keyboard::Q) {
+						gameBoy.isPaused = false;
+						gameBoy.stepsToEmulate = 1;
+					}
+					else if (event.key.code == sf::Keyboard::W) {
+						gameBoy.isPaused = false;
+						gameBoy.stepsToEmulate = 10;
+					}
+					else if (event.key.code == sf::Keyboard::E) {
+						gameBoy.isPaused = false;
+						gameBoy.stepsToEmulate = 100;
+					}
                 }
             }
 
@@ -197,6 +227,17 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+
+			while (spritesWindow.PollEvent(event)) {
+				if (event.type == sf::Event::Closed)
+					spritesWindow.Close();
+				else if (event.type == sf::Event::KeyPressed) {
+					if (event.key.code == sf::Keyboard::Escape)
+						spritesWindow.Close();
+					else if (event.key.code == sf::Keyboard::End)
+						spritesWindow.ToggleBackground();
+				}
+			}
 
             framesCount++;
             auto currentTime = std::chrono::system_clock::now();

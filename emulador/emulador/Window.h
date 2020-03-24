@@ -8,7 +8,7 @@
 class Window {
 public:
 
-	Window(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i Position, bool Open = true);
+	Window(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i Position, bool Open = true, bool scale = true);
 	virtual ~Window();
 
     bool IsOpen() const;
@@ -32,6 +32,8 @@ protected:
     sf::Sprite screenSprite;
 
     sf::RenderWindow* renderWindow;
+
+	bool scale = true;
 
 private:
     void Initialize();

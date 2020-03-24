@@ -58,23 +58,24 @@ public:
 	u8 Step();
 
 	u16 pc = 0;
+	u16 sp = 0;
     bool IsDoubleSpeedEnabled() const;
 
 	u8 Read8BitReg(CPU8BitReg reg) const;
-	void Push16(u16 value);
-
+	u16 Read16BitReg(CPU16BitReg reg) const;
+	
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
     
     Logger* logger = nullptr;
 
+	std::string reg8ToString(CPU8BitReg reg);
+	std::string reg16ToString(CPU16BitReg reg);
+
 private:
     std::string r8Names[8] = { "F","A","C","B","E","D","L","H" };
     std::string r16Names[4] = { "AF","BC","DE","HL" };
-
-    std::string reg8ToString(CPU8BitReg reg);
-    std::string reg16ToString(CPU16BitReg reg);
-
+	
 	MMU& mmu;
     bool isDoubleSpeedEnabled = false;
 	InterruptServiceRoutine& interruptService;
@@ -84,15 +85,12 @@ private:
 
 	// registers
 	u8 registers[8] = { 0 };
-	u16 sp = 0;
 
 	bool haltBug = false;
 
 	u8 ReadOpCode();
 	void CallOpCode(u8 opCode);
 	void CallCBOpCode(u8 opCode);
-
-	u16 Read16BitReg(CPU16BitReg reg) const;
 
 	void Write8BitReg(CPU8BitReg reg, u8 value);
 	void Write16BitReg(CPU16BitReg reg, u16 value);
@@ -104,6 +102,7 @@ private:
 	void WriteHL(u16 value);
 
 	u16 Pop16();
+	void Push16(u16 value);
 	// registers
 
 	// memory

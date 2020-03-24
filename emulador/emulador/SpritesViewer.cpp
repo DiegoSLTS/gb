@@ -17,7 +17,7 @@ void SpritesViewer::Update() {
     if (!IsOpen())
         return;
 
-	memset(screenArray, 0, width * height * 4);
+	memset(screenArray, clearColor, width * height * 4);
 	for (u8 i = 0; i < 40; i++)
 		DrawSprite(i);
 
@@ -64,4 +64,8 @@ void SpritesViewer::DrawSprite(u8 index) {
             }
         }
 	}
+}
+
+void SpritesViewer::ToggleBackground() {
+	clearColor = clearColor == 0x00 ? 0xFF : 0x00;
 }

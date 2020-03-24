@@ -504,3 +504,11 @@ LCDC_t& GPU::GetLCDCRef() {
 u8* GPU::GetOAMPtr() {
 	return oam;
 }
+
+u8* GPU::GetBGPPtr() {
+	return BGPMemory;
+}
+
+u8* GPU::GetOBPPtr() {
+	return OBPMemory;
+}

@@ -1,6 +1,7 @@
 #include "Window.h"
 
-Window::Window(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i Position, bool Open) : width(Width), height(Height), title(Title), position(Position) {
+Window::Window(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i Position, bool Open, bool scale)
+	: width(Width), height(Height), title(Title), position(Position), scale(scale) {
 	screenArray = new sf::Uint8[width * height * 4];
 
 	screenTexture.create(width, height);
@@ -62,8 +63,10 @@ bool Window::PollEvent(sf::Event& event) {
 
 void Window::Initialize() {
     renderWindow->setPosition(position);
-    sf::Vector2u s(width * 2, height * 2);
-    renderWindow->setSize(s);
+	if (scale) {
+		sf::Vector2u s(width * 2, height * 2);
+		renderWindow->setSize(s);
+	}
     renderWindow->setVerticalSyncEnabled(false);
 }
 

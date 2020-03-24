@@ -42,6 +42,7 @@ public:
 	bool IsCGB = false;
 
 	bool isPaused = false;
+	u8 stepsToEmulate = 0;
     void Reset();
 
     void ToggleLogging();
