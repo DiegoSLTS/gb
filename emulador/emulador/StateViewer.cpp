@@ -54,6 +54,9 @@ StateViewer::StateViewer(GameBoy& gameBoy) : Window(250, 144, "State", {400,50},
 StateViewer::~StateViewer() {}
 
 void StateViewer::Update() {
+    if (!IsOpen())
+        return;
+
 	valueAF.setString(cpu.reg16ToString(CPU16BitReg::af));
 	valueBC.setString(cpu.reg16ToString(CPU16BitReg::bc));
 	valueDE.setString(cpu.reg16ToString(CPU16BitReg::de));

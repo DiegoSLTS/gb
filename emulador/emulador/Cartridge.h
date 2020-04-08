@@ -22,9 +22,10 @@ public:
 
     u8* GetRomPtr() { return mbc->GetRomPtr(); }
 
+    MBC* mbc = nullptr;
+
 private:
 	RomHeader header;
-	MBC* mbc = nullptr;
 	bool hasBattery = false;
 	std::string romFullPath;
 	std::string romName;

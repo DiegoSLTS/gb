@@ -12,6 +12,7 @@ public:
 
     void LoadBootRom(bool isCGB);
 
+    IAddressable* cpu = nullptr;
 	IAddressable* cartridge = nullptr;
 	IAddressable* joypad = nullptr;
 	IAddressable* gpu = nullptr;

@@ -60,6 +60,9 @@ void SoundViewer::DecrementFramesPerScreen() {
 }
 
 void SoundViewer::Update() {
+    if (!IsOpen())
+        return;
+
     audioStream.seekg(frameIndex * 735 * sizeof(sf::Int16));
     audioStream.read((char*)samples, 735 * framesPerScreen * sizeof(sf::Int16));
 

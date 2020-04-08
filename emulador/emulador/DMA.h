@@ -5,6 +5,7 @@
 // DMA: https://gekkio.fi/files/gb-docs/gbctr.pdf
 
 class MMU;
+class Logger;
 
 class DMA : public IAddressable, public IState {
 public:
@@ -20,6 +21,8 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
 
+    bool log = false;
+    
 private:
     MMU& mmu;
 	u8* oam = nullptr;
@@ -31,7 +34,6 @@ private:
 	u8 HDMA2 = 0; // 0xFF52
 	u8 HDMA3 = 0; // 0xFF53
 	u8 HDMA4 = 0; // 0xFF54
-	u8 HDMA5 = 0; // 0xFF55
 
 	u16 hdmaSource = 0;
 	u16 hdmaDestination = 0;

@@ -3,8 +3,11 @@
 #include <sstream>
 #include <iomanip>
 
+Logger* Logger::instance = nullptr;
+
 Logger::Logger() {
     logFile.open("logs.txt", std::ios_base::out);
+    Logger::instance = this;
 }
 
 Logger::~Logger() {
@@ -15,11 +18,9 @@ void Logger::log(u16 address) {
     logFile << u16ToHex(address) << ": ";
 }
 
-void Logger::log(const std::string& opCode, const std::string& args, const std::string& info) {
-    logFile << opCode;
-
+void Logger::log(const std::string& args, const std::string& info) {
     if (args.length() > 0)
-        logFile << " " << args;
+        logFile << args;
 
     if (info.length() > 0)
         logFile << " ; " << info;

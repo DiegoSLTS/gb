@@ -6,8 +6,9 @@ GameBoy::GameBoy(const std::string& RomPath)
 
 	// TODO load settings from a settings file
 	EmulationModeSetting emulationModeSetting = EmulationModeSetting::Detect;
-	bool skipBios = false;
+	bool skipBios = true;
 	syncWithAudio = false;
+    bool startLogging = false;
 
 	switch (emulationModeSetting) {
 	case EmulationModeSetting::Detect:
@@ -23,6 +24,7 @@ GameBoy::GameBoy(const std::string& RomPath)
 
 	gpu.isCGB = IsCGB;
 
+    mmu.cpu = &cpu;
     mmu.cartridge = &cartridge;
     mmu.interruptServiceRoutine = &interruptService;
     mmu.gpu = &gpu;
@@ -30,25 +32,26 @@ GameBoy::GameBoy(const std::string& RomPath)
     mmu.joypad = &joypad;
     mmu.serial = &serial;
     mmu.audio = &audio;
+    
+    /*RomParser parser;
+    parser.ParseCartridgeROM(cartridge.GetRomPtr(), 0x200);
+    parser.PrintCodeToFile();*/
 
     if (skipBios)
         LoadState();
 	else
 		mmu.LoadBootRom(IsCGB);
+
+    if (startLogging) {
+        cpu.log = true;
+        gpu.log = true;
+        gpu.dma.log = true;
+        cartridge.mbc->log = true;
+        joypad.log = true;
+    }
 }
 
 GameBoy::~GameBoy() {}
-
-void GameBoy::ToggleLogging() {
-    if (isLogging) {
-        gpu.logger = nullptr;
-        cpu.logger = nullptr;
-    } else {
-        gpu.logger = &logger;
-        cpu.logger = &logger;
-    }
-    isLogging = !isLogging;
-}
 
 void GameBoy::Reset() {
     cpu.pc = 0;
@@ -61,8 +64,8 @@ void GameBoy::MainLoop() {
         return;
 
 	// boot rom finished, entry point of game code
-	if (cpu.pc == 0x100 && !skipBios)
-		SaveState();
+	//if (cpu.pc == 0x100 && !skipBios)
+	//	SaveState();
 
     u8 lastOpCycles = cpu.Step();
     frameFinished = gpu.Step(lastOpCycles * 4, cpu.IsDoubleSpeedEnabled());

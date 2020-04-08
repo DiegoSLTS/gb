@@ -61,6 +61,9 @@ PalettesViewer::~PalettesViewer() {
 }
 
 void PalettesViewer::Update() {
+    if (!IsOpen())
+        return;
+
 	renderWindow->clear();
 
 	valueBGP.setString(ToHex(gpu.Read(0xFF47)));

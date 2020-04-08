@@ -51,12 +51,12 @@ u8 MMU::Read(u16 address) {
 		if (address < 0xD000)
 			return internalRAM[address - 0xC000];
 		else
-			return internalRAM[address - 0xC000 + bankNIndex * 0x1000];
+			return internalRAM[address - 0xD000 + bankNIndex * 0x1000];
 	} else if (address < 0xFE00) {
 		if (address < 0xF000)
 			return internalRAM[address - 0xE000];
 		else
-			return internalRAM[address - 0xE000 + bankNIndex * 0x1000];
+			return internalRAM[address - 0xF000 + bankNIndex * 0x1000];
 	} else if (address < 0xFEA0)
 		return gpu->Read(address);
 	else if (address < 0xFF00)
@@ -89,12 +89,12 @@ void MMU::Write(u16 address, u8 value) {
 		if (address < 0xD000)
 			internalRAM[address - 0xC000] = value;
 		else
-            internalRAM[address - 0xC000 + bankNIndex * 0x1000] = value;
+            internalRAM[address - 0xD000 + bankNIndex * 0x1000] = value;
 	} else if (address < 0xFE00) {
 		if (address < 0xF000)
 			internalRAM[address - 0xE000] = value;
 		else
-            internalRAM[address - 0xE000 + bankNIndex * 0x1000] = value;
+            internalRAM[address - 0xF000 + bankNIndex * 0x1000] = value;
 	}else if (address < 0xFEA0)
 		gpu->Write(value, address);
 	else if (address < 0xFF00) { // unused
@@ -111,10 +111,13 @@ void MMU::Write(u16 address, u8 value) {
                 return;
 
             if (address == 0xFF70) {
-                u8 bankIndex = value & 0x03;
+                u8 bankIndex = value & 0x07;
                 bankNIndex = bankIndex == 0 ? 1 : bankIndex;
                 // TODO confirm if writing a 0 should be read as 0 or as 1 too
-                value |= bankNIndex;
+                value |= 0xF8;
+            } else if (address == 0xFF50) {
+                if ((ioPorts[0x50] & 0x01) == 0x01)
+                    return;
             }
             
             ioPorts[address - 0xFF00] = value;
@@ -140,6 +143,8 @@ IAddressable* MMU::GetIOPortAddressable(u16 address) {
         return audio;
 
 	switch (address) {
+    case 0xFF4D: // cpu
+        return cpu;
 	case 0xFF40:
 	case 0xFF41:
 	case 0xFF42:

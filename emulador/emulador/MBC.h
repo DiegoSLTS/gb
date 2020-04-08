@@ -45,6 +45,8 @@ public:
 
     u8* GetRomPtr() { return rom; }
 
+    bool log = false;
+
 protected:
 	u8* rom = nullptr;
 	u8* ram = nullptr;
@@ -161,5 +163,5 @@ private:
 	u8 ramBank = 0;
 	unsigned int romBankOffset = 16 * 1024;
 	unsigned int ramBankOffset = 0;
-	u8 ramEnabled = 0; // 0x00 disabled, 0x0A enabled
+	bool ramEnabled = false;
 };

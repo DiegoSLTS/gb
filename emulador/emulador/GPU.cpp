@@ -26,7 +26,7 @@ u8 GPU::Read(u16 address) {
 	case 0xFF43:
 		return SCX;
 	case 0xFF44:
-		return LCDC.displayOn ? LY : 0x00;
+		return LY;
 	case 0xFF45:
 		return LYC;
 	case 0xFF47:
@@ -64,15 +64,19 @@ u8 GPU::Read(u16 address) {
 
 void GPU::Write(u8 value, u16 address) {
 	if (address >= 0x8000 && address < 0xA000) {
-		if (VRAMBank == 0)
-			videoRAM0[address - 0x8000] = value;
-		else
-			videoRAM1[address - 0x8000] = value;
+        if (VRAMBank == 0) {
+            videoRAM0[address - 0x8000] = value;
+            if (log) Logger::instance->log("VRAM0[" + Logger::u16ToHex(address) + "] = " + Logger::u8ToHex(value) + "\n");
+        } else {
+            videoRAM1[address - 0x8000] = value;
+            if (log) Logger::instance->log("VRAM1[" + Logger::u16ToHex(address) + "] = " + Logger::u8ToHex(value) + "\n");
+        }
 		return;
 	}
 
 	if (address >= 0xFE00 && address < 0xFEA0) {
 		oam[address - 0xFE00] = value;
+        if (log) Logger::instance->log("oam[" + Logger::u16ToHex(address) + "] = " + Logger::u8ToHex(value) + "\n");
 		return;
 	}
 
@@ -86,36 +90,56 @@ void GPU::Write(u8 value, u16 address) {
 			mode = GPUMode::OAMAccess;
 			modeCycles = 0;
 		}
-
+        if (log) Logger::instance->log("LCDC = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LCDC.v) + "\n");
 		break;
 	}
 	case 0xFF41:
 		LCDStat.v = value;
 		LCDStat.mode = mode;
+        if (log) Logger::instance->log("LCDStat = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LCDStat.v) + "\n");
 		break;
 	case 0xFF42:
-		SCY = value; break;
+		SCY = value;
+        if (log) Logger::instance->log("SCY = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(SCY) + "\n"); 
+        break;
 	case 0xFF43:
-		SCX = value; break;
+		SCX = value;
+        if (log) Logger::instance->log("SCX = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(SCX) + "\n"); 
+        break;
 	case 0xFF44:
-		LY = 0; break;
+		LY = 0;
+        if (log) Logger::instance->log("LY = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LY) + "\n"); 
+        break;
 	case 0xFF45:
-		LYC = value; break;
+		LYC = value;
+        if (log) Logger::instance->log("LYC = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LYC) + "\n"); 
+        break;
 	case 0xFF47:
 		BGP = value;
+        if (log) Logger::instance->log("BGP = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(BGP) + "\n");
 		break;
 	case 0xFF48:
-		OBP0 = value; break;
+		OBP0 = value;
+        if (log) Logger::instance->log("OBP0 = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(OBP0) + "\n"); 
+        break;
 	case 0xFF49:
-		OBP1 = value; break;
+		OBP1 = value;
+        if (log) Logger::instance->log("OBP1 = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(OBP1) + "\n"); 
+        break;
 	case 0xFF4A:
-		WY = value; break;
+		WY = value;
+        if (log) Logger::instance->log("WY = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(WY) + "\n");
+        break;
 	case 0xFF4B:
-		WX = value; break;
+		WX = value;
+        if (log) Logger::instance->log("WX = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(WX) + "\n"); 
+        break;
 	case 0xFF68:
-		BGPI = value & 0xBF; break;
+		BGPI = value & 0xBF;
+        if (log) Logger::instance->log("BGPI = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(BGPI) + "\n");
+        break;
 	case 0xFF69:
-		if (logger != nullptr) logger->log("-- palette " + std::to_string((unsigned int)(BGPI & 0x3F)) + ": " + std::to_string((unsigned int)value) + "\n");
+		if (log) Logger::instance->log("BG palette " + Logger::u8ToHex(BGPI & 0x3F) + ": " + Logger::u8ToHex(value) + "\n");
 		BGPMemory[BGPI & 0x3F] = value;
 		if (BGPI & 0x80) {
 			BGPI++;
@@ -123,8 +147,11 @@ void GPU::Write(u8 value, u16 address) {
 		}
 		break;
 	case 0xFF6A:
-		OBPI = value & 0xBF; break;
+		OBPI = value & 0xBF;
+        if (log) Logger::instance->log("OBPI = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(OBPI) + "\n");
+        break;
 	case 0xFF6B:
+        if (log) Logger::instance->log("OBJ palette " + Logger::u8ToHex(OBPI & 0x3F) + ": " + Logger::u8ToHex(value) + "\n");
 		OBPMemory[OBPI & 0x3F] = value;
 		if (OBPI & 0x80) {
 			OBPI++;
@@ -132,7 +159,9 @@ void GPU::Write(u8 value, u16 address) {
 		}
 		break;
 	case 0xFF4F:
-		VRAMBank = (value & 0x01); break;
+		VRAMBank = (value & 0x01);
+        if (log) Logger::instance->log("VRAMBank = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(VRAMBank) + "\n");
+        break;
 	case 0xFF46: // dma
 	case 0xFF51: // hdma - CGB
 	case 0xFF52:
@@ -141,7 +170,9 @@ void GPU::Write(u8 value, u16 address) {
 	case 0xFF55:
 		dma.Write(value, address); break;
 	case 0xFF4C:
-		FF4C = value; break;
+		FF4C = value;
+        if (log) Logger::instance->log("FF4C = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(FF4C) + "\n");
+        break;
 	}
 }
 
@@ -213,9 +244,9 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 	}
 	case GPUMode::VRAMAccess: {
 		if (modeCycles >= 172) {
-			u8 currentLine = LY;
-			if (currentLine < 144 && LCDC.displayOn)
-				DrawLine(currentLine);
+            u8 currentLine = LY;
+            if (currentLine < 144 && LCDC.displayOn)
+                DrawLine(currentLine);
 
 			SetMode(GPUMode::HBlank);
 			modeCycles -= 172;
@@ -226,21 +257,35 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 	case GPUMode::HBlank: {
 		if (modeCycles >= 204) {
 			u8 newLine = OnLineFinished();
-
+            
 			SetMode(newLine > 143 ? GPUMode::VBlank : GPUMode::OAMAccess);
 			modeCycles -= 204;
-			if (newLine == 144 && LCDC.displayOn)
-				frameDrawn = true;
+            if (newLine == 144 && LCDC.displayOn)
+                frameDrawn = true;
 		}
 		break;
 	}
 	case GPUMode::VBlank: {
 		if (modeCycles >= 456) {
 			modeCycles -= 456;
-			u8 newLine = OnLineFinished();
 
-			if (newLine == 0) // frame finished
-				SetMode(GPUMode::OAMAccess);
+            // Line 153 is considered line 0 by the LCD driver, but then there's also a line 0
+            // once VBlank finishes and the new frame begins.
+            // So, VBlank runs from line 144 through 152, then a line 0, then that line and the frame
+            // finish and it's line 0 again and the new frame starts.
+            // https://forums.nesdev.com/viewtopic.php?t=13727#p162336
+            // This fixes Aladdin and lots of games using HiColor mode
+            
+            // For every line that finishes during VBlank, I just increment it's value. OnLineFinished
+            // takes care of wrapping after line 152, so it'll be 0 again.
+            // If the current line is 0, since this is VBlank, it means the fake line 0 is finishing,
+            // and that means the frame finished. The line is set to 0 again to trigger the LYC interrupt
+            // if necessary
+            if (LY == 0) {
+                SetCurrentLine(0);
+                SetMode(GPUMode::OAMAccess);
+            } else
+                OnLineFinished();
 		}
 		break;
 	}
@@ -252,45 +297,45 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 void GPU::SetMode(GPUMode newMode) {
 	mode = newMode;
 
-	if (mode == GPUMode::VBlank)
-		interruptService.SetInterruptFlag(InterruptFlag::VBlank);
+    if (mode == GPUMode::VBlank && LCDC.displayOn) {
+        interruptService.SetInterruptFlag(InterruptFlag::VBlank);
 
-	if ((mode == GPUMode::OAMAccess && LCDStat.oamInterruptEnabled) ||
+        // Apparently, when VBlank mode starts the LCD driver still fires the OAM-STAT interrupt if enabled
+        // as if OAM mode has started
+        // https://forums.nesdev.com/viewtopic.php?t=13727
+        if (LCDStat.oamInterruptEnabled)
+            interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
+    }
+
+	if (LCDC.displayOn && ((mode == GPUMode::OAMAccess && LCDStat.oamInterruptEnabled) ||
 		(mode == GPUMode::VBlank && LCDStat.vBlankInterruptEnabled) ||
-		(mode == GPUMode::HBlank && LCDStat.hBlankInterruptEnabled))
+		(mode == GPUMode::HBlank && LCDStat.hBlankInterruptEnabled)))
 		interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
 
 	LCDStat.mode = mode;
 
-	if (logger != nullptr) logger->log("-- mode: " + std::to_string((unsigned int)mode) + "\n");
+    if (log) Logger::instance->log("mode: " + std::to_string((unsigned int)mode) + "\n");
 }
 
 void GPU::SetCurrentLine(u8 newLine) {
 	LY = newLine;
 	LCDStat.lyc = LYC == newLine;
 
-	if (LCDStat.lycInterruptEnable && LCDStat.lyc)
+	if (LCDStat.lycInterruptEnable && LCDStat.lyc && LCDC.displayOn)
 		interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
 
-	if (logger != nullptr) logger->log("-- line: " + std::to_string((unsigned int)LY) + "\n");
+	if (log) Logger::instance->log("line: " + std::to_string((unsigned int)LY) + "\n");
 }
 
 u8 GPU::OnLineFinished() {
-	u8 line = LY == 153 ? 0 : LY + 1;
+	u8 line = LY == 152 ? 0 : LY + 1;
 	SetCurrentLine(line);
 	return line;
 }
 
 void GPU::DrawLine(u8 line) {
-	/*// This fixes CGB's Aladdin HiColor images in some way, so the problem is that the palettes for lines 0 and 1 are being copied to soon? or skipped?
-	if (line <= 1)
-		return;
-	line -= 2;*/
-
-	if (logger != nullptr) logger->log("-- drawing line: " + std::to_string((unsigned int)line) + "\n");
-
-	bool drawBG = isCGB || LCDC.bgOn;
-	bool drawWIN = LCDC.winOn && (isCGB || LCDC.bgOn) && line >= WY;
+    bool drawBG = isCGB || LCDC.bgOn;
+    bool drawWIN = LCDC.winOn && (isCGB || LCDC.bgOn) && line >= WY;
 	bool drawSprites = LCDC.spritesOn;
 
 	if (drawBG)
@@ -319,10 +364,12 @@ void GPU::DrawBackground(u8 line, u8 pixelCount) {
 		u8 tileOffset = videoRAM0[address];
 		BGAttributes cgbAttributes = { videoRAM1[address] };
 
-		u8 tileLine = cgbAttributes.flipY ? 7 - line : line;
+        u16 tileAddress = LCDC.bgWinData == 0 ? 0x9000 + ((s8)tileOffset) * 16 : 0x8000 + tileOffset * 16;
+        u8 tileLine = (SCY + line) % 8;
+        if (cgbAttributes.flipY)
+            tileLine = 7 - tileLine;
+		tileAddress += tileLine * 2;
 
-		u16 tileAddress = LCDC.bgWinData == 0 ? 0x9000 + ((s8)tileOffset) * 16 : 0x8000 + tileOffset * 16;
-		tileAddress += ((SCY + tileLine) % 8) * 2;
 		u8 lowByte = ReadVRAM(tileAddress, cgbAttributes.bank);
 		u8 highByte = ReadVRAM(tileAddress + 1, cgbAttributes.bank);
 
@@ -363,10 +410,12 @@ void GPU::DrawWindow(u8 line) {
 		u8 tileOffset = videoRAM0[address];
 		BGAttributes cgbAttributes = { videoRAM1[address] };
 
-		u8 tileLine = cgbAttributes.flipY ? 7 - line : line;
-
 		u16 tileAddress = LCDC.bgWinData == 0 ? 0x9000 + ((s8)tileOffset) * 16 : 0x8000 + tileOffset * 16;
-		tileAddress += ((tileLine - WY) % 8) * 2;
+        u8 tileLine = (line - WY) % 8;
+        if (cgbAttributes.flipY)
+            tileLine = 7 - tileLine;
+        tileAddress += tileLine * 2;
+
 		u8 lowByte = ReadVRAM(tileAddress, cgbAttributes.bank);
 		u8 highByte = ReadVRAM(tileAddress + 1, cgbAttributes.bank);
 

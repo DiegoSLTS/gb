@@ -6,6 +6,44 @@
 #include <iomanip>
 #include <sstream>
 
+std::string opCodeNames[256] = {
+    "NOP", 			"LD ",		"LD ",	"INC ",		"INC ", 		"DEC ", 		"LD ", 		"RLC ", 		"LD ",	"ADD ", 	"LD ",	"DEC ", 	"INC ", 		"DEC ", 	"LD ",		"RRC A",
+    "STOP",			"LD ",		"LD ",	"INC ", 		"INC ", 		"DEC ", 		"LD ", 		"RL ", 		"JR ", 		"ADD ", 	"LD ",	"DEC ", 	"INC ",		"DEC ", 	"LD ", 		"RR ",
+    "JR NZ,", 		"LD ",		"LDI ",	"INC ", 		"INC ", 		"DEC ", 		"LD ", 		"DAA", 			"JR Z,", 		"ADD ", 	"LDI ",	"DEC ", 	"INC ", 		"DEC ", 	"LD ", 		"CPL",
+    "JR NC,", 		"LD ",		"LDD ",	"INC ", 		"INC ", 	"DEC ", 	"LD ", 	"SCF", 			"JR C,", 		"ADD ", 	"LDD ",	"DEC ", 	"INC ", 		"DEC ", 	"LD ", 		"CCF",
+    "LD ",		"LD ", 		"LD ",		"LD ", 		"LD ", 		"LD ", 		"LD ",	"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 	"LD ",		"LD ", 	"LD ",	"LD ",
+    "LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ",	"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 	"LD ", 		"LD ", 	"LD ",	"LD ",
+    "LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ",	"LD ", 		"LD ", 		"LD ", 		"LD ", 		"LD ", 	"LD ", 		"LD ", 	"LD ",	"LD ",
+    "LD ",	"LD ",	"LD ",	"LD ",	"LD ", 	"LD ",	"HALT", 		"LD ",	"LD ", 		"LD ", 		"LD ", 		"LD ", 	"LD ", 		"LD ", 	"LD ",	"LD ",
+    "ADD ", 		"ADD ", 		"ADD ", 		"ADD ", 		"ADD ", 		"ADD ", 		"ADD ",	"ADD ", 		"ADC ", 		"ADC ", 		"ADC ", 		"ADC ", 	"ADC ", 		"ADC ", 	"ADC ",	"ADC ",
+    "SUB ", 		"SUB ", 		"SUB ", 		"SUB ", 		"SUB ", 		"SUB ", 		"SUB ",	"SUB ", 		"SBC ", 		"SBC ", 		"SBC ", 		"SBC ", 	"SBC ", 		"SBC ", 	"SBC ",	"SBC ",
+    "AND ",		"AND ", 		"AND ", 		"AND ", 		"AND ", 		"AND ", 		"AND ", 	"AND ", 		"XOR ", 		"XOR ", 		"XOR ", 		"XOR ", 	"XOR ", 		"XOR ", 	"XOR ", 	"XOR ",
+    "OR ",			"OR ", 		"OR ", 		"OR ", 		"OR ", 		"OR ", 		"OR ", 		"OR ", 		"CP ", 		"CP ",			"CP ", 		"CP ", 	"CP ", 		"CP ", 	"CP ", 		"CP ",
+    "RET NZ", 		"POP ", 		"JP NZ,",		"JP ", 		"CALL NZ,", 	"PUSH ", 		"ADD ", 		"RST ", 		"RET Z", 		"RET", 			"JP Z,", 		"CB", 		"CALL Z,", 	"CALL ", 	"ADC ",		"RST ",
+    "RET NC", 		"POP ", 		"JP NC,",		"XX", 			"CALL NC,",	"PUSH ", 		"SUB ", 		"RST ", 		"RET C", 		"RETI", 		"JP C,", 		"XX", 		"CALL C,", 	"XX", 		"SBC ", 		"RST ",
+    "LDH ",	"POP ", 		"LDH ",	"XX", 			"XX", 			"PUSH ", 		"AND ", 		"RST ",		"ADD ", 	"JP ", 		"LD ", 	"XX", 		"XX", 			"XX",		"XOR ", 		"RST ",
+    "LDH ",	"POP ", 		"LDH ", 	"DI", 			"XX", 			"PUSH ",		"OR ", 		"RST ", 		"LDHL ", 	"LD ", 	"LD ",	"EI", 		"XX", 			"XX", 		"CP ", 		"RST ",
+};
+
+std::string cbOpCodeNames[256] = {
+    "RLC B", 	"RLC C", 	"RLC D", 	"RLC E", 	"RLC H", 	"RLC L", 	"RLC (HL)",		"RLC A", 	"RRC B", 	"RRC C", 	"RRC D", 	"RRC E", 	"RRC H", 	"RRC L", 	"RRC (HL)", 	"RRC A",
+    "RL B", 	"RL C", 	"RL D", 	"RL E", 	"RL H", 	"RL L", 	"RL (HL)", 		"RL A", 	"RR B", 	"RR C", 	"RR D", 	"RR E", 	"RR H", 	"RR L", 	"RR (HL)", 		"RR A",
+    "SLA B", 	"SLA C", 	"SLA D", 	"SLA E", 	"SLA H", 	"SLA L", 	"SLA (HL)",		"SLA A", 	"SRA B", 	"SRA C", 	"SRA D", 	"SRA E",	"SRA H", 	"SRA L", 	"SRA (HL)", 	"SRA A",
+    "SWAP B",	"SWAP C", 	"SWAP D", 	"SWAP E", 	"SWAP H", 	"SWAP L", 	"SWAP (HL)", 	"SWAP A", 	"SRL B", 	"SRL C", 	"SRL D", 	"SRL E",	"SRL H", 	"SRL L", 	"SRL (HL)", 	"SRL A",
+    "BIT 0,B", 	"BIT 0,C", 	"BIT 0,D", 	"BIT 0,E", 	"BIT 0,H", 	"BIT 0,L", 	"BIT 0,(HL)",	"BIT 0,A", 	"BIT 1,B", 	"BIT 1,C", 	"BIT 1,D", 	"BIT 1,E", 	"BIT 1,H", 	"BIT 1,L", 	"BIT 1,(HL)",	"BIT 1,A",
+    "BIT 2,B", 	"BIT 2,C", 	"BIT 2,D", 	"BIT 2,E", 	"BIT 2,H", 	"BIT 2,L", 	"BIT 2,(HL)",	"BIT 2,A", 	"BIT 3,B", 	"BIT 3,C", 	"BIT 3,D", 	"BIT 3,E", 	"BIT 3,H", 	"BIT 3,L", 	"BIT 3,(HL)",	"BIT 3,A",
+    "BIT 4,B", 	"BIT 4,C", 	"BIT 4,D", 	"BIT 4,E", 	"BIT 4,H", 	"BIT 4,L", 	"BIT 4,(HL)",	"BIT 4,A", 	"BIT 5,B", 	"BIT 5,C", 	"BIT 5,D", 	"BIT 5,E", 	"BIT 5,H", 	"BIT 5,L", 	"BIT 5,(HL)",	"BIT 5,A",
+    "BIT 6,B", 	"BIT 6,C", 	"BIT 6,D", 	"BIT 6,E", 	"BIT 6,H", 	"BIT 6,L", 	"BIT 6,(HL)",	"BIT 6,A", 	"BIT 7,B", 	"BIT 7,C", 	"BIT 7,D", 	"BIT 7,E", 	"BIT 7,H", 	"BIT 7,L", 	"BIT 7,(HL)",	"BIT 7,A",
+    "RES 0,B", 	"RES 0,C", 	"RES 0,D", 	"RES 0,E", 	"RES 0,H", 	"RES 0,L", 	"RES 0,(HL)",	"RES 0,A", 	"RES 1,B", 	"RES 1,C", 	"RES 1,D", 	"RES 1,E", 	"RES 1,H", 	"RES 1,L", 	"RES 1,(HL)",	"RES 1,A",
+    "RES 2,B", 	"RES 2,C", 	"RES 2,D", 	"RES 2,E", 	"RES 2,H", 	"RES 2,L", 	"RES 2,(HL)",	"RES 2,A", 	"RES 3,B", 	"RES 3,C", 	"RES 3,D", 	"RES 3,E", 	"RES 3,H", 	"RES 3,L", 	"RES 3,(HL)",	"RES 3,A",
+    "RES 4,B", 	"RES 4,C", 	"RES 4,D", 	"RES 4,E", 	"RES 4,H", 	"RES 4,L", 	"RES 4,(HL)",	"RES 4,A", 	"RES 5,B", 	"RES 5,C", 	"RES 5,D", 	"RES 5,E", 	"RES 5,H", 	"RES 5,L", 	"RES 5,(HL)",	"RES 5,A",
+    "RES 6,B", 	"RES 6,C", 	"RES 6,D", 	"RES 6,E", 	"RES 6,H", 	"RES 6,L", 	"RES 6,(HL)",	"RES 6,A", 	"RES 7,B", 	"RES 7,C", 	"RES 7,D", 	"RES 7,E", 	"RES 7,H", 	"RES 7,L", 	"RES 7,(HL)",	"RES 7,A",
+    "SET 0,B", 	"SET 0,C", 	"SET 0,D", 	"SET 0,E", 	"SET 0,H", 	"SET 0,L", 	"SET 0,(HL)",	"SET 0,A", 	"SET 1,B", 	"SET 1,C", 	"SET 1,D", 	"SET 1,E", 	"SET 1,H", 	"SET 1,L", 	"SET 1,(HL)",	"SET 1,A",
+    "SET 2,B", 	"SET 2,C", 	"SET 2,D", 	"SET 2,E", 	"SET 2,H", 	"SET 2,L", 	"SET 2,(HL)",	"SET 2,A", 	"SET 3,B", 	"SET 3,C", 	"SET 3,D", 	"SET 3,E", 	"SET 3,H", 	"SET 3,L", 	"SET 3,(HL)",	"SET 3,A",
+    "SET 4,B" 	"SET 4,C", 	"SET 4,D", 	"SET 4,E", 	"SET 4,H", 	"SET 4,L", 	"SET 4,(HL)",	"SET 4,A", 	"SET 5,B", 	"SET 5,C", 	"SET 5,D", 	"SET 5,E", 	"SET 5,H", 	"SET 5,L", 	"SET 5,(HL)",	"SET 5,A",
+    "SET 6,B", 	"SET 6,C", 	"SET 6,D", 	"SET 6,E", 	"SET 6,H", 	"SET 6,L", 	"SET 6,(HL)",	"SET 6,A", 	"SET 7,B", 	"SET 7,C", 	"SET 7,D", 	"SET 7,E", 	"SET 7,H", 	"SET 7,L", 	"SET 7,(HL)",	"SET 7,A",
+};
+
 CPU::CPU(MMU& mmu, InterruptServiceRoutine& interruptService) : mmu(mmu), interruptService(interruptService) {}
 CPU::~CPU() {}
 
@@ -38,32 +76,47 @@ u8 CPU::Step() {
 	}
 
 	// used only for debugging to break at specific instructions
-	if (pc == 0x3155)
+	if (pc == 0x0419)
 		int a = 0;
 
 	if (!isHalted) {
-		u8 opCode = ReadOpCode();
+		opCode = ReadAtPC();
 		if (opCode == 0xCB) {
-			opCode = ReadOpCode();
+			opCode = ReadAtPC();
 			CallCBOpCode(opCode);
 		} else
 			CallOpCode(opCode);
-	} else
-		lastOpCycles = 1;
+    } else {
+        if (log) Logger::instance->log("-- cpu halted\n");
+        lastOpCycles = 1;
+    }
 
 	return lastOpCycles;
 }
 
+u8 CPU::Read(u16 address) {
+    if (address == 0xFF4D) {
+        return key1 | 0x7E;
+    }
+    return 0xFF;
+}
+
+void CPU::Write(u8 value, u16 address) {
+    if (address == 0xFF4D) {
+        key1 = (key1 & 0xFE) | (value & 0x01);
+    }
+}
+
 std::string CPU::reg8ToString(CPU8BitReg reg) {
-    return r8Names[reg] + " = " + logger->u8ToHex(Read8BitReg(reg));
+    return r8Names[reg] + " = " + Logger::instance->u8ToHex(Read8BitReg(reg));
 }
 
 std::string CPU::reg16ToString(CPU16BitReg reg) {
-    return r16Names[reg] + " = " + logger->u16ToHex(Read16BitReg(reg));
+    return r16Names[reg] + " = " + Logger::instance->u16ToHex(Read16BitReg(reg));
 }
 
 bool CPU::IsDoubleSpeedEnabled() const {
-    return isDoubleSpeedEnabled;
+    return (key1 & 0x80) == 0x80;
 }
 
 u8 CPU::Read8BitReg(CPU8BitReg reg) const {
@@ -173,10 +226,6 @@ u8 CPU::ReadAtPC() {
 	return valueAtPC;
 }
 
-u8 CPU::ReadOpCode() {
-	return ReadAtPC();
-}
-
 void CPU::Push16(u16 value) {
 	WriteMemory(sp - 1, value >> 8);
 	WriteMemory(sp - 2, (u8)value);
@@ -206,9 +255,11 @@ void CPU::Save(std::ofstream& stream) const {
 	//TODO serialize IME, isHalted
 }
 
-
 void CPU::CallOpCode(u8 opCode) {
-    if (logger != nullptr) logger->log(pc - 1);
+    if (log) {
+        Logger::instance->log(pc - 1);
+        Logger::instance->log(opCodeNames[opCode]);
+    }
 	switch (opCode) {
 	case 0x00: NOP(); break;
 	case 0x01: LDr16n16(CPU16BitReg::bc); break;
@@ -485,7 +536,10 @@ void CPU::CallOpCode(u8 opCode) {
 }
 
 void CPU::CallCBOpCode(u8 opCode) {
-    if (logger != nullptr) logger->log(pc - 1);
+    if (log) {
+        Logger::instance->log(pc - 1);
+        Logger::instance->log(cbOpCodeNames[opCode]);
+    }
 	switch (opCode)
 	{
 	case 0x00: RLCr8(CPU8BitReg::b); break;
@@ -766,7 +820,7 @@ void CPU::ADCA(u8 value) {
 	u8 current = ReadAcc();
 	u8 result = current + value;
 
-    if (logger != nullptr) logger->log("ADC", "A," + logger->u8ToHex(value), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(value), reg8ToString(CPU8BitReg::a));
 
 	// save carry state before updating
 	bool addCarry = HasFlag(FlagBit::Carry);
@@ -795,7 +849,7 @@ void CPU::SBCA(u8 value) {
 	u8 current = ReadAcc();
 	u8 result = current - value;
 
-    if (logger != nullptr) logger->log("SBC", "A," + logger->u8ToHex(value), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(value), reg8ToString(CPU8BitReg::a));
 
 	// save carry state before updating
 	bool subCarry = HasFlag(FlagBit::Carry);
@@ -836,7 +890,7 @@ void CPU::ADDAr8(CPU8BitReg reg) {
 	u8 current = ReadAcc();
 	u8 result = current + Read8BitReg(reg);
 
-    if (logger != nullptr) logger->log("ADD", "A," + r8Names[reg], reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
 
 	WriteAcc(result);
 
@@ -850,7 +904,7 @@ void CPU::ADDAHL() {
 	u8 mem = ReadMemory(ReadHL());
 	u8 current = ReadAcc();
 
-    if (logger != nullptr) logger->log("ADD", "A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 
 	u8 result = current + mem;
 	WriteAcc(result);
@@ -865,7 +919,7 @@ void CPU::ADDAn8() {
 	u8 constant = ReadAtPC();
 	u8 current = ReadAcc();
 
-    if (logger != nullptr) logger->log("ADD", "A,$" + logger->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A,$" + Logger::instance->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
 
 	u8 result = current + constant;
 	WriteAcc(result);
@@ -879,7 +933,7 @@ void CPU::ADDAn8() {
 void CPU::ADDHLr16(CPU16BitReg reg) {
 	u16 rCurrent = ReadHL();
 
-    if (logger != nullptr) logger->log("ADD", "HL," + r16Names[reg], reg16ToString(CPU16BitReg::hl));
+    if (log) Logger::instance->log("HL," + r16Names[reg], reg16ToString(CPU16BitReg::hl) + " _ " + reg16ToString(reg));
 
 	u16 result = rCurrent + Read16BitReg(reg);
 	WriteHL(result);
@@ -893,7 +947,7 @@ void CPU::ADDHLr16(CPU16BitReg reg) {
 void CPU::ADDHLSP() {
 	u16 current = ReadHL();
 
-    if (logger != nullptr) logger->log("ADD", "HL,SP", reg16ToString(CPU16BitReg::hl) + " _ SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("HL,SP", reg16ToString(CPU16BitReg::hl) + " _ SP = " + Logger::instance->u16ToHex(sp));
 
 	u16 result = current + sp;
 	WriteHL(result);
@@ -908,7 +962,7 @@ void CPU::ADDSPe8() {
 	s8 offset = (s8)ReadAtPC();
 	u16 current = sp;
 
-    if (logger != nullptr) logger->log("ADD", "SP," + logger->s8ToString(offset), "SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("SP," + Logger::instance->s8ToString(offset), "SP = " + Logger::instance->u16ToHex(sp));
 
 	u16 result = sp + offset;
 	sp = result;
@@ -923,7 +977,7 @@ void CPU::ADDSPe8() {
 
 void CPU::ANDAr8(CPU8BitReg reg) {
 	u8 result = ReadAcc() & Read8BitReg(reg);
-    if (logger != nullptr) logger->log("AND", "A," + r8Names[reg], reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
 	WriteAcc(result);
 
 	UpdateZeroFlag(result);
@@ -934,7 +988,7 @@ void CPU::ANDAr8(CPU8BitReg reg) {
 
 void CPU::ANDAHL() {
 	u8 mem = ReadMemory(ReadHL());
-    if (logger != nullptr) logger->log("AND", "A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 
 	u8 result = ReadAcc() & mem;
 	WriteAcc(result);
@@ -948,7 +1002,7 @@ void CPU::ANDAHL() {
 void CPU::ANDAn8() {
 	u8 constant = ReadAtPC();
 
-    if (logger != nullptr) logger->log("AND", "A,$" + logger->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
 
 	u8 result = ReadAcc() & constant;
 	WriteAcc(result);
@@ -960,7 +1014,7 @@ void CPU::ANDAn8() {
 }
 
 void CPU::BITu3r8(u8 bit, CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("BIT", logger->u8ToString(bit) + "," + r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 
 	u8 result = Read8BitReg(reg) & (1 << bit);
 
@@ -972,7 +1026,7 @@ void CPU::BITu3r8(u8 bit, CPU8BitReg reg) {
 void CPU::BITu3HL(u8 bit) {
 	u8 mem = ReadMemory(ReadHL());
 
-    if (logger != nullptr) logger->log("BIT", logger->u8ToString(bit) + ",[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 
 	u8 result = mem & (1 << bit);
 
@@ -988,12 +1042,12 @@ void CPU::CALLn16() {
 	lastOpCycles++;
 	//no flags affected
 
-    if (logger != nullptr) logger->log("CALL", "$" + logger->u16ToHex(address),"");
+    if (log) Logger::instance->log("" + Logger::instance->u16ToHex(address),"");
 }
 
 void CPU::CALLccn16(bool condition) {
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
-	if (logger != nullptr) logger->log("CALL CC ", "$" + logger->u16ToHex(address), reg8ToString(CPU8BitReg::f));
+	if (log) Logger::instance->log("" + Logger::instance->u16ToHex(address), reg8ToString(CPU8BitReg::f));
 	if (condition) {
 		Push16(pc);
 		pc = address;
@@ -1008,7 +1062,7 @@ void CPU::CCF() {
 	SetFlag(FlagBit::Negative, false);
 	SetFlag(FlagBit::HalfCarry, false);
 
-    if (logger != nullptr) logger->log("CCF","", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::CPAr8(CPU8BitReg reg) {
@@ -1020,7 +1074,7 @@ void CPU::CPAr8(CPU8BitReg reg) {
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 
-    if (logger != nullptr) logger->log("CP", "A," + r8Names[reg], reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
 }
 
 void CPU::CPAHL() {
@@ -1033,7 +1087,7 @@ void CPU::CPAHL() {
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 
-    if (logger != nullptr) logger->log("CP", "A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 }
 
 void CPU::CPAn8() {
@@ -1048,7 +1102,7 @@ void CPU::CPAn8() {
 	UpdateHalfCarryFlag(current, result, false);
 	UpdateCarryFlag(current, result, false);
 
-    if (logger != nullptr) logger->log("CP", "A," + logger->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
 }
 
 void CPU::CPL() {
@@ -1057,7 +1111,7 @@ void CPU::CPL() {
 	SetFlag(FlagBit::Negative, true);
 	SetFlag(FlagBit::HalfCarry, true);
 
-    if (logger != nullptr) logger->log("CPL", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::DAA() {
@@ -1087,10 +1141,11 @@ void CPU::DAA() {
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::HalfCarry, false);
 
-    if (logger != nullptr) logger->log("DAA", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::DECr8(CPU8BitReg reg) {
+    if (log) Logger::instance->log(r8Names[reg], reg8ToString(reg));
 	u8 current = Read8BitReg(reg);
 	u8 result = current - 1;
 	Write8BitReg(reg, result);
@@ -1098,11 +1153,10 @@ void CPU::DECr8(CPU8BitReg reg) {
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, true);
 	UpdateHalfCarryFlag(current, result, false);
-
-    if (logger != nullptr) logger->log("DEC", r8Names[reg], reg8ToString(reg));
 }
 
 void CPU::DECHL() {
+    if (log) Logger::instance->log("[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(ReadHL()));
 	u8 current = ReadMemory(ReadHL());
 	u8 result = current - 1;
 	WriteMemory(ReadHL(), result);
@@ -1110,22 +1164,19 @@ void CPU::DECHL() {
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, true);
 	UpdateHalfCarryFlag(current, result, false);
-
-    if (logger != nullptr) logger->log("DEC", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(current));
 }
 
 void CPU::DECr16(CPU16BitReg reg) {
+    if (log) Logger::instance->log(r16Names[reg], reg16ToString(reg));
 	u16 current = Read16BitReg(reg);
 	u16 result = current - 1;
 	Write16BitReg(reg, result);
 	lastOpCycles++;
 	//no flags affected
-
-    if (logger != nullptr) logger->log("DEC", r16Names[reg], reg16ToString(reg));
 }
 
 void CPU::DECSP() {
-    if (logger != nullptr) logger->log("DEC", "SP", "SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("SP", "SP = " + Logger::instance->u16ToHex(sp));
 	sp--;
 	lastOpCycles++;
 	//no flags affected
@@ -1134,13 +1185,13 @@ void CPU::DECSP() {
 void CPU::DI() {
 	interruptService.IME = false;
 	//no flags affected
-    if (logger != nullptr) logger->log("DI", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::EI() {
 	interruptService.eiDelay = true;
 	//no flags affected
-    if (logger != nullptr) logger->log("EI", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::HALT() {
@@ -1148,10 +1199,12 @@ void CPU::HALT() {
 	if (!interruptService.IME && (interruptService.IE & interruptService.IF))
 		haltBug = true;
 	//no flags affected
-    if (logger != nullptr) logger->log("HALT", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::INCr8(CPU8BitReg reg) {
+    if (log) Logger::instance->log(r8Names[reg], reg8ToString(reg));
+
 	u8 current = Read8BitReg(reg);
 	u8 result = current + 1;
 	Write8BitReg(reg, result);
@@ -1159,10 +1212,10 @@ void CPU::INCr8(CPU8BitReg reg) {
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
 	UpdateHalfCarryFlag(current, result, true);
-    if (logger != nullptr) logger->log("INC", r8Names[reg], reg8ToString(reg));
 }
 
 void CPU::INCHL() {
+    if (log) Logger::instance->log("[HL]", reg16ToString(CPU16BitReg::hl) + "[HL] = " + Logger::instance->u8ToHex(ReadHL()));
 	u8 current = ReadMemory(ReadHL());
 	u8 result = current + 1;
 	WriteMemory(ReadHL(), result);
@@ -1170,23 +1223,22 @@ void CPU::INCHL() {
 	UpdateZeroFlag(result);
 	SetFlag(FlagBit::Negative, false);
 	UpdateHalfCarryFlag(current, result, true);
-    if (logger != nullptr) logger->log("INC", "[HL]", reg16ToString(CPU16BitReg::hl) + "[HL] = " + logger->u8ToHex(current));
 }
 
 void CPU::INCr16(CPU16BitReg reg) {
+    if (log) Logger::instance->log(r16Names[reg], reg16ToString(reg));
 	u16 current = Read16BitReg(reg);
 	u16 result = current + 1;
 	Write16BitReg(reg, result);
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("INC", r16Names[reg], "r = " + logger->u16ToHex(current));
 }
 
 void CPU::INCSP() {
 	sp++;
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("INC", "SP", "SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("SP", "SP = " + Logger::instance->u16ToHex(sp));
 }
 
 void CPU::JPn16() {
@@ -1194,12 +1246,12 @@ void CPU::JPn16() {
 	pc = address;
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("JP", logger->u16ToHex(address), "");
+    if (log) Logger::instance->log(Logger::instance->u16ToHex(address), "");
 }
 
 void CPU::JPccn16(bool condition) {
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
-	if (logger != nullptr) logger->log("JP CC", logger->u16ToHex(address), reg8ToString(CPU8BitReg::f));
+	if (log) Logger::instance->log(Logger::instance->u16ToHex(address), reg8ToString(CPU8BitReg::f));
 	if (condition) {
 		pc = address;
 		lastOpCycles++;
@@ -1210,7 +1262,7 @@ void CPU::JPccn16(bool condition) {
 void CPU::JPHL() {
 	pc = ReadHL();
 	//no flags affected
-    if (logger != nullptr) logger->log("JP", "HL", reg16ToString(CPU16BitReg::hl));
+    if (log) Logger::instance->log("HL", reg16ToString(CPU16BitReg::hl));
 }
 
 void CPU::JRe8() {
@@ -1218,12 +1270,12 @@ void CPU::JRe8() {
 	pc += offset;
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("JR", logger->s8ToString(offset), "");
+    if (log) Logger::instance->log(Logger::instance->s8ToString(offset), "");
 }
 
 void CPU::JRcce8(bool condition) {
     s8 offset = (s8)ReadAtPC();
-	if (logger != nullptr) logger->log("JR CC", logger->s8ToString(offset), reg8ToString(CPU8BitReg::f));
+	if (log) Logger::instance->log(Logger::instance->s8ToString(offset), reg8ToString(CPU8BitReg::f));
 	if (condition) {
 		pc += offset;
 		lastOpCycles++;
@@ -1232,7 +1284,7 @@ void CPU::JRcce8(bool condition) {
 }
 
 void CPU::LDr8r8(CPU8BitReg leftReg, CPU8BitReg rightReg) {
-    if (logger != nullptr) logger->log("LD", r8Names[leftReg] + "," + r8Names[rightReg], reg8ToString(rightReg));
+    if (log) Logger::instance->log(r8Names[leftReg] + "," + r8Names[rightReg], reg8ToString(rightReg));
 
 	Write8BitReg(leftReg, Read8BitReg(rightReg));
 	//no flags affected
@@ -1240,7 +1292,7 @@ void CPU::LDr8r8(CPU8BitReg leftReg, CPU8BitReg rightReg) {
 
 void CPU::LDr8n8(CPU8BitReg reg) {
 	u8 constant = ReadAtPC();
-    if (logger != nullptr) logger->log("LD", r8Names[reg] + "," + logger->u8ToHex(constant), "");
+    if (log) Logger::instance->log(r8Names[reg] + "," + Logger::instance->u8ToHex(constant), "");
 
 	Write8BitReg(reg, constant);
 	//no flags affected
@@ -1248,14 +1300,14 @@ void CPU::LDr8n8(CPU8BitReg reg) {
 
 void CPU::LDr16n16(CPU16BitReg reg) {
 	u16 constant = ReadAtPC() | (ReadAtPC() << 8);
-    if (logger != nullptr) logger->log("LD", r16Names[reg] + "," + logger->u16ToHex(constant), "");
+    if (log) Logger::instance->log(r16Names[reg] + "," + Logger::instance->u16ToHex(constant), "");
 
 	Write16BitReg(reg, constant);
 	//no flags affected
 }
 
 void CPU::LDHLr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("LD", "[HL]," + r8Names[reg], reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(reg));
+    if (log) Logger::instance->log("[HL]," + r8Names[reg], reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(reg));
 
 	WriteMemory(ReadHL(),Read8BitReg(reg));
 	//no flags affected
@@ -1263,7 +1315,7 @@ void CPU::LDHLr8(CPU8BitReg reg) {
 
 void CPU::LDHLn8() {
 	u8 constant = ReadAtPC();
-    if (logger != nullptr) logger->log("LD", "[HL]," + logger->u8ToHex(constant), reg16ToString(CPU16BitReg::hl));
+    if (log) Logger::instance->log("[HL]," + Logger::instance->u8ToHex(constant), reg16ToString(CPU16BitReg::hl));
 
 	WriteMemory(ReadHL(),constant);
 	//no flags affected
@@ -1271,14 +1323,14 @@ void CPU::LDHLn8() {
 
 void CPU::LDr8HL(CPU8BitReg reg) {
 	u8 mem = ReadMemory(ReadHL());
-    if (logger != nullptr) logger->log("LD", r8Names[reg] + ",[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log(r8Names[reg] + ",[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 
 	Write8BitReg(reg, mem);
 	//no flags affected
 }
 
 void CPU::LDr16A(CPU16BitReg reg) {
-    if (logger != nullptr) logger->log("LD", "[" + r16Names[reg] + "],A", reg16ToString(reg) + " _ " + reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("[" + r16Names[reg] + "],A", reg16ToString(reg) + " _ " + reg8ToString(CPU8BitReg::a));
 
 	WriteMemory(Read16BitReg(reg), ReadAcc());
 	//no flags affected
@@ -1286,7 +1338,7 @@ void CPU::LDr16A(CPU16BitReg reg) {
 
 void CPU::LDn16A() {
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
-    if (logger != nullptr) logger->log("LD", logger->u16ToHex(address) + ",A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log(Logger::instance->u16ToHex(address) + ",A", reg8ToString(CPU8BitReg::a));
 
 	WriteMemory(address, ReadAcc());
 	//no flags affected
@@ -1294,14 +1346,14 @@ void CPU::LDn16A() {
 
 void CPU::LDHn8A() {
 	u8 addressOffset = ReadAtPC();
-    if (logger != nullptr) logger->log("LDH", "0xFF" + logger->u8ToHex(addressOffset) + ",A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("0xFF" + Logger::instance->u8ToHex(addressOffset) + ",A", reg8ToString(CPU8BitReg::a));
 
 	WriteMemory(0xFF00 + addressOffset, ReadAcc());
 	//no flags affected
 }
 
 void CPU::LDHCA() {
-    if (logger != nullptr) logger->log("LDH", "0xFF00 + C,A", reg8ToString(CPU8BitReg::c) + " _ " + reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("0xFF00 + C,A", reg8ToString(CPU8BitReg::c) + " _ " + reg8ToString(CPU8BitReg::a));
 
 	WriteMemory(0xFF00 + Read8BitReg(CPU8BitReg::c), ReadAcc());
 	//no flags affected
@@ -1309,7 +1361,7 @@ void CPU::LDHCA() {
 
 void CPU::LDAr16(CPU16BitReg reg) {
 	u8 mem = ReadMemory(Read16BitReg(reg));
-    if (logger != nullptr) logger->log("LD", "A,[" + r16Names[reg] + "]", reg16ToString(reg) + " _ [r] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[" + r16Names[reg] + "]", reg16ToString(reg) + " _ [r] = " + Logger::instance->u8ToHex(mem));
 
 	WriteAcc(mem);
 	//no flags affected
@@ -1318,7 +1370,7 @@ void CPU::LDAr16(CPU16BitReg reg) {
 void CPU::LDAn16() {
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	u8 mem = ReadMemory(address);
-    if (logger != nullptr) logger->log("LD", "A,[0x" + logger->u16ToHex(address) + "]", "[r] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[" + Logger::instance->u16ToHex(address) + "]", "[r] = " + Logger::instance->u8ToHex(mem));
 
 	WriteAcc(mem);
 	//no flags affected
@@ -1327,20 +1379,20 @@ void CPU::LDAn16() {
 void CPU::LDHAn8() {
 	u8 addressOffset = ReadAtPC();
 	u8 mem = ReadMemory(0xFF00 + addressOffset);
-    if (logger != nullptr) logger->log("LDH", "A,[0xFF" + logger->u8ToHex(addressOffset) + "]", "[r] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[0xFF" + Logger::instance->u8ToHex(addressOffset) + "]", "[r] = " + Logger::instance->u8ToHex(mem));
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDHAC() {
 	u8 mem = ReadMemory(0xFF00 + Read8BitReg(CPU8BitReg::c));
-    if (logger != nullptr) logger->log("LDH", "A,[0xFF00 + C]", reg8ToString(CPU8BitReg::c) + " _ [r] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[0xFF00 + C]", reg8ToString(CPU8BitReg::c) + " _ [r] = " + Logger::instance->u8ToHex(mem));
 	WriteAcc(mem);
 	//no flags affected
 }
 
 void CPU::LDHLincA() {
-    if (logger != nullptr) logger->log("LD", "[HL++],A", reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("[HL++],A", reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(CPU8BitReg::a));
 	u16 address = ReadHL();
 	WriteMemory(address,ReadAcc());
 	WriteHL(++address);
@@ -1348,7 +1400,7 @@ void CPU::LDHLincA() {
 }
 
 void CPU::LDHLdecA() {
-    if (logger != nullptr) logger->log("LD", "[HL--],A", reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("[HL--],A", reg16ToString(CPU16BitReg::hl) + " _ " + reg8ToString(CPU8BitReg::a));
 	u16 address = ReadHL();
 	WriteMemory(address, ReadAcc());
 	WriteHL(--address);
@@ -1357,7 +1409,7 @@ void CPU::LDHLdecA() {
 
 void CPU::LDAHLinc() {
 	u16 address = ReadHL();
-    if (logger != nullptr) logger->log("LD", "A,[HL++]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(ReadMemory(address)));
+    if (log) Logger::instance->log("A,[HL++]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(ReadMemory(address)));
 	WriteAcc(ReadMemory(address));
 	WriteHL(++address);
 	//no flags affected
@@ -1365,7 +1417,7 @@ void CPU::LDAHLinc() {
 
 void CPU::LDAHLdec() {
 	u16 address = ReadHL();
-    if (logger != nullptr) logger->log("LD", "A,[HL--]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(ReadMemory(address)));
+    if (log) Logger::instance->log("A,[HL--]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(ReadMemory(address)));
 	WriteAcc(ReadMemory(address));
 	WriteHL(--address);
 	//no flags affected
@@ -1375,7 +1427,7 @@ void CPU::LDSPn16() {
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
 	sp = address;
 	//no flags affected
-    if (logger != nullptr) logger->log("LD", "SP," + logger->u16ToHex(address), "");
+    if (log) Logger::instance->log("SP," + Logger::instance->u16ToHex(address), "");
 }
 
 void CPU::LDn16SP() {
@@ -1383,7 +1435,7 @@ void CPU::LDn16SP() {
 	u8 msb = (u8)(sp >> 8);
 
 	u16 address = ReadAtPC() | (ReadAtPC() << 8);
-    if (logger != nullptr) logger->log("LD", "[" + logger->u16ToHex(address) + "],SP", "SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("[" + Logger::instance->u16ToHex(address) + "],SP", "SP = " + Logger::instance->u16ToHex(sp));
 
 	WriteMemory(address, lsb);
 	WriteMemory(address + 1, msb);
@@ -1392,7 +1444,7 @@ void CPU::LDn16SP() {
 
 void CPU::LDHLSPe8() {
     s8 offset = (s8)ReadAtPC();
-    if (logger != nullptr) logger->log("LD", "HL,SP+" + logger->s8ToString(offset), "SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log("HL,SP+" + Logger::instance->s8ToString(offset), "SP = " + Logger::instance->u16ToHex(sp));
 
 	u16 current = sp;
 	u16 result = current + offset;
@@ -1410,19 +1462,19 @@ void CPU::LDSPHL() {
 	sp = ReadHL();
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("LD", "SP,HL", reg16ToString(CPU16BitReg::hl));
+    if (log) Logger::instance->log("SP,HL", reg16ToString(CPU16BitReg::hl));
 }
 
 void CPU::NOP() {
 	//do nothing
 	//no flags affected
 	//no extra cycles
-    if (logger != nullptr) logger->log("NOP", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::ORAr8(CPU8BitReg reg) {
 	u8 result = ReadAcc() | Read8BitReg(reg);
-    if (logger != nullptr) logger->log("OR", "A," + r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(reg));
 
 	WriteAcc(result);
 
@@ -1434,7 +1486,7 @@ void CPU::ORAr8(CPU8BitReg reg) {
 
 void CPU::ORAHL() {
 	u8 mem = ReadMemory(ReadHL());
-    if (logger != nullptr) logger->log("OR", "A,[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 
 	u8 result = ReadAcc() | mem;
 	WriteAcc(result);
@@ -1447,7 +1499,7 @@ void CPU::ORAHL() {
 
 void CPU::ORAn8() {
 	u8 constant = ReadAtPC();
-    if (logger != nullptr) logger->log("OR", "A," + logger->u8ToHex(constant), "");
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(constant), "");
 
 	u8 result = ReadAcc() | constant;
 	WriteAcc(result);
@@ -1461,18 +1513,18 @@ void CPU::ORAn8() {
 void CPU::POPr16(CPU16BitReg reg) {
 	Write16BitReg(reg, Pop16());
 	//no flags affected (except if reg is AF)
-    if (logger != nullptr) logger->log("POP", r16Names[reg], "(after) " + reg16ToString(reg) + " _ SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log(r16Names[reg], "(after) " + reg16ToString(reg) + " _ SP = " + Logger::instance->u16ToHex(sp));
 }
 
 void CPU::PUSHr16(CPU16BitReg reg) {
 	Push16(Read16BitReg(reg));
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("PUSH", r16Names[reg], "(after) " + reg16ToString(reg) + " _ SP = " + logger->u16ToHex(sp));
+    if (log) Logger::instance->log(r16Names[reg], "(after) " + reg16ToString(reg) + " _ SP = " + Logger::instance->u16ToHex(sp));
 }
 
 void CPU::RESu3r8(u8 bit, CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("RES", logger->u8ToString(bit) + "," + r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg) & ~(1 << bit);
 	Write8BitReg(reg, value);
 	//no flags affected
@@ -1484,18 +1536,18 @@ void CPU::RESu3HL(u8 bit) {
 	u8 value = mem & ~(1 << bit);
 	WriteMemory(address, value);
 	//no flags affected
-    if (logger != nullptr) logger->log("RES", logger->u8ToString(bit) + ",[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 }
 
 void CPU::RET() {
 	pc = Pop16();
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("RET","", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::RETcc(bool condition) {
-	if (logger != nullptr) logger->log("RET CC", "", reg8ToString(CPU8BitReg::f));
+	if (log) Logger::instance->log("", reg8ToString(CPU8BitReg::f));
 	lastOpCycles++;
 	if (condition) {
 		pc = Pop16();
@@ -1511,11 +1563,11 @@ void CPU::RETI() {
 	interruptService.IME = true;
 
 	//no flags affected
-    if (logger != nullptr) logger->log("RETI", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::RLr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("RL", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1531,7 +1583,7 @@ void CPU::RLr8(CPU8BitReg reg) {
 void CPU::RLHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("RL", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 	u8 newCarry = value >> 7;
 	value <<= 1;
 	value |= (u8)HasFlag(FlagBit::Carry);
@@ -1544,7 +1596,7 @@ void CPU::RLHL() {
 }
 
 void CPU::RLA() {
-    if (logger != nullptr) logger->log("RL", "A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("", reg8ToString(CPU8BitReg::a));
 	u8 value = ReadAcc();
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1558,7 +1610,7 @@ void CPU::RLA() {
 }
 
 void CPU::RLCr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("RLC", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value >> 7;
@@ -1575,7 +1627,7 @@ void CPU::RLCr8(CPU8BitReg reg) {
 void CPU::RLCHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("RLC", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1589,7 +1641,7 @@ void CPU::RLCHL() {
 }
 
 void CPU::RLCA() {
-    if (logger != nullptr) logger->log("RLC", "A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("", reg8ToString(CPU8BitReg::a));
 	u8 value = ReadAcc();
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1603,7 +1655,7 @@ void CPU::RLCA() {
 }
 
 void CPU::RRr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("RR", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1619,7 +1671,7 @@ void CPU::RRr8(CPU8BitReg reg) {
 void CPU::RRHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("RR", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= ((u8)HasFlag(FlagBit::Carry) << 7);
@@ -1632,7 +1684,7 @@ void CPU::RRHL() {
 }
 
 void CPU::RRA() {
-    if (logger != nullptr) logger->log("RR", "A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("", reg8ToString(CPU8BitReg::a));
 	u8 value = ReadAcc();
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1646,7 +1698,7 @@ void CPU::RRA() {
 }
 
 void CPU::RRCr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("RRC", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1662,7 +1714,7 @@ void CPU::RRCr8(CPU8BitReg reg) {
 void CPU::RRCHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("RR", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 	u8 newCarry = value & 0x01;
 	value >>= 1;
 	value |= (newCarry << 7);
@@ -1675,7 +1727,7 @@ void CPU::RRCHL() {
 }
 
 void CPU::RRCA() {
-    if (logger != nullptr) logger->log("RR", "A", reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("", reg8ToString(CPU8BitReg::a));
 	u8 value = ReadAcc();
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1693,7 +1745,7 @@ void CPU::RSTvec(u8 vec) {
 	pc = vec;
 	lastOpCycles++;
 	//no flags affected
-    if (logger != nullptr) logger->log("RST", logger->u8ToHex(vec), "");
+    if (log) Logger::instance->log(Logger::instance->u8ToHex(vec), "");
 }
 
 void CPU::SBCAr8(CPU8BitReg reg) {
@@ -1713,11 +1765,11 @@ void CPU::SCF() {
 
 	SetFlag(FlagBit::HalfCarry, false);
 	SetFlag(FlagBit::Negative, false);
-    if (logger != nullptr) logger->log("SCF", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::SETu3r8(u8 bit, CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SET", logger->u8ToString(bit) + "," + r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg) | (1 << bit);
 	Write8BitReg(reg, value);
 	//no flags affected
@@ -1726,14 +1778,14 @@ void CPU::SETu3r8(u8 bit, CPU8BitReg reg) {
 void CPU::SETu3HL(u8 bit) {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("SET", logger->u8ToString(bit) + ",[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 	value |= (1 << bit);
 	WriteMemory(address,value);
 	//no flags affected
 }
 
 void CPU::SLAr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SLA", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1748,7 +1800,7 @@ void CPU::SLAr8(CPU8BitReg reg) {
 void CPU::SLAHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("SLA", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 newCarry = value >> 7;
 	value <<= 1;
@@ -1761,7 +1813,7 @@ void CPU::SLAHL() {
 }
 
 void CPU::SRAr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SRA", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 
 	u8 value = Read8BitReg(reg);
 	u8 newSeven = value & 0x80;
@@ -1779,7 +1831,7 @@ void CPU::SRAr8(CPU8BitReg reg) {
 void CPU::SRAHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("SRA", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 newSeven = value & 0x80;
 	u8 newCarry = value & 0x01;
@@ -1794,7 +1846,7 @@ void CPU::SRAHL() {
 }
 
 void CPU::SRLr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SRL", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1809,7 +1861,7 @@ void CPU::SRLr8(CPU8BitReg reg) {
 void CPU::SRLHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("SRL", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 newCarry = value & 0x01;
 	value >>= 1;
@@ -1823,28 +1875,25 @@ void CPU::SRLHL() {
 
 void CPU::STOP() {
     //2 bytes? 0 cycles?
-    u8 key1 = mmu.Read(0xFF4D);
     if ((key1 & 0x01) == 1) {
-        if (isDoubleSpeedEnabled) {
-            isDoubleSpeedEnabled = false;
+        key1 &= 0xFE; // reset bit 0
+        if (IsDoubleSpeedEnabled()) {
             key1 &= 0x7F;
             printf("Double Speed disabled\n");
         }
         else {
-            isDoubleSpeedEnabled = true;
-            key1 |= 0x80; // set 1 for double speed
+            key1 |= 0x80;
             printf("Double Speed enabled\n");
         }
-        mmu.Write(0xFF4D, key1 & 0xFE);
     } else
         isHalted = true;
 	// TODO turn off LCD
 	//no flags affected
-    if (logger != nullptr) logger->log("STOP", "", "");
+    if (log) Logger::instance->log("", "");
 }
 
 void CPU::SUBAr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SUB", "A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
 	u8 current = ReadAcc();
 	u8 result = current - Read8BitReg(reg);
 	WriteAcc(result);
@@ -1857,7 +1906,7 @@ void CPU::SUBAr8(CPU8BitReg reg) {
 
 void CPU::SUBAHL() {
 	u8 mem = ReadMemory(ReadHL());
-    if (logger != nullptr) logger->log("SUB", "A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(mem));
+    if (log) Logger::instance->log("A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(mem));
 	u8 current = ReadAcc();
 	u8 result = current - mem;
 	WriteAcc(result);
@@ -1871,7 +1920,7 @@ void CPU::SUBAHL() {
 void CPU::SUBAn8() {
 	u8 constant = ReadAtPC();
 	u8 current = ReadAcc();
-    if (logger != nullptr) logger->log("SUB", "A," + logger->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
 
 	u8 result = current - constant;
 	WriteAcc(result);
@@ -1883,7 +1932,7 @@ void CPU::SUBAn8() {
 }
 
 void CPU::SWAPr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("SWAP", r8Names[reg], reg8ToString(reg));
+    if (log) Logger::instance->log("", reg8ToString(reg));
 	u8 value = Read8BitReg(reg);
 	u8 result = (value >> 4) + (value << 4);
 	Write8BitReg(reg, result);
@@ -1897,7 +1946,7 @@ void CPU::SWAPr8(CPU8BitReg reg) {
 void CPU::SWAPHL() {
 	u16 address = ReadHL();
 	u8 value = ReadMemory(address);
-    if (logger != nullptr) logger->log("SWAP", "[HL]", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("", reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 result = (value >> 4) + (value << 4);
 	WriteMemory(address, result);
@@ -1909,7 +1958,7 @@ void CPU::SWAPHL() {
 }
 
 void CPU::XORAr8(CPU8BitReg reg) {
-    if (logger != nullptr) logger->log("XOR", "A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
+    if (log) Logger::instance->log("A," + r8Names[reg], reg8ToString(CPU8BitReg::a) + " _ " + reg8ToString(reg));
 	u8 result = ReadAcc() ^ Read8BitReg(reg);
 	WriteAcc(result);
 
@@ -1921,7 +1970,7 @@ void CPU::XORAr8(CPU8BitReg reg) {
 
 void CPU::XORAHL() {
 	u8 value = ReadMemory(ReadHL());
-    if (logger != nullptr) logger->log("XOR", "A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + logger->u8ToHex(value));
+    if (log) Logger::instance->log("A,[HL]", reg8ToString(CPU8BitReg::a) + " _ " + reg16ToString(CPU16BitReg::hl) + " _ [HL] = " + Logger::instance->u8ToHex(value));
 
 	u8 result = ReadAcc() ^ value;
 	WriteAcc(result);
@@ -1934,7 +1983,7 @@ void CPU::XORAHL() {
 
 void CPU::XORAn8() {
 	u8 constant = ReadAtPC();
-    if (logger != nullptr) logger->log("XOR", "A," + logger->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
+    if (log) Logger::instance->log("A," + Logger::instance->u8ToHex(constant), reg8ToString(CPU8BitReg::a));
 
 	u8 result = ReadAcc() ^ constant;
 	WriteAcc(result);

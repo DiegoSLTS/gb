@@ -24,9 +24,12 @@ bool isLittleEndian() {
 }
 
 int main(int argc, char *argv[]) {
+    Logger logger;
+
 	std::string romPath;
 	std::string romDir;
 	std::string romName;
+    std::string gameName;
 
 	if (argc > 1) {
 		romPath = argv[1];
@@ -36,15 +39,20 @@ int main(int argc, char *argv[]) {
 		std::cout << "Loading rom from argv[1] = " << romPath << std::endl;
 	} else {
 		romDir = "D:/Programacion/gb/roms/";
-		romName = Games::CGB_LEGEND_OF_ZELDA_LINKS_AWAKENING_DX;
+        romName = Games::BOMB_JACK;
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
+    size_t slashPos = romName.rfind("/");
+    slashPos = slashPos == std::string::npos ? 0 : slashPos + 1;
+    
+    size_t extensionPos = romName.rfind(".");
+    gameName = romName.substr(slashPos, extensionPos - slashPos);
 
     GameBoy gameBoy(romPath);
-    
+
     sf::Vector2i p(50, 50);
-	GameWindow gameWindow(160, 144, "Game", p, gameBoy.gpu);
+	GameWindow gameWindow(160, 144, "Game", p, gameBoy.gpu, gameName);
     gameBoy.gpu.gameWindow = &gameWindow;
 
     p.x = 385;
@@ -79,6 +87,7 @@ int main(int argc, char *argv[]) {
 		tileMap1Window.Open();
 		stateWindow.Open();
 		palettesWindow.Open();
+        gameWindow.GetFocus();
 	}
 
 	// Used only when not syncing emulation with audio
@@ -94,16 +103,11 @@ int main(int argc, char *argv[]) {
     CustomAudioStream audioStream(gameBoy);
     if (gameBoy.syncWithAudio)
         audioStream.play();
-	    
+	
+    u8 framesToLog = 0;
+    u16 breakAt = 0x0101;
 	while (gameWindow.IsOpen()) {
-		/*if (gameBoy.cpu.pc == 0x100) {
-			gameBoy.isPaused = true;
-			stateWindow.Open();
-			palettesWindow.Open();
-			gameWindow.GetFocus();
-		}*/
-
-        if (!gameBoy.syncWithAudio) {
+		if (!gameBoy.syncWithAudio) {
             gameBoy.MainLoop();
 
             if (gameBoy.sampleGenerated) {
@@ -119,7 +123,26 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        /*if (gameBoy.cpu.pc == breakAt) {
+            gameBoy.isPaused = true;
+            stateWindow.Open();
+            tileMap0Window.Open();
+            //palettesWindow.Open();
+            gameWindow.GetFocus();
+        }*/
+
         if (gameBoy.isPaused || gameBoy.frameFinished) {
+            if (framesToLog > 0) {
+                framesToLog--;
+                if (framesToLog == 0) {
+                    gameBoy.cpu.log = false;
+                    gameBoy.gpu.log = false;
+                    gameBoy.gpu.dma.log = false;
+                    gameBoy.cartridge.mbc->log = false;
+                    gameBoy.joypad.log = false;
+                }
+            }
+
             gameWindow.Update();
             tilesWindow.Update();
             tileMap0Window.Update();
@@ -156,7 +179,7 @@ int main(int argc, char *argv[]) {
                         //case sf::Keyboard::Num0: gameBoy.audio.ToggleChannel(4); break;
                         }
                     }
-                    else if (event.key.code == sf::Keyboard::P) {
+                    else if (event.key.code == sf::Keyboard::F9) {
 						gameBoy.isPaused = !gameBoy.isPaused;
                     }
                     else if (event.key.code == sf::Keyboard::R) {
@@ -164,9 +187,14 @@ int main(int argc, char *argv[]) {
                         gameWindow.Clear();
                     }
                     else if (event.key.code == sf::Keyboard::L) {
-                        gameBoy.ToggleLogging();
+                        gameBoy.cpu.log = true;
+                        gameBoy.gpu.log = true;
+                        gameBoy.gpu.dma.log = true;
+                        gameBoy.cartridge.mbc->log = true;
+                        gameBoy.joypad.log = true;
+                        //framesToLog = 2;
                     }
-					else if (event.key.code == sf::Keyboard::Q) {
+					else if (event.key.code == sf::Keyboard::F3) {
 						gameBoy.isPaused = false;
 						gameBoy.stepsToEmulate = 1;
 					}
@@ -178,6 +206,9 @@ int main(int argc, char *argv[]) {
 						gameBoy.isPaused = false;
 						gameBoy.stepsToEmulate = 100;
 					}
+                    else if (event.key.code == sf::Keyboard::C) {
+                        gameWindow.TakeScreenshot();
+                    }
                 }
             }
 
@@ -238,6 +269,20 @@ int main(int argc, char *argv[]) {
 						spritesWindow.ToggleBackground();
 				}
 			}
+
+            while (tileMap0Window.PollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    tileMap0Window.Close();
+                else if (event.type == sf::Event::MouseButtonPressed)
+                    tileMap0Window.OnMouseClicked(event.mouseButton.x, event.mouseButton.y);
+            }
+
+            while (tileMap1Window.PollEvent(event)) {
+                if (event.type == sf::Event::Closed)
+                    tileMap1Window.Close();
+                else if (event.type == sf::Event::MouseButtonPressed)
+                    tileMap1Window.OnMouseClicked(event.mouseButton.x, event.mouseButton.y);
+            }
 
             framesCount++;
             auto currentTime = std::chrono::system_clock::now();

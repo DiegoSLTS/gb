@@ -26,7 +26,7 @@ typedef union {
 	};
 } LCDC_t;
 
-enum class GPUMode {
+enum class GPUMode : u8 {
 	HBlank = 0,
 	VBlank = 1,
 	OAMAccess = 2,
@@ -120,17 +120,18 @@ public:
 
 	u8 ReadVRAM(u16 address, u8 bank);
 
-    Logger* logger = nullptr;
+    bool log = false;
 
 	LCDC_t& GetLCDCRef();
 	u8* GetOAMPtr();
 	u8* GetBGPPtr();
 	u8* GetOBPPtr();
 
+    DMA dma;
+
 private:
 	MMU& mmu;
 	InterruptServiceRoutine& interruptService;
-    DMA dma;
 	
 	GPUMode mode = GPUMode::OAMAccess;
 	u16 modeCycles = 0;

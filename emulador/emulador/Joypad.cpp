@@ -1,5 +1,6 @@
 #include "Joypad.h"
 #include "InterruptServiceRoutine.h"
+#include "Logger.h"
 
 #include <SFML\Window\Keyboard.hpp>
 
@@ -48,6 +49,8 @@ u8 Joypad::Read(u16 address) {
 }
 
 void Joypad::Write(u8 value, u16 address) {
-	JOYP = (value & 0xF0) | (JOYP & 0x0F) | 0xC0;
+	JOYP = 0xC0 | (value & 0x30) | (JOYP & 0x0F);
+    if (log) Logger::instance->log("JOYP = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(JOYP) + "\n");
 	Update();
+    if (log) Logger::instance->log("JOYP (after) = " + Logger::u8ToHex(JOYP) + "\n");
 }

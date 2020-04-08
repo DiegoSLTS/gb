@@ -19,6 +19,7 @@ https://rednex.github.io/rgbds/gbz80.7.html
 */
 
 #include "Types.h"
+#include "IAddressable.h"
 #include "IState.h"
 
 #include <string>
@@ -49,7 +50,7 @@ enum FlagBit : u8 {
 	Zero = 1 << 7
 };
 
-class CPU : IState {
+class CPU : public IState, public IAddressable {
 public:
 	CPU(MMU& mmu, InterruptServiceRoutine& interruptService);
 	virtual ~CPU();
@@ -57,6 +58,10 @@ public:
 	// Waits one clock if halted or runs one instruction and returns the clocks spent
 	u8 Step();
 
+    virtual u8 Read(u16 address) override;
+    virtual void Write(u8 value, u16 address) override;
+    
+    u8 opCode = 0;
 	u16 pc = 0;
 	u16 sp = 0;
     bool IsDoubleSpeedEnabled() const;
@@ -67,7 +72,7 @@ public:
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
     
-    Logger* logger = nullptr;
+    bool log = false;
 
 	std::string reg8ToString(CPU8BitReg reg);
 	std::string reg16ToString(CPU16BitReg reg);
@@ -77,7 +82,7 @@ private:
     std::string r16Names[4] = { "AF","BC","DE","HL" };
 	
 	MMU& mmu;
-    bool isDoubleSpeedEnabled = false;
+    u8 key1 = 0x7E;
 	InterruptServiceRoutine& interruptService;
 
 	bool isHalted = false;
@@ -88,7 +93,6 @@ private:
 
 	bool haltBug = false;
 
-	u8 ReadOpCode();
 	void CallOpCode(u8 opCode);
 	void CallCBOpCode(u8 opCode);
 

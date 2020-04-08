@@ -44,15 +44,10 @@ public:
 	bool isPaused = false;
 	u8 stepsToEmulate = 0;
     void Reset();
-
-    void ToggleLogging();
-
+    
 private:
     void LoadState();
     void SaveState();    
 
-    bool isLogging = false;
 	bool skipBios = false;
-
-    Logger logger;
 };

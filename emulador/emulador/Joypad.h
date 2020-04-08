@@ -14,6 +14,8 @@ public:
 	virtual u8 Read(u16 address) override;
 	virtual void Write(u8 value, u16 address) override;
 
+    bool log = false;
+
 private:
 	InterruptServiceRoutine& interruptService;
 

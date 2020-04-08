@@ -1,4 +1,5 @@
 #include "MBC.h"
+#include "Logger.h"
 
 #include <iostream>
 #include <ctime>
@@ -60,11 +61,15 @@ u32 MBC::GetRamSize() const {
 }
 
 void MBC::LoadRom(std::ifstream& readStream) {
-	readStream.read((char*)rom, GetRomSize());
+    u32 romSize = GetRomSize();
+	readStream.read((char*)rom, romSize);
+    std::cout << "Rom size: " << romSize << " (" << (romSize / 0x4000) << " banks)" << std::endl;
 }
 
 void MBC::LoadRam(std::ifstream& readStream) {
-	readStream.read((char*)ram, GetRamSize());
+    u32 ramSize = GetRamSize();
+	readStream.read((char*)ram, ramSize);
+    std::cout << "Ram size: " << ramSize << " (" << (ramSize / 0x2000) << " banks)" << std::endl;
 }
 
 void MBC::SaveRam(std::ofstream& writeStream) {
@@ -107,7 +112,7 @@ void MBC1::Write(u8 value, u16 address) {
 		romBank |= lowBits;
 	} else if (address >= 0x4000 && address < 0x6000) {
 		if (romRamSwitch == 0) {
-			u8 highBits = value & 0x60;
+			u8 highBits = (value & 0x03) << 5;
 			romBank &= 0x1F;
 			romBank |= highBits;
 		} else if (ramEnabled) {
@@ -263,7 +268,7 @@ u8 MBC5::Read(u16 address) {
 		return rom[address];
 	else if (address < 0x8000)
 		return rom[romBankOffset + address - 0x4000];
-	else if (address >= 0xA000 && address < 0xC000)
+	else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
 		return ram[ramBankOffset + address - 0xA000];
 
 	return 0xFF;
@@ -271,20 +276,22 @@ u8 MBC5::Read(u16 address) {
 
 void MBC5::Write(u8 value, u16 address) {
 	if (address < 0x2000) {
-		ramEnabled = value;
+		ramEnabled = value == 0x0A; // 0x0A enabled, other values, disabled
 	} else if (address >= 0x2000 && address < 0x3000) {
 		u8 lowBits = value;
 		romBank &= 0x0100;
 		romBank |= lowBits;
+        if (log) Logger::instance->log("ROMBank: " + Logger::u16ToHex(romBank) + " ; lowBits: " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0x3000 && address < 0x4000) {
+        // TODO valida romBank < 0x1E0 ?
 		u8 highBit = value & 0x01;
 		romBank &= 0x00FF;
 		romBank |= (highBit << 8);
+        if (log) Logger::instance->log("ROMBank: " + Logger::u16ToHex(romBank) + " ; highBits: " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0x4000 && address < 0x6000) {
-		if (ramEnabled) {
-			ramBank = value & 0x0F;
-			ramBankOffset = 8 * 1024 * ramBank;
-		}
+		ramBank = value & 0x0F;
+		ramBankOffset = 8 * 1024 * ramBank;
+        if (log) Logger::instance->log("RAMBank: " + Logger::u8ToHex(ramBank) + " ; " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
 		ram[ramBankOffset + address - 0xA000] = value;
 

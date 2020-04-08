@@ -2,6 +2,7 @@
 #include "GameBoy.h"
 #include "MMU.h"
 #include "GPU.h"
+#include "Logger.h"
 
 TileMapViewer::TileMapViewer(unsigned int Width, unsigned int Height, const std::string& Title, const sf::Vector2i& Position, GameBoy& GameBoy, u8 mapNumber)
 	: TileViewer(Width, Height, Title, Position, GameBoy), mapNumber(mapNumber), LCDC(gameBoy.gpu.GetLCDCRef()) {
@@ -43,5 +44,28 @@ void TileMapViewer::UpdateTile(u8 x, u8 y) {
 			pixelInfo.isBG = true;
 			((sf::Uint32*)screenArray)[screenPos] = gameBoy.gpu.GetABGR(pixelInfo).v;
         }
+    }
+}
+
+void TileMapViewer::PrintTile(u8 x, u8 y) {
+    u16 tileDataAddress = GetTileAddress(x, y);
+    BGAttributes attributes = { isCGB ? gameBoy.gpu.ReadVRAM(address + y * 32 + x, 1) : (u8)0x00 };
+    printf("\nTile X: %d Y: %d\n", x, y);
+    printf("Address: %s\n", Logger::u16ToHex(tileDataAddress).c_str());
+    printf("Bank: %d\n", attributes.bank);
+    printf("Flip X: %d\n", attributes.flipX);
+    printf("Flip Y: %d\n", attributes.flipY);
+    printf("Priority: %d\n", attributes.hasPriority);
+    printf("Palette: %d\n", attributes.paletteIndex);
+}
+
+void TileMapViewer::OnMouseClicked(u32 x, u32 y) {
+    u8 newX = x / 16; // tile size (8) * window scale (2)
+    u8 newY = y / 16;
+
+    if (newX != loggedTileX || newY != loggedTileY) {
+        loggedTileX = newX;
+        loggedTileY = newY;
+        PrintTile(loggedTileX, loggedTileY);
     }
 }
