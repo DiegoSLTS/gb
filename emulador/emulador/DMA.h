@@ -2,7 +2,6 @@
 
 #include "IAddressable.h"
 #include "IState.h"
-// DMA: https://gekkio.fi/files/gb-docs/gbctr.pdf
 
 class MMU;
 class Logger;
@@ -25,20 +24,18 @@ public:
     
 private:
     MMU& mmu;
-	u8* oam = nullptr;
 
+    // DMA
+	u8* oam = nullptr; // cached pointer to OAM to avoid going through MMU for each write
     u8 currentCycles = 160;
     u16 addressBase = 0;
 
-	u8 HDMA1 = 0; // 0xFF51
-	u8 HDMA2 = 0; // 0xFF52
-	u8 HDMA3 = 0; // 0xFF53
-	u8 HDMA4 = 0; // 0xFF54
-
-	u16 hdmaSource = 0;
-	u16 hdmaDestination = 0;
-
+    // HDMA
+    u16 HDMASource = 0; // msb = HDMA1 (0xFF51), lsb = HDMA2 (0xFF52)
+    u16 HDMADest = 0x8000; // msb = HDMA3 (0xFF53), lsb = HDMA4 (0xFF54)
+    
     bool hdmaInProgress = false;
     u8 remaining = 0x7F;
-    u8 hdmaProgress = 0;
+
+    void DoHDMATransfer(u16 count);
 };

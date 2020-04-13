@@ -51,40 +51,40 @@ You can load a rom from any location from your disk passing the absolute path be
 * Emulación de la CPU, GPU, control, APU y otros componentes internos
 * Soportados los tipos de memory banks: RomOnly, MBC1, MBC2, MBC3 y MBC5
 * Soporte para batería (para guardar el progreso) en los memory banks y juegos que lo soportan
-* Ejecutar juegos de GameBoy en formato .gb (GB original) o .gbc (GBC), descomprimidos
+* Ejecutar juegos de GameBoy en formato .gb (GameBoy original), .gbc (GameBoy Color) o .zip (comprimidos)
 * Especificar un path del rom por línea de comando
 * Multiples herramientas para debugear (Tiles, TileMaps, Sprites, Paletas, Estado de CPU y GPU, logs de CPU y GPU, Pausar y Avanzar de a pasos)
 * Decompilación estática de la rom (se hace sobre la ROM antes de ejecutar el juego)
+* Capturar la pantalla en un .png con la tecla C
 
 ----
 
 * Emulation of the CPU, GPU, controller, APU and other internal components
 * Support of memory banks: RomOnly, MBC1, MBC2, MBC3 and MBC5
 * Support for battery (to save progress) on the MBCs and games that support it
-* Run GameBoy games in .gb (original GB) and .gbc (GBC) format, uncompressed
+* Run GameBoy games in .gb (original GameBoy), .gbc (GameBoy Color) or .zip (compressed) formats
 * Specify the rom path through command line arguments
 * Multiple debug tools (Tiles, TileMaps, Sprites, Palettes, CPU and GPU state, CPU and GPU logs, Pause and Step emulation)
 * Statically decompile a rom (done with the ROM bytes before running the game)
+* Capture the screen as a .png when pressing the C key
 
 ## Planned Features / Funcionalidad planeada
 
-* Soporte para juegos comprimidos (.zip)
 * UI para cargar un rom y para la funcionalidad básica
 * Emulación de Super Game Boy?
 * Decompilación dinámica (los roms pueden escribir y ejecutar código en runtime) - Parcialmente implementado en los logs
 * Soporte para Linux (capaz funciona, no probé)
-* Capturar screenshots y grabar videos y audio
+* Grabar videos y audio
 
 ----
 
-* Support for compressed files (.zip)
 * UI to load a rom and the basic funtionality
 * Emulation of the Super Game Boy?
 * Dynamic decompile (roms can write and execute code on runtime) - Partially done when logging
 * Linux support (Maybe it works already, haven't tested yet)
-* Capture screenshots, and record video and audio
+* Record video and audio
 
-## Out-of-scope Features / Funcionalidad fuera de planes
+## Out-of-scope Features for now / Funcionalidad fuera de planes por el momento
 
 * Soporte para link / transfer (multiplayer)
 * Soporte para otros formatos comprimidos (ej: .7z)

@@ -14,7 +14,7 @@ GameWindow::~GameWindow() {
 }
 
 void GameWindow::Clear() {
-    memset(screenArray, 0, width * height * 4);
+    memset(screenArray, 0xFF, width * height * 4);
 }
 
 void GameWindow::Update() {
@@ -29,6 +29,7 @@ void GameWindow::Update() {
 void GameWindow::DrawLine(u8 line) {
     u32 x = line * width;
 	u32 xMax = x + width;
+    // TODO use threads?
     for (; x < xMax; x++)
         ((sf::Uint32*)screenArray)[x] = gpu.GetABGRAt(x).v;
 }

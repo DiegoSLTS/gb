@@ -1,4 +1,5 @@
 #include "InterruptServiceRoutine.h"
+#include "Logger.h"
 
 InterruptServiceRoutine::InterruptServiceRoutine() {}
 InterruptServiceRoutine::~InterruptServiceRoutine() {}
@@ -44,8 +45,10 @@ bool InterruptServiceRoutine::IsInterruptSet(InterruptFlag flag) {
 
 void InterruptServiceRoutine::ResetInterruptFlag(InterruptFlag flag) {
 	IF &= ~(u8)flag;
+    if (log) Logger::instance->log("Reset flag " + Logger::u8ToHex((u8)flag) + "\n");
 }
 
 void InterruptServiceRoutine::SetInterruptFlag(InterruptFlag flag) {
 	IF |= (u8)flag;
+    if (log) Logger::instance->log("Set flag " + Logger::u8ToHex((u8)flag) + "\n");
 }

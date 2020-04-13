@@ -15,6 +15,8 @@ public:
 
 	void ToggleBackground();
 
+    void OnMouseClicked(u32 x, u32 y);
+
 private:
 	GameBoy& gameBoy;
 
@@ -25,4 +27,8 @@ private:
 	u8* oam = nullptr;
 
 	u8 clearColor = 0x00;
+
+    void PrintSprite(u8 index);
+
+    u8 loggedSprite = 255;
 };

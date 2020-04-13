@@ -52,6 +52,7 @@ u8 CPU::Step() {
 
 	if (interruptService.IE & interruptService.IF) {
 		if (isHalted) {
+            if (log) Logger::instance->log("cpu unhalted\n");
 			isHalted = false;
 			lastOpCycles = 1;
 		}
@@ -87,7 +88,6 @@ u8 CPU::Step() {
 		} else
 			CallOpCode(opCode);
     } else {
-        if (log) Logger::instance->log("-- cpu halted\n");
         lastOpCycles = 1;
     }
 

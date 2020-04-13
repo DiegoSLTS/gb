@@ -81,15 +81,20 @@ void GPU::Write(u8 value, u16 address) {
 	}
 
 	switch (address) {
-	case 0xFF40: {
-		bool wasOn = LCDC.displayOn;
-		LCDC.v = value;
-		bool isOn = LCDC.displayOn;
-		if (isOn && !wasOn) {
-			SetCurrentLine(0);
-			mode = GPUMode::OAMAccess;
-			modeCycles = 0;
-		}
+    case 0xFF40: {
+        bool wasOn = LCDC.displayOn;
+        LCDC.v = value;
+        if (LCDC.displayOn != wasOn) {
+            if (LCDC.displayOn) {
+                SetCurrentLine(0);
+                mode = GPUMode::OAMAccess;
+                modeCycles = 0;
+                if (log) Logger::instance->log("LCD on\n");
+            } else {
+                gameWindow->Clear();
+                if (log) Logger::instance->log("LCD off\n");
+            }
+        }
         if (log) Logger::instance->log("LCDC = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LCDC.v) + "\n");
 		break;
 	}
@@ -112,6 +117,10 @@ void GPU::Write(u8 value, u16 address) {
         break;
 	case 0xFF45:
 		LYC = value;
+        LCDStat.lyc = (LYC == LY);
+        // TODO verify that LYC was the only reason for the interrupt being set?
+        if (LCDStat.lycInterruptEnable && !LCDStat.lyc && LCDC.displayOn)
+            interruptService.ResetInterruptFlag(InterruptFlag::LCDStat);
         if (log) Logger::instance->log("LYC = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LYC) + "\n"); 
         break;
 	case 0xFF47:
@@ -168,7 +177,10 @@ void GPU::Write(u8 value, u16 address) {
 	case 0xFF53:
 	case 0xFF54:
 	case 0xFF55:
-		dma.Write(value, address); break;
+		dma.Write(value, address);
+        if (mode == GPUMode::HBlank)
+            dma.StepHDMA();
+        break;
 	case 0xFF4C:
 		FF4C = value;
         if (log) Logger::instance->log("FF4C = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(FF4C) + "\n");
@@ -199,7 +211,7 @@ void GPU::Load(std::ifstream& stream) const {
 	stream.read((char*)BGPMemory, 64);
 	stream.read((char*)OBPMemory, 64);
 	stream.read((char*)&FF4C, 1);
-	//dma.Load(stream);
+	dma.Load(stream);
 }
 
 void GPU::Save(std::ofstream& stream) const {
@@ -225,7 +237,7 @@ void GPU::Save(std::ofstream& stream) const {
 	stream.write((const char*)BGPMemory, 64);
 	stream.write((const char*)OBPMemory, 64);
 	stream.write((const char*)&FF4C, 1);
-	//dma.Save(stream);
+	dma.Save(stream);
 }
 
 bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
@@ -260,7 +272,7 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
             
 			SetMode(newLine > 143 ? GPUMode::VBlank : GPUMode::OAMAccess);
 			modeCycles -= 204;
-            if (newLine == 144 && LCDC.displayOn)
+            if (newLine == 144)
                 frameDrawn = true;
 		}
 		break;
@@ -319,7 +331,7 @@ void GPU::SetMode(GPUMode newMode) {
 
 void GPU::SetCurrentLine(u8 newLine) {
 	LY = newLine;
-	LCDStat.lyc = LYC == newLine;
+	LCDStat.lyc = (LYC == newLine);
 
 	if (LCDStat.lycInterruptEnable && LCDStat.lyc && LCDC.displayOn)
 		interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
@@ -335,15 +347,18 @@ u8 GPU::OnLineFinished() {
 
 void GPU::DrawLine(u8 line) {
     bool drawBG = isCGB || LCDC.bgOn;
-    bool drawWIN = LCDC.winOn && (isCGB || LCDC.bgOn) && line >= WY;
-	bool drawSprites = LCDC.spritesOn;
+    bool drawWIN = LCDC.winOn && (isCGB || LCDC.bgOn) && line >= WY && WX >= 0 && WX <= 166;
+    bool drawSprites = LCDC.spritesOn;
 
-	if (drawBG)
-		DrawBackground(line, drawWIN ? WX - 7 : LCDWidth + 8);
-	if (drawWIN)
-		DrawWindow(line);
-	if (drawSprites)
-		DrawSprites(line);
+    if (drawBG)
+        DrawBackground(line, drawWIN ? WX - 7 : LCDWidth + 8);
+    else
+        memset(screen + line*LCDWidth, 0xFF, LCDWidth);
+
+    if (drawWIN)
+        DrawWindow(line);
+    if (drawSprites)
+        DrawSprites(line);
 
 	if (gameWindow != nullptr)
 		gameWindow->DrawLine(line);
@@ -353,6 +368,7 @@ void GPU::DrawBackground(u8 line, u8 pixelCount) {
 	u16 tileMapAddress = LCDC.bgMap == 0 ? 0x9800 : 0x9C00;
 
 	u8 tileY = ((SCY + line) / 8) % 32;
+    u8 tileLine = (SCY + line) % 8;
 	u8 firstTileX = SCX / 8;
 	u8 xOffset = SCX % 8;
 
@@ -365,10 +381,7 @@ void GPU::DrawBackground(u8 line, u8 pixelCount) {
 		BGAttributes cgbAttributes = { videoRAM1[address] };
 
         u16 tileAddress = LCDC.bgWinData == 0 ? 0x9000 + ((s8)tileOffset) * 16 : 0x8000 + tileOffset * 16;
-        u8 tileLine = (SCY + line) % 8;
-        if (cgbAttributes.flipY)
-            tileLine = 7 - tileLine;
-		tileAddress += tileLine * 2;
+		tileAddress += (cgbAttributes.flipY ? 7 - tileLine : tileLine) * 2;
 
 		u8 lowByte = ReadVRAM(tileAddress, cgbAttributes.bank);
 		u8 highByte = ReadVRAM(tileAddress + 1, cgbAttributes.bank);
@@ -379,7 +392,7 @@ void GPU::DrawBackground(u8 line, u8 pixelCount) {
 			u8 pixel = cgbAttributes.flipX ? 7 - bit : bit;
 
 			s16 screenPos = screenPosBase + (7 - bit);
-			if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
+			if ((screenPos >= line * LCDWidth) && (screenPos < (line + 1) * LCDWidth)) {
 				u8 lowBit = (lowByte >> pixel) & 0x01;
 				u8 highBit = (highByte >> pixel) & 0x01;
 				PixelInfo pixelInfo = { 0 };
@@ -387,7 +400,7 @@ void GPU::DrawBackground(u8 line, u8 pixelCount) {
 				pixelInfo.paletteIndex = cgbAttributes.paletteIndex;
 				pixelInfo.isBG = true;
 
-				if (cgbAttributes.hasPriority && LCDC.bgOn == 1) // LCDC.bgOn on GBC is bgPriority
+				if (cgbAttributes.hasPriority && LCDC.bgOn) // LCDC.bgOn on GBC is bgPriority
 					pixelInfo.bgPriority = true;
 
 				screen[screenPos] = pixelInfo;
@@ -400,6 +413,7 @@ void GPU::DrawWindow(u8 line) {
 	u16 tileMapAddress = LCDC.winMap == 0 ? 0x9800 : 0x9C00;
 
 	u8 tileY = ((line - WY) / 8) % 32;
+    u8 tileLine = (line - WY) % 8;
 	u8 firstTileX = 0;
 
 	u8 tilesToDraw = (LCDWidth - (WX - 7)) / 8 + 1;
@@ -411,10 +425,7 @@ void GPU::DrawWindow(u8 line) {
 		BGAttributes cgbAttributes = { videoRAM1[address] };
 
 		u16 tileAddress = LCDC.bgWinData == 0 ? 0x9000 + ((s8)tileOffset) * 16 : 0x8000 + tileOffset * 16;
-        u8 tileLine = (line - WY) % 8;
-        if (cgbAttributes.flipY)
-            tileLine = 7 - tileLine;
-        tileAddress += tileLine * 2;
+        tileAddress += (cgbAttributes.flipY ? 7 - tileLine : tileLine) * 2;
 
 		u8 lowByte = ReadVRAM(tileAddress, cgbAttributes.bank);
 		u8 highByte = ReadVRAM(tileAddress + 1, cgbAttributes.bank);
@@ -425,7 +436,7 @@ void GPU::DrawWindow(u8 line) {
 			u8 pixel = cgbAttributes.flipX ? 7 - bit : bit;
 
 			s16 screenPos = screenPosBase + (7 - bit);
-			if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
+			if ((screenPos >= line * LCDWidth) && (screenPos < (line + 1) * LCDWidth)) {
 				u8 lowBit = (lowByte >> pixel) & 0x01;
 				u8 highBit = (highByte >> pixel) & 0x01;
 				PixelInfo pixelInfo = { 0 };
@@ -434,7 +445,7 @@ void GPU::DrawWindow(u8 line) {
 				pixelInfo.isBG = true;
 
 				// TODO confirm if this applies to the window too
-				if (cgbAttributes.hasPriority && LCDC.bgOn == 1)
+				if (cgbAttributes.hasPriority && LCDC.bgOn)
 					pixelInfo.bgPriority = true;
 
 				screen[screenPos] = pixelInfo;
@@ -455,14 +466,12 @@ void GPU::DrawSprites(u8 line) {
 		if ((line >= spriteY) && (line < spriteY + spriteHeight)) {
 			s16 spriteX = oam[spriteIndex + 1] - 8;
 			u8 tileIndex = oam[spriteIndex + 2];
+            if (spriteHeight == 16)
+                tileIndex &= 0xFE;
+            u16 tileAddress = 0x8000 + tileIndex * 16;
+
 			OBJAttributes attributes = { oam[spriteIndex + 3] };
-
-			if (attributes.flipX)
-				int a = 0;
-			u16 tileAddress = 0x8000 + tileIndex * 16;
-
-			u8 spriteLine = attributes.flipY ? spriteHeight - 1 - (line - spriteY) : line - spriteY;
-
+            u8 spriteLine = attributes.flipY ? spriteHeight - 1 - (line - spriteY) : line - spriteY;
 			u8 lowByte = ReadVRAM(tileAddress + spriteLine * 2, attributes.bank);
 			u8 highByte = ReadVRAM(tileAddress + spriteLine * 2 + 1, attributes.bank);
 
@@ -473,7 +482,7 @@ void GPU::DrawSprites(u8 line) {
 				s16 screenPos = line * LCDWidth + spriteX + (7 - bit);
 
 				// if LCDC is set and the BG has priority, ignore the pixel color
-				if (LCDC.bgOn && screen[screenPos].bgPriority)
+				if (LCDC.bgOn && screen[screenPos].bgPriority && screen[screenPos].colorIndex > 0)
 					continue;
 
 				if (screenPos >= line * LCDWidth && screenPos < (line + 1) * LCDWidth) {
@@ -482,7 +491,7 @@ void GPU::DrawSprites(u8 line) {
 					PixelInfo pixelInfo = { 0 };
 					pixelInfo.colorIndex = lowBit | (highBit << 1);
 
-					if (pixelInfo.colorIndex > 0 && screen[screenPos].isBG && (!LCDC.bgOn || !attributes.behindBG || (screen[screenPos].colorIndex) == 0)) {
+					if (pixelInfo.colorIndex > 0 && screen[screenPos].isBG && (!LCDC.bgOn || !attributes.behindBG || (screen[screenPos].colorIndex == 0))) {
 						pixelInfo.paletteIndex = isCGB ? attributes.paletteIndex : attributes.palette;
 						// pixelInfo.isBG already false
 
@@ -534,7 +543,7 @@ ABGR GPU::GetABGR(PixelInfo pixelInfo) {
 		abgr.g = ((gpuColor >> 5) & 0x1F) * 8;
 		abgr.b = ((gpuColor >> 10) & 0x1F) * 8;
 	} else
-		abgr.r = abgr.g = abgr.b = greyColors[((gbPalette >> (pixelInfo.colorIndex << 1)) & 0x03)];
+		abgr.r = abgr.g = abgr.b = greyColors[(gbPalette >> (pixelInfo.colorIndex << 1)) & 0x03];
 
 	return abgr;
 }

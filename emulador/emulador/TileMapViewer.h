@@ -14,7 +14,7 @@ public:
     void OnMouseClicked(u32 x, u32 y);
 
 protected:
-	virtual u16 GetTileAddress(u8 x, u8 y) const override;
+	u16 GetTileAddress(u8 x, u8 y) const;
     virtual void UpdateTile(u8 x, u8 y) override;
 
 private:

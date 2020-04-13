@@ -31,8 +31,13 @@ private:
 	std::string romName;
 
 	void LoadFile(const std::string& path);
+    void InitMBC();
+
+    // Used when reading an uncompressed file
 	void LoadHeader(std::ifstream& readStream);
-	void LoadRom(std::ifstream& readStream);
+
+    // Used when reading a compressed file
+    void LoadHeader(const char* fileContent);
 
 	void LoadRam(std::ifstream& readStream);
 	void SaveRam(std::ofstream& writeStream);

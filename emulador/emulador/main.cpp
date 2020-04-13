@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
 		romPath = romDir.append(romName);
 		std::cout << "Loading hardcoded rom from = " << romPath << std::endl;
 	}
+
     size_t slashPos = romName.rfind("/");
     slashPos = slashPos == std::string::npos ? 0 : slashPos + 1;
     
@@ -187,11 +188,7 @@ int main(int argc, char *argv[]) {
                         gameWindow.Clear();
                     }
                     else if (event.key.code == sf::Keyboard::L) {
-                        gameBoy.cpu.log = true;
-                        gameBoy.gpu.log = true;
-                        gameBoy.gpu.dma.log = true;
-                        gameBoy.cartridge.mbc->log = true;
-                        gameBoy.joypad.log = true;
+                        gameBoy.ToggleLogging();
                         //framesToLog = 2;
                     }
 					else if (event.key.code == sf::Keyboard::F3) {
@@ -224,6 +221,8 @@ int main(int argc, char *argv[]) {
                         tilesWindow.PreviousPalette();
                     else if (event.key.code == sf::Keyboard::End)
                         tilesWindow.ToggleBank();
+                    else if (event.key.code == sf::Keyboard::Home)
+                        tilesWindow.ToggleBgSprite();
                     else if (event.key.code == sf::Keyboard::R) {
                         if (!audioStream.IsRecording()) {
                             soundWindow.CloseStream();
@@ -234,7 +233,8 @@ int main(int argc, char *argv[]) {
                             soundWindow.OpenStream();
                         }
                     }
-                }
+                } else if (event.type == sf::Event::MouseButtonPressed)
+                    tilesWindow.OnMouseClicked(event.mouseButton.x, event.mouseButton.y);
             }
 
             while (soundWindow.PollEvent(event)) {
@@ -267,7 +267,8 @@ int main(int argc, char *argv[]) {
 						spritesWindow.Close();
 					else if (event.key.code == sf::Keyboard::End)
 						spritesWindow.ToggleBackground();
-				}
+				} else if (event.type == sf::Event::MouseButtonPressed)
+                    spritesWindow.OnMouseClicked(event.mouseButton.x, event.mouseButton.y);
 			}
 
             while (tileMap0Window.PollEvent(event)) {
@@ -283,7 +284,7 @@ int main(int argc, char *argv[]) {
                 else if (event.type == sf::Event::MouseButtonPressed)
                     tileMap1Window.OnMouseClicked(event.mouseButton.x, event.mouseButton.y);
             }
-
+            
             framesCount++;
             auto currentTime = std::chrono::system_clock::now();
             if (std::chrono::duration_cast<std::chrono::seconds>(currentTime - previousFPSTime).count() >= 1) {

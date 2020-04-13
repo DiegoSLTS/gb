@@ -41,19 +41,16 @@ void TileViewer::UpdateTile(u8 x, u8 y) {
 		u8 lowByte = gameBoy.gpu.ReadVRAM(tileDataAddress + line * 2, VRAMBank);
 		u8 highByte = gameBoy.gpu.ReadVRAM(tileDataAddress + line * 2 + 1, VRAMBank);
 
-        u16 screenPosBase = (y * 8 + line) * screenTexture.getSize().x + x * 8;
-
+        u16 screenPosBase = (y * 8 + line) * width + x * 8;
         for (s8 pixel = 7; pixel >= 0; pixel--) {
             u16 screenPos = screenPosBase + (7 - pixel);
 			u8 lowBit = (lowByte >> pixel) & 0x01;
 			u8 highBit = (highByte >> pixel) & 0x01;
 			PixelInfo pixelInfo = { 0 };
 			pixelInfo.colorIndex = lowBit | (highBit << 1);
+            pixelInfo.paletteIndex = cgbPaletteIndex;
+			pixelInfo.isBG = displayAsBG;
 
-			if (isCGB)
-				pixelInfo.paletteIndex = cgbPaletteIndex;
-
-			pixelInfo.isBG = true;
 			((sf::Uint32*)screenArray)[screenPos] = gameBoy.gpu.GetABGR(pixelInfo).v;
         }
 	}
@@ -80,7 +77,30 @@ void TileViewer::ToggleBank() {
     UpdateTitle();
 }
 
+void TileViewer::ToggleBgSprite() {
+    displayAsBG = !displayAsBG;
+    UpdateTitle();
+}
+
 void TileViewer::UpdateTitle() {
     if (isCGB)
-        SetTitle(title + " (CGB) - Bank: " + std::to_string(VRAMBank) + " - Palette: " + std::to_string(cgbPaletteIndex));
+        SetTitle(title + " (CGB) " + (displayAsBG ? "BG" : "OBJ") + " - Bank: " + std::to_string(VRAMBank) + " - Palette: " + std::to_string(cgbPaletteIndex));
+    else
+        SetTitle(title + " (GB) - " + (displayAsBG ? "BG" : "OBJ"));
+}
+
+void TileViewer::PrintTile(u8 x, u8 y) {
+    printf("\nTile X: %d Y: %d\n", x, y);
+    printf("Map address: %s\n", Logger::u16ToHex(GetTileAddress(x, y)).c_str());
+}
+
+void TileViewer::OnMouseClicked(u32 x, u32 y) {
+    u8 newX = x / 16; // tile size (8) * window scale (2)
+    u8 newY = y / 16;
+
+    if (newX != loggedTileX || newY != loggedTileY) {
+        loggedTileX = newX;
+        loggedTileY = newY;
+        PrintTile(loggedTileX, loggedTileY);
+    }
 }

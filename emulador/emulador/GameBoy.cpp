@@ -42,16 +42,20 @@ GameBoy::GameBoy(const std::string& RomPath)
 	else
 		mmu.LoadBootRom(IsCGB);
 
-    if (startLogging) {
-        cpu.log = true;
-        gpu.log = true;
-        gpu.dma.log = true;
-        cartridge.mbc->log = true;
-        joypad.log = true;
-    }
+    if (startLogging)
+        ToggleLogging();
 }
 
 GameBoy::~GameBoy() {}
+
+void GameBoy::ToggleLogging() {
+    cpu.log = !cpu.log;
+    gpu.log = !gpu.log;
+    gpu.dma.log = !gpu.dma.log;
+    cartridge.mbc->log = !cartridge.mbc->log;
+    joypad.log = !joypad.log;
+    interruptService.log = !interruptService.log;
+}
 
 void GameBoy::Reset() {
     cpu.pc = 0;
@@ -71,6 +75,7 @@ void GameBoy::MainLoop() {
     frameFinished = gpu.Step(lastOpCycles * 4, cpu.IsDoubleSpeedEnabled());
     timer.Step(lastOpCycles * 4);
     sampleGenerated = audio.Step(lastOpCycles, cpu.IsDoubleSpeedEnabled());
+    serial.Step(lastOpCycles * 4, cpu.IsDoubleSpeedEnabled());
 
 	if (stepsToEmulate > 0) {
 		stepsToEmulate--;

@@ -45,6 +45,8 @@ public:
 	u8 stepsToEmulate = 0;
     void Reset();
     
+    void ToggleLogging();
+
 private:
     void LoadState();
     void SaveState();    

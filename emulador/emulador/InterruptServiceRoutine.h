@@ -32,4 +32,6 @@ public:
 
 	virtual void Load(std::ifstream& stream) const override;
 	virtual void Save(std::ofstream& stream) const override;
+    
+    bool log = false;
 };

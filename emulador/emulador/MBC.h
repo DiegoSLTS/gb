@@ -33,6 +33,7 @@ public:
 	void InitArrays();
 
 	void LoadRom(std::ifstream& readStream);
+    void LoadRom(const char* fileContent);
 
 	virtual void LoadRam(std::ifstream& readStream);
 	virtual void SaveRam(std::ofstream& readStream);
@@ -51,11 +52,14 @@ protected:
 	u8* rom = nullptr;
 	u8* ram = nullptr;
 
+    u16 romBanksCount = 0;
+    u8 ramBanksCount = 0;
+
+    virtual u32 GetRomSize() const;
+    virtual u32 GetRamSize() const;
+
 private:
 	const RomHeader& header;
-
-	virtual u32 GetRomSize() const;
-	virtual u32 GetRamSize() const;
 };
 
 class RomOnly : public MBC {

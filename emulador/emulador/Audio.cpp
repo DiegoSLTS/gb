@@ -101,7 +101,9 @@ void Audio::UpdateChannel1(float deltaTime) {
                         return;
                     }
                 } else {
-                    // TODO "Note that sweep shifts are repeatedly performed until the new value becomes either less than 0 (the previous value is then retained) or, when incrementing, if the new frequency value exceeds the maximum frequency (131Khz or 2048 in register value)"
+                    // TODO "Note that sweep shifts are repeatedly performed until the new value becomes either less than 0
+                    //(the previous value is then retained) or, when incrementing, if the new frequency value exceeds the
+                    //maximum frequency (131Khz or 2048 in register value)"
                     // http://belogic.com/gba/channel1.shtml
                     //if (temp <= channel1.FrequencyXShadow)
                     channel1.FrequencyXShadow -= temp;

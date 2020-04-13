@@ -69,3 +69,43 @@ void SpritesViewer::DrawSprite(u8 index) {
 void SpritesViewer::ToggleBackground() {
 	clearColor = clearColor == 0x00 ? 0xFF : 0x00;
 }
+
+void SpritesViewer::OnMouseClicked(u32 x, u32 y) {
+    u8 spriteHeight = LCDC.spritesSize == 0 ? 8 : 16;
+
+    u8 index = 0;
+    u8 spriteIndex = 0;
+    bool found = false;
+    for (index = 0; index < 40; index++) {
+        spriteIndex = index * 4;
+        u8 spriteY = oam[spriteIndex];
+        u8 spriteX = oam[spriteIndex + 1];
+        
+        if (spriteX <= (x >> 1) && spriteX + 8 >= (x >> 1) && spriteY <= (y >> 1) && spriteY + spriteHeight >= (y >> 1)) {
+            found = true;
+            break;
+        }
+    }
+
+    if (found && spriteIndex != loggedSprite) {
+        printf("\nMouse X: %d Y: %d\n", x, y);
+        loggedSprite = index;
+        PrintSprite(loggedSprite);
+    }
+}
+
+void SpritesViewer::PrintSprite(u8 index) {
+    u8 tileIndex = oam[index + 2];
+    OBJAttributes attributes = { oam[index + 3] };
+    u16 dataAddress = 0x8000 + tileIndex * 16;
+
+    printf("Sprite: %d (8x%d)\n", index, index);
+    printf("Tile index: %s\n", Logger::u8ToHex(tileIndex).c_str());
+    printf("Data address: %s\n", Logger::u16ToHex(dataAddress).c_str());
+    printf("Bank: %d\n", attributes.bank);
+    printf("Flip X: %d\n", attributes.flipX);
+    printf("Flip Y: %d\n", attributes.flipY);
+    printf("Priority: %d\n", attributes.behindBG);
+    printf("BG Palette: %d\n", attributes.palette);
+    printf("CGB Palette: %d\n", attributes.paletteIndex);
+}
