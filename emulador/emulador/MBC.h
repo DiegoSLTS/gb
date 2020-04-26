@@ -90,7 +90,7 @@ private:
 	u8 ramBank = 0;
 	unsigned int romBankOffset = 16 * 1024;
 	unsigned int ramBankOffset = 0;
-	u8 ramEnabled = 0; // 0x00 disabled, 0x0A enabled
+	bool ramEnabled = 0; // 0x00 disabled, 0x0A enabled
 	u8 romRamSwitch = 0; // 0x00 rom, 0x01 ram
 };
 
@@ -114,7 +114,7 @@ public:
 private:
 	u8 romBank = 1;
 	unsigned int romBankOffset = 16 * 1024;
-	u8 ramEnabled = 0; // The least significant bit of the upper address byte must be zero to enable/disable cart RAM
+	bool ramEnabled = 0; // The least significant bit of the upper address byte must be zero to enable/disable cart RAM
 };
 
 class MBC3 : public MBC {

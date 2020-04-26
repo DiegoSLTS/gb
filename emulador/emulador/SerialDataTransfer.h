@@ -2,10 +2,12 @@
 
 #include "IAddressable.h"
 
+class InterruptServiceRoutine;
+
 class SerialDataTransfer : public IAddressable {
 public:
 
-	SerialDataTransfer();
+	SerialDataTransfer(InterruptServiceRoutine& interruptService);
 	virtual ~SerialDataTransfer();
 
 	virtual u8 Read(u16 address) override;
@@ -14,6 +16,8 @@ public:
     void Step(u8 cycles, bool isDoubleSpeedEnabled);
 
 private:
+    InterruptServiceRoutine& interruptService;
+
 	u8 SB = 0;		//0xFF01 Serial Transfer data (R/W)
 	u8 SC = 0x7E;	//0xFF02 Serial Transfer Control (R/W)
     bool normalClock = true;

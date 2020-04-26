@@ -2,7 +2,10 @@
 #include "MMU.h"
 #include "Logger.h"
 
-DMA::DMA(MMU& mmu, u8* oam) : mmu(mmu), oam(oam) {}
+DMA::DMA(MMU& mmu, u8* oam) : mmu(mmu), oam(oam) {
+    currentCycles = 160;
+}
+
 DMA::~DMA() {}
 
 void DMA::Step(u8 cycles) {

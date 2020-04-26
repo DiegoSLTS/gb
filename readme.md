@@ -89,12 +89,14 @@ You can load a rom from any location from your disk passing the absolute path be
 * Soporte para link / transfer (multiplayer)
 * Soporte para otros formatos comprimidos (ej: .7z)
 * Emulación de periféricos (Camara, impresora, etc)
+* Emular juegos beta o prototipos
 
 ----
 
 * Support for link / transfer (multiplayer)
 * Support for other zip formatos (e.g. .7z)
 * Emulation of periferals (Camera, printer, etc)
+* Emulation of beta or prototype games
 
 ## Contributing / Contribuciones
 

@@ -95,13 +95,17 @@ void SpritesViewer::OnMouseClicked(u32 x, u32 y) {
 }
 
 void SpritesViewer::PrintSprite(u8 index) {
-    u8 tileIndex = oam[index + 2];
-    OBJAttributes attributes = { oam[index + 3] };
+    u8 oamIndex = index * 4;
+    u8 spriteHeight = LCDC.spritesSize == 0 ? 8 : 16;
+    u8 tileIndex = oam[oamIndex + 2];
+    OBJAttributes attributes = { oam[oamIndex + 3] };
     u16 dataAddress = 0x8000 + tileIndex * 16;
 
-    printf("Sprite: %d (8x%d)\n", index, index);
+    printf("Sprite: %d (8x%d)\n", index, spriteHeight);
     printf("Tile index: %s\n", Logger::u8ToHex(tileIndex).c_str());
     printf("Data address: %s\n", Logger::u16ToHex(dataAddress).c_str());
+    printf("X: %d\n", oam[oamIndex + 1]);
+    printf("Y: %d\n", oam[oamIndex]);
     printf("Bank: %d\n", attributes.bank);
     printf("Flip X: %d\n", attributes.flipX);
     printf("Flip Y: %d\n", attributes.flipY);

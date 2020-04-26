@@ -135,6 +135,11 @@ private:
 	
 	GPUMode mode = GPUMode::OAMAccess;
 	u16 modeCycles = 0;
+
+    u8 spritesInLineCount = 0;
+    u8 spritesInLine[11] = { 0xFF }; // limit is 10, but adding one more to simplify the sorting algorithm
+
+    void SortSprite(u8 spriteIndex);
 	
 	void SetMode(GPUMode newMode);
 	void SetCurrentLine(u8 newLine);

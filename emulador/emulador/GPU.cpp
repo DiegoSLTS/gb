@@ -101,6 +101,13 @@ void GPU::Write(u8 value, u16 address) {
 	case 0xFF41:
 		LCDStat.v = value;
 		LCDStat.mode = mode;
+        LCDStat.lyc = (LYC == LY);
+        if (LCDStat.lycInterruptEnable && LCDC.displayOn) {
+            if (LCDStat.lyc)
+                interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
+            else
+                interruptService.ResetInterruptFlag(InterruptFlag::LCDStat);
+        }
         if (log) Logger::instance->log("LCDStat = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LCDStat.v) + "\n");
 		break;
 	case 0xFF42:
@@ -211,7 +218,7 @@ void GPU::Load(std::ifstream& stream) const {
 	stream.read((char*)BGPMemory, 64);
 	stream.read((char*)OBPMemory, 64);
 	stream.read((char*)&FF4C, 1);
-	dma.Load(stream);
+	//dma.Load(stream);
 }
 
 void GPU::Save(std::ofstream& stream) const {
@@ -237,7 +244,7 @@ void GPU::Save(std::ofstream& stream) const {
 	stream.write((const char*)BGPMemory, 64);
 	stream.write((const char*)OBPMemory, 64);
 	stream.write((const char*)&FF4C, 1);
-	dma.Save(stream);
+	//dma.Save(stream);
 }
 
 bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
@@ -248,7 +255,22 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 	switch (mode) {
 	case GPUMode::OAMAccess: {
 		if (modeCycles >= 80) {
-			// TODO if GB, sort sprites by x into another array
+            u8 spriteHeight = LCDC.spritesSize == 0 ? 8 : 16;
+            u8 spritesDrawn = 0;
+            spritesInLineCount = 0;
+
+            for (u8 i = 0; i < 40; i++) {
+                u8 spriteIndex = i * 4;
+                s16 spriteY = (s16)oam[spriteIndex] - 16;
+
+                if ((LY >= spriteY) && (LY < spriteY + spriteHeight)) {
+                    SortSprite(spriteIndex);
+
+                    if (spritesInLineCount == 10)
+                        break;
+                }
+            }
+			
 			SetMode(GPUMode::VRAMAccess);
 			modeCycles -= 80;
 		}
@@ -278,6 +300,9 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 		break;
 	}
 	case GPUMode::VBlank: {
+        if (LY == 153)
+            SetCurrentLine(0);
+
 		if (modeCycles >= 456) {
 			modeCycles -= 456;
 
@@ -293,10 +318,9 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
             // If the current line is 0, since this is VBlank, it means the fake line 0 is finishing,
             // and that means the frame finished. The line is set to 0 again to trigger the LYC interrupt
             // if necessary
-            if (LY == 0) {
-                SetCurrentLine(0);
+            if (LY == 0)
                 SetMode(GPUMode::OAMAccess);
-            } else
+            else
                 OnLineFinished();
 		}
 		break;
@@ -304,6 +328,25 @@ bool GPU::Step(u8 cycles, bool isDoubleSpeedEnabled) {
 	}
 
 	return frameDrawn;
+}
+
+void GPU::SortSprite(u8 spriteIndex) {
+    spritesInLine[spritesInLineCount] = spriteIndex;
+    if (!isCGB && spritesInLineCount > 0) {
+        s16 spriteX = oam[spriteIndex + 1];
+        for (s8 i = spritesInLineCount - 1; i >= 0; i--) {
+            u8 otherSpriteIndex = spritesInLine[i];
+            s16 otherSpriteX = oam[otherSpriteIndex + 1];
+            if (spriteX < otherSpriteX) {
+                spritesInLine[i] = spriteIndex;
+                spritesInLine[i + 1] = otherSpriteIndex;
+            } else
+                break;
+        }
+    }
+
+    if (spritesInLineCount < 10)
+        spritesInLineCount++;
 }
 
 void GPU::SetMode(GPUMode newMode) {
@@ -340,7 +383,7 @@ void GPU::SetCurrentLine(u8 newLine) {
 }
 
 u8 GPU::OnLineFinished() {
-	u8 line = LY == 152 ? 0 : LY + 1;
+	u8 line = LY + 1;
 	SetCurrentLine(line);
 	return line;
 }
@@ -351,7 +394,7 @@ void GPU::DrawLine(u8 line) {
     bool drawSprites = LCDC.spritesOn;
 
     if (drawBG)
-        DrawBackground(line, drawWIN ? WX - 7 : LCDWidth + 8);
+        DrawBackground(line, drawWIN ? WX : LCDWidth + 8);
     else
         memset(screen + line*LCDWidth, 0xFF, LCDWidth);
 
@@ -458,9 +501,8 @@ void GPU::DrawSprites(u8 line) {
 	u8 spriteHeight = LCDC.spritesSize == 0 ? 8 : 16;
 	u8 spritesDrawn = 0;
 
-	for (u8 i = 0; i < 40; i++) {
-		u8 spriteIndex = i * 4;
-
+	for (u8 i = 0; i < spritesInLineCount; i++) {
+		u8 spriteIndex = spritesInLine[i];
 		s16 spriteY = (s16)oam[spriteIndex] - 16;
 
 		if ((line >= spriteY) && (line < spriteY + spriteHeight)) {
@@ -492,17 +534,13 @@ void GPU::DrawSprites(u8 line) {
 					pixelInfo.colorIndex = lowBit | (highBit << 1);
 
 					if (pixelInfo.colorIndex > 0 && screen[screenPos].isBG && (!LCDC.bgOn || !attributes.behindBG || (screen[screenPos].colorIndex == 0))) {
-						pixelInfo.paletteIndex = isCGB ? attributes.paletteIndex : attributes.palette;
+						pixelInfo.paletteIndex = isCGB && FF4C != 0x04 ? attributes.paletteIndex : attributes.palette;
 						// pixelInfo.isBG already false
 
 						screen[screenPos] = pixelInfo;
 					}
 				}
 			}
-
-			spritesDrawn++;
-			if (spritesDrawn == 10)
-				return;
 		}
 	}
 }
@@ -549,7 +587,7 @@ ABGR GPU::GetABGR(PixelInfo pixelInfo) {
 }
 
 u8 GPU::ReadVRAM(u16 address, u8 bank) {
-	if (bank == 0)
+	if (bank == 0 || !isCGB || FF4C == 0x04)
 		return videoRAM0[address - 0x8000];
 
 	return videoRAM1[address - 0x8000];

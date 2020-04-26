@@ -112,7 +112,7 @@ u8 MBC1::Read(u16 address) {
 
 void MBC1::Write(u8 value, u16 address) {
 	if (address < 0x2000)
-		ramEnabled = value;
+        ramEnabled = value == 0x0A;
 	else if (address >= 0x2000 && address < 0x4000) {
 		u8 lowBits = value & 0x1F;
 		if (lowBits == 0)
@@ -120,24 +120,24 @@ void MBC1::Write(u8 value, u16 address) {
 		romBank &= 0x60;
 		romBank |= lowBits;
         romBank %= romBanksCount;
+        romBankOffset = 16 * 1024 * romBank;
 	} else if (address >= 0x4000 && address < 0x6000) {
 		if (romRamSwitch == 0) {
 			u8 highBits = (value & 0x03) << 5;
 			romBank &= 0x1F;
 			romBank |= highBits;
             romBank %= romBanksCount;
+            romBankOffset = 16 * 1024 * romBank;
 		} else if (ramEnabled) {
 			ramBank = value & 0x03;
-            ramBank %= ramBanksCount;
+            if (ramBank > ramBanksCount)
+                ramBank = ramBanksCount;
 			ramBankOffset = 8 * 1024 * ramBank;
 		}
 	} else if (address >= 0x6000 && address < 0x8000)
 		romRamSwitch = value;
 	else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
 		ram[ramBankOffset + address - 0xA000] = value;
-
-	if (romRamSwitch == 0)
-		romBankOffset = 16 * 1024 * romBank;
 }
 
 void MBC1::Load(std::ifstream& stream) const {
@@ -169,7 +169,7 @@ u8 MBC2::Read(u16 address) {
 void MBC2::Write(u8 value, u16 address) {
 	if (address < 0x2000) {
 		if ((address & 0x0100) == 0)
-			ramEnabled = value;
+            ramEnabled = value == 0x0A;
 	} else if (address >= 0x2000 && address < 0x4000) {
 		if ((address & 0x0100) > 0) {
 			romBank = value & 0x0F;
@@ -219,7 +219,8 @@ void MBC3::Write(u8 value, u16 address) {
 		if (value < 0x07) {
 			ramMapped = true;
 			ramBank = value;
-            ramBank %= ramBanksCount;
+            if (ramBank > ramBanksCount)
+                ramBank = ramBanksCount;
 			ramBankOffset = 8 * 1024 * ramBank;
 		} else if (value >= 0x08 && value <= 0x0C) {
 			ramMapped = false;
@@ -300,24 +301,23 @@ void MBC5::Write(u8 value, u16 address) {
 		romBank &= 0x0100;
 		romBank |= lowBits;
         romBank %= romBanksCount;
+        romBankOffset = 16 * 1024 * romBank;
         if (log) Logger::instance->log("ROMBank: " + Logger::u16ToHex(romBank) + " ; lowBits: " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0x3000 && address < 0x4000) {
 		u8 highBit = value & 0x01;
 		romBank &= 0x00FF;
 		romBank |= (highBit << 8);
         romBank %= romBanksCount;
+        romBankOffset = 16 * 1024 * romBank;
         if (log) Logger::instance->log("ROMBank: " + Logger::u16ToHex(romBank) + " ; highBits: " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0x4000 && address < 0x6000) {
 		ramBank = value & 0x0F;
-		ramBankOffset = 8 * 1024 * ramBank;
         if (ramBank > ramBanksCount)
             ramBank = ramBanksCount;
+        ramBankOffset = 8 * 1024 * ramBank;
         if (log) Logger::instance->log("RAMBank: " + Logger::u8ToHex(ramBank) + " ; " + Logger::u8ToHex(value) + "\n");
 	} else if (address >= 0xA000 && address < 0xC000 && ramEnabled)
 		ram[ramBankOffset + address - 0xA000] = value;
-
-	if (address >= 0x2000 && address < 0x4000)
-        romBankOffset = 16 * 1024 * romBank;
 }
 
 void MBC5::Load(std::ifstream& stream) const {

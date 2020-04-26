@@ -11,6 +11,7 @@ void Timer::Step(u8 cycles) {
 		dividerCounter -= 255;
 	}
 
+    u16 previousTimerCounter = timerCounter;
     timerCounter += cycles;
 
 	if (TAC & 0x04) { // is on
@@ -24,7 +25,7 @@ void Timer::Step(u8 cycles) {
 		case 3: maxCounter = 256; break;	// freq 16382
 		}
 
-		if (timerCounter >= maxCounter) {
+		if (previousTimerCounter < maxCounter && timerCounter >= maxCounter) {
 			TIMA++;
 			if (TIMA == 0) {
 				TIMA = TMA;

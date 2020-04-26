@@ -2,13 +2,14 @@
 #include "RomParser.h"
 
 GameBoy::GameBoy(const std::string& RomPath)
-	: cartridge(RomPath), cpu(mmu, interruptService), gpu(mmu, interruptService), timer(interruptService), joypad(interruptService) {
+	: cartridge(RomPath), cpu(mmu, interruptService), gpu(mmu, interruptService), timer(interruptService), joypad(interruptService), serial(interruptService) {
 
 	// TODO load settings from a settings file
 	EmulationModeSetting emulationModeSetting = EmulationModeSetting::Detect;
 	bool skipBios = true;
 	syncWithAudio = false;
     bool startLogging = false;
+    isPaused = false;
 
 	switch (emulationModeSetting) {
 	case EmulationModeSetting::Detect:
