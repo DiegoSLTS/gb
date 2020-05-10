@@ -32,7 +32,7 @@ void MBC::InitArrays() {
 }
 
 u32 MBC::GetRomSize() const {
-	if (header.romSize < 0x08)
+	if (header.romSize <= 0x08)
 		return (32 * 1024) << header.romSize;
 	else {
 		switch (header.romSize) {

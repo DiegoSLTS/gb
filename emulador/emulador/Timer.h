@@ -25,4 +25,12 @@ private:
 	u8 TIMA = 0x00;			//0xFF05 Timer counter (R/W)
 	u8 TMA = 0x00;			//0xFF06 Timer Modulo (R/W)
 	u8 TAC = 0xF8;	//0xFF07 Timer Control (R/W)
+
+    u16 timerReg = 0x0000;
+
+    u8 TIMABits[4] = { 9, 3, 5, 7 };
+    u8 TACInput = 0;
+
+    void UpdateTACInput();
+    void UpdateTIMA(u8 wasHigh);
 };

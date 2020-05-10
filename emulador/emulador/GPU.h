@@ -76,8 +76,8 @@ typedef union {
 		u8 colorIndex : 2;		// Bits 0 - 1 colorIndex [0,3]
 		u8 paletteIndex : 3;	// Bits 2 - 4 paletteIndex [0,7] for CGB, [0,1] for sprites in GB, 0 for BG in GB
 		bool isBG : 1;			// Bit 5      bg/win or sprite, 1 for BG, 0 for sprites
-		u8 unused : 1;
-		bool bgPriority : 1;	// Bit 7      BG priority (CGB only, used when rendering sprites)
+		bool bgPriority : 1;	// Bit 6      BG priority (CGB only, used when rendering sprites)
+        bool blank : 1;         // Bit 7      Set to 1 when LCD is off
 	};
 } PixelInfo;
 
@@ -103,7 +103,7 @@ public:
 
 	// returns true if a frame was drawn
 	bool Step(u8 cycles, bool isDoubleSpeedEnabled);
-
+    
 	virtual u8 Read(u16 address) override;
 	virtual void Write(u8 value, u16 address) override;
 

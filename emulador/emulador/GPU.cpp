@@ -91,7 +91,7 @@ void GPU::Write(u8 value, u16 address) {
                 modeCycles = 0;
                 if (log) Logger::instance->log("LCD on\n");
             } else {
-                gameWindow->Clear();
+                memset(screen, 0x80, LCDWidth * LCDHeight); // 0x80 = PixelInfo bytes with "blank" bit set
                 if (log) Logger::instance->log("LCD off\n");
             }
         }
@@ -101,13 +101,6 @@ void GPU::Write(u8 value, u16 address) {
 	case 0xFF41:
 		LCDStat.v = value;
 		LCDStat.mode = mode;
-        LCDStat.lyc = (LYC == LY);
-        if (LCDStat.lycInterruptEnable && LCDC.displayOn) {
-            if (LCDStat.lyc)
-                interruptService.SetInterruptFlag(InterruptFlag::LCDStat);
-            else
-                interruptService.ResetInterruptFlag(InterruptFlag::LCDStat);
-        }
         if (log) Logger::instance->log("LCDStat = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LCDStat.v) + "\n");
 		break;
 	case 0xFF42:
@@ -124,10 +117,6 @@ void GPU::Write(u8 value, u16 address) {
         break;
 	case 0xFF45:
 		LYC = value;
-        LCDStat.lyc = (LYC == LY);
-        // TODO verify that LYC was the only reason for the interrupt being set?
-        if (LCDStat.lycInterruptEnable && !LCDStat.lyc && LCDC.displayOn)
-            interruptService.ResetInterruptFlag(InterruptFlag::LCDStat);
         if (log) Logger::instance->log("LYC = " + Logger::u8ToHex(value) + " ; " + Logger::u8ToHex(LYC) + "\n"); 
         break;
 	case 0xFF47:
@@ -396,7 +385,7 @@ void GPU::DrawLine(u8 line) {
     if (drawBG)
         DrawBackground(line, drawWIN ? WX : LCDWidth + 8);
     else
-        memset(screen + line*LCDWidth, 0xFF, LCDWidth);
+        memset(screen + line*LCDWidth, 0x80, LCDWidth); // 0x80 = PixelInfo bytes with "blank" bit set
 
     if (drawWIN)
         DrawWindow(line);
@@ -550,6 +539,9 @@ ABGR GPU::GetABGRAt(u32 pixelIndex) {
 }
 
 ABGR GPU::GetABGR(PixelInfo pixelInfo) {
+    if (pixelInfo.blank)
+        return { 0xFFFFFFFF };
+
 	// turn gb color [0,3] into an 8 bit color [255,0], 85 == 255/3
 	const static u8 greyColors[] = { 0xFF, 0xAA , 0x55, 0x00 }; // 255 - index * 85 
 

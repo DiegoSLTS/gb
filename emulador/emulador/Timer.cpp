@@ -5,41 +5,16 @@ Timer::Timer(InterruptServiceRoutine& interruptService) : interruptService(inter
 Timer::~Timer() {}
 
 void Timer::Step(u8 cycles) {
-	dividerCounter += cycles;
-	if (dividerCounter >= 255) {
-		DIV++;
-		dividerCounter -= 255;
-	}
-
-    u16 previousTimerCounter = timerCounter;
-    timerCounter += cycles;
-
-	if (TAC & 0x04) { // is on
-		u8 frequency = TAC & 0x03;
-		u16 maxCounter = 0;
-
-		switch (frequency) {
-		case 0: maxCounter = 1024; break;	// freq 4096
-		case 1: maxCounter = 16; break;		// freq 262144
-		case 2: maxCounter = 64; break;		// freq 65536
-		case 3: maxCounter = 256; break;	// freq 16382
-		}
-
-		if (previousTimerCounter < maxCounter && timerCounter >= maxCounter) {
-			TIMA++;
-			if (TIMA == 0) {
-				TIMA = TMA;
-				interruptService.SetInterruptFlag(InterruptFlag::Timer);
-			}
-			timerCounter -= maxCounter;
-		}
-	}
+    bool wasHigh = TACInput == 1;
+    timerReg += cycles;
+    UpdateTACInput();
+    UpdateTIMA(wasHigh);
 }
 
 u8 Timer::Read(u16 address) {
 	switch (address) {
 	case 0xFF04:
-		return DIV;
+        return (u8)(timerReg >> 8);
 	case 0xFF05:
 		return TIMA;
 	case 0xFF06:
@@ -52,13 +27,42 @@ u8 Timer::Read(u16 address) {
 
 void Timer::Write(u8 value, u16 address) {
 	switch (address) {
-	case 0xFF04:
-        DIV = 0; TIMA = 0; timerCounter = 0; break;
+    case 0xFF04: {
+        bool wasHigh = TACInput == 1;
+        timerReg = 0;
+        UpdateTACInput();
+        
+    }
+    break;
 	case 0xFF05:
 		TIMA = value; break;
 	case 0xFF06:
 		TMA = value; break;
-	case 0xFF07:
-		TAC = value | 0xF8; break;
+    case 0xFF07: {
+        bool wasEnabled = TAC & 0x04;
+        bool wasHigh = TACInput == 1;
+        TAC = value | 0xF8;
+        UpdateTACInput();
+        if (wasEnabled)
+            UpdateTIMA(wasHigh);
+    }
+    break;
 	}
+}
+
+void Timer::UpdateTACInput() {
+    u8 timeFreq = TIMABits[TAC & 0x03];
+    TACInput = (timerReg >> timeFreq) & 0x01;
+}
+
+void Timer::UpdateTIMA(u8 wasHigh) {
+    if (TAC & 0x04) { // is on
+        if (wasHigh && TACInput == 0) {
+            TIMA++;
+            if (TIMA == 0) {
+                TIMA = TMA;
+                interruptService.SetInterruptFlag(InterruptFlag::Timer);
+            }
+        }
+    }
 }
